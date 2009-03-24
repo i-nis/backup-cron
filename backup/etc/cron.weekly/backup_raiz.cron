@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# backup_raiz.cron: script para hacer copias de seguridad de la raíz del 
+# sistema.
+#
+# (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# Distributed under the terms of the GNU General Public License v2
+
+
+
+# Variables a editar por el usuario:
+# BACKUP_PATH: Ubicación de la copia de seguridad
+BACKUP_PATH="/home/admin/backup/system"
+
+# Opciones de copia de seguridad con tar y bzip2
+HOME_PATH="/"
+FECHA=$(date +%G%m%d)
+HOST=`hostname`
+FILE="backup-$HOST-raiz"
+EXT="tar.bz2"
+
+# Variables de tmpwatch
+# (Requiere el paquete app-admin/tmpwatch)
+# TMPWATCH: ruta al binario de tmpwatch
+# MTIME: tiempo de modificación utilizado para borrar archivos 
+# por defecto 720 (1 mes)
+TMPWATCH="/usr/sbin/tmpwatch"
+MTIME="180"
+
+
+
+# Verificación de existencia para $BACKUP_PATH
+if [ ! -e $BACKUP_PATH ]
+  then
+    mkdir --parents --mode=755 $BACKUP_PATH
+  fi
+
+
+
+# Creación de archivo comprimido según la fecha del día
+cd $HOME_PATH
+
+tar cf - $HOME_PATH --exclude=/home/* --exclude=/mnt/zip/* --exclude=/proc/* \
+--exclude=/tmp/* --exclude=/sys/* --exclude=/usr/* --exclude=/var/* \
+--exclude=/lost+found | bzip2 -f > $BACKUP_PATH/$FILE-$FECHA.$EXT
+
+
+
+# Borrado de copias de seguridad antiguas con tmpwatch
+if [[ -d $BACKUP_PATH ]]; then
+  ${TMPWATCH} --mtime $MTIME $BACKUP_PATH
+fi
+
