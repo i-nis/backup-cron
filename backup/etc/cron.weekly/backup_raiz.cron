@@ -41,8 +41,8 @@ if [ ! -e $BACKUP_PATH ]
 cd $HOME_PATH
 
 tar cf - $HOME_PATH --exclude=/home/* --exclude=/mnt/zip/* --exclude=/proc/* \
---exclude=/tmp/* --exclude=/sys/* --exclude=/usr/* --exclude=/var/* \
---exclude=/lost+found | bzip2 -f > $BACKUP_PATH/$FILE-$FECHA.$EXT
+--exclude=/tmp/* --exclude=/srv/* --exclude=/sys/* --exclude=/usr/* \
+--exclude=/var/* --exclude=/lost+found | bzip2 -f > $BACKUP_PATH/$FILE-$FECHA.$EXT
 
 
 
