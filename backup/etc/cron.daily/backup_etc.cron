@@ -18,11 +18,14 @@ BACKUP_PATH="/home/admin/backup/etc"
 FECHA=$(date +%G%m%d)
 FILE="backup-etc-$FECHA.tar.bz2"
 
+# Algoritmos para verificar sumas
+HASHES="md5sum sha1sum"
+
 # Variables de tmpwatch
 # (Requiere el paquete app-admin/tmpwatch)
 # TMPWATCH: ruta al binario de tmpwatch
 # MTIME: tiempo de modificación utilizado para borrar archivos 
-# por defecto 2160 (3 meses)
+# por defecto 720 (1 mes)
 TMPWATCH="/usr/sbin/tmpwatch"
 MTIME="720"
 
@@ -39,6 +42,14 @@ if [ ! -e $BACKUP_PATH ]
 
 # Creación de archivo comprimido según la fecha del día
 tar cpf - /etc | bzip2 -f > $BACKUP_PATH/$FILE
+
+
+# Creación del archivo de sumas MD5 y SHA1
+cd $BACKUP_PATH
+
+for hash in $HASHES; do
+  $hash $FILE >> $FILE.DIGEST
+done
 
 
 
