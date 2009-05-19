@@ -21,6 +21,9 @@ HOST=`hostname`
 FILE="backup-$HOST-usr"
 EXT="tar.bz2"
 
+# Algoritmos para verificar sumas
+HASHES="md5sum sha1sum"
+
 # Variables de tmpwatch
 # (Requiere el paquete app-admin/tmpwatch)
 # TMPWATCH: ruta al binario de tmpwatch
@@ -44,6 +47,14 @@ cd $HOME_PATH
 
 tar cpf - $HOME_PATH --exclude=/usr/portage/* | bzip2 -f > \
 $BACKUP_PATH/$FILE-$FECHA.$EXT
+
+
+# Creación del archivo de sumas MD5 y SHA1
+cd $BACKUP_PATH
+
+for hash in $HASHES; do
+  $hash $FILE-$FECHA.$EXT >> $FILE-$FECHA.$EXT.DIGEST
+done
 
 
 
