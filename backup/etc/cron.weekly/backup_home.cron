@@ -56,7 +56,7 @@ do
   done
 
   if  [ "$omite" = "FALSE" ]; then
-    tar cf - $directory | bzip2 -f > \
+    tar cpf - $directory | bzip2 -f > \
     $BACKUP_PATH/$FILE-$directory-$FECHA.$EXT
   fi
 

@@ -73,7 +73,7 @@ for database in `find * -type d -maxdepth 0`;
 
 # Creación de archivo comprimido según la fecha del día
 cd $BACKUP_PATH
-tar cf - *.sql | bzip2 -f > $FILE
+tar cpf - *.sql | bzip2 -f > $FILE
 rm -f *.sql
 
 

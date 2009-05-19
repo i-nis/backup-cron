@@ -36,7 +36,7 @@ if [ ! -e $BACKUP_PATH ]
 
 
 # Creación de archivo comprimido según la fecha del día
-tar cf - /etc | bzip2 -f > $BACKUP_PATH/$FILE
+tar cpf - /etc | bzip2 -f > $BACKUP_PATH/$FILE
 
 
 
