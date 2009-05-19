@@ -50,7 +50,7 @@ rm -rf $BACKUP_PATH/etc/*
 
 
 # Creación de archivo comprimido según la fecha del día
-tar cf - /etc | bzip2 -f > $BACKUP_PATH/etc/$FILE
+tar cpf - /etc | bzip2 -f > $BACKUP_PATH/etc/$FILE
     
 
 
