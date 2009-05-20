@@ -21,6 +21,9 @@ FECHA=$(date +%G%m%d)
 FILE="backup"
 EXT="tar.bz2"
 
+# Algoritmos para verificar sumas
+HASHES="md5sum sha1sum"
+
 # Variables de tmpwatch
 # (Requiere el paquete app-admin/tmpwatch)
 # TMPWATCH: ruta al binario de tmpwatch
@@ -42,7 +45,7 @@ if [ ! -e $BACKUP_PATH ]
 # Creación de archivo comprimido según la fecha del día
 cd $HOME_PATH
 
-for directory in $(find * -maxdepth 0);
+for directory in $(find * -maxdepth 0 -type d);
 do
 
   omite="FALSE"
@@ -60,6 +63,18 @@ do
     tar cpf - $directory | bzip2 -f > \
     $BACKUP_PATH/$FILE-$directory-$FECHA.$EXT
   fi
+
+done
+
+
+# Creación del archivo de sumas MD5 y SHA1
+cd $BACKUP_PATH
+
+for file in $(find *-$FECHA.$EXT -maxdepth 0 -type f); do
+
+  for hash in $HASHES; do
+    $hash $file >> $file.DIGEST
+  done
 
 done
 
