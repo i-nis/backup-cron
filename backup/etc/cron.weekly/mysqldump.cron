@@ -104,4 +104,4 @@ fi
 
 # Desmontar BACKUP_ZIP
 umount $BACKUP_ZIP
- -maxdepth 0
+
