@@ -69,7 +69,7 @@ rm -rf $BACKUP_ZIP/mysql/*
 # Volcado de bases de datos en SQL
 cd $MYSQL_PATH
 
-for database in `find * -type d -maxdepth 0`;
+for database in `find * -maxdepth 0 -type d`;
   do
     mysqldump $OPTIONS $database > $BACKUP_PATH/$database.sql
   done
@@ -104,4 +104,4 @@ fi
 
 # Desmontar BACKUP_ZIP
 umount $BACKUP_ZIP
-
+ -maxdepth 0
