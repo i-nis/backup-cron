@@ -13,7 +13,7 @@
 # BACKUP_PATH: Ubicación de la copia de seguridad
 # OMITIR: listado de directorios a omitir.
 BACKUP_PATH="/home/admin/backup/home"
-OMITIR="admin aquota.user aquota.group cache portage public_ftp samba spamtrap"
+OMITIR="aquota.user aquota.group cache portage public_ftp samba spamtrap"
 
 # Opciones de copia de seguridad con tar y bzip2
 HOME_PATH="/home"
@@ -60,7 +60,7 @@ do
   done
 
   if  [ "$omite" = "FALSE" ]; then
-    tar cpf - $directory | bzip2 -f > \
+    tar cpf - $directory --exclude=backup/*/* | bzip2 -f > \
     $BACKUP_PATH/$FILE-$directory-$FECHA.$EXT
   fi
 
