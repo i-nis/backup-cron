@@ -10,13 +10,15 @@
 
 
 
+HOST=`hostname`
+
 # Variables a editar por el usuario:
 # BACKUP_PATH: Ubicación de la copia de seguridad
 BACKUP_PATH="/mnt/zip"
 
 # Opciones de copia de seguridad con tar y bzip2
 FECHA=$(date +%G%m%d)
-FILE="backup-etc-$FECHA.tar.bz2"
+FILE="backup-$HOST-etc-$FECHA.tar.bz2"
 
 # Algoritmos para verificar sumas
 HASHES="md5sum sha1sum"

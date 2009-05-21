@@ -10,6 +10,8 @@
 
 
 
+HOST=`hostname`
+
 # Variables a editar por el usuario:
 # USER: Usuario de la base de datos MySQL
 # PASSWD: contraseña de la base de datos MySQL
@@ -17,7 +19,7 @@
 
 USER="root"
 PASSWD="yourpassword"
-BACKUP_PATH="/home/admin/backup/mysql"
+BACKUP_PATH="/home/admin/backup/$HOST/mysql"
 BACKUP_ZIP="/mnt/zip"
 
 # Variables para mysqldump
@@ -26,7 +28,7 @@ MYSQL_PATH="/var/lib/mysql"
 
 # Opciones de copia de seguridad con tar y bzip2
 FECHA=$(date +%G%m%d)
-FILE="backup-mysql-$FECHA.tar.bz2"
+FILE="backup-$HOST-mysql-$FECHA.tar.bz2"
 
 # Algoritmos para verificar sumas
 HASHES="md5sum sha1sum"
