@@ -11,6 +11,7 @@
 
 
 HOST=`hostname`
+NAME="mysqldump.cron"
 
 # Variables a editar por el usuario:
 # USER: Usuario de la base de datos MySQL
@@ -42,9 +43,19 @@ MTIME="180"
 
 
 
+# Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
+# denominada logger. Para más detalles vea: man logger
+message_syslog () {
+  local MESSAGE="$1"
+  logger -i -t $NAME $MESSAGE
+}
+
+
+
 # Verificación de existencia para $BACKUP_PATH
 if [ ! -e $BACKUP_PATH ]; then
   mkdir --parents --mode=755 $BACKUP_PATH
+  message_syslog "Se creó el directorio $BACKUP_PATH"
 fi
 
  
@@ -55,6 +66,7 @@ cd $MYSQL_PATH
 for database in `find * -maxdepth 0 -type d`;
   do
     mysqldump $OPTIONS $database > $BACKUP_PATH/$database.sql
+    message_syslog "La base de datos $database fue extraida."
   done
 
 
@@ -63,12 +75,14 @@ for database in `find * -maxdepth 0 -type d`;
 cd $BACKUP_PATH
 tar cpf - *.sql | bzip2 -f > $FILE
 rm -f *.sql
+message_syslog "Se creó el archivo de respaldo $FILE"
 
 
 # Creación del archivo de sumas MD5 y SHA1
-
 for hash in $HASHES; do
-  $hash $FILE >> $FILE.DIGEST
+  SUM=`$hash $FILE`
+  echo "$SUM" >> $FILE.DIGEST
+  message_syslog "Suma $hash creada: $SUM"
 done
     
 
@@ -76,5 +90,6 @@ done
 # Borrado de copias de seguridad antiguas con tmpwatch
 if [[ -d $BACKUP_PATH ]]; then
   ${TMPWATCH} --mtime $MTIME $BACKUP_PATH
+  message_syslog "Borrando copias con antigüedad mayor a $MTIME horas."
 fi
 
