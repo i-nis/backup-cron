@@ -11,7 +11,7 @@ IUSE=""
 LICENSE="GPL v3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="sys-process/vixie-cron app-admin/tmpwatch"
+DEPEND="app-admin/tmpwatch sys-process/vixie-cron virtual/mysql"
 
 src_unpack() {
     ECVS_SERVER="cvs.i-nis.com.ar:/home/cvs"
