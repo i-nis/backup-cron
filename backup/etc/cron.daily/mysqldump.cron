@@ -52,11 +52,22 @@ message_syslog () {
 
 
 
+# Función para verificar la existencia de un directorio. Si este no existe es
+# creado. Recibe como argumento el nombre del directorio a verificar. 
+directory_mkdir() {
+  local DIRECTORY="$1"
+
+  if [ ! -e $DIRECTORY ]; then
+    mkdir --parents --mode=755 $DIRECTORY
+    message_syslog "El directorio $DIRECTORY fue creado"
+  fi
+
+}
+
+
+
 # Verificación de existencia para $BACKUP_PATH
-if [ ! -e $BACKUP_PATH ]; then
-  mkdir --parents --mode=755 $BACKUP_PATH
-  message_syslog "Se creó el directorio $BACKUP_PATH"
-fi
+directory_mkdir "$BACKUP_PATH"
 
  
 
@@ -75,14 +86,14 @@ for database in `find * -maxdepth 0 -type d`;
 cd $BACKUP_PATH
 tar cpf - *.sql | bzip2 -f > $FILE
 rm -f *.sql
-message_syslog "Se creó el archivo de respaldo $FILE"
+message_syslog "El archivo de respaldo $FILE fue creado"
 
 
 # Creación del archivo de sumas MD5 y SHA1
 for hash in $HASHES; do
   SUM=`$hash $FILE`
   echo "$SUM" >> $FILE.DIGEST
-  message_syslog "Suma $hash creada: $SUM"
+  message_syslog "La suma $hash fue creada: $SUM"
 done
     
 
@@ -90,6 +101,6 @@ done
 # Borrado de copias de seguridad antiguas con tmpwatch
 if [[ -d $BACKUP_PATH ]]; then
   ${TMPWATCH} --mtime $MTIME $BACKUP_PATH
-  message_syslog "Borrando copias con antigüedad mayor a $MTIME horas."
+  message_syslog "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
 fi
 
