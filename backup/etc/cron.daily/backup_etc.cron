@@ -28,9 +28,9 @@ HASHES="md5sum sha1sum sha256sum"
 # (Requiere el paquete app-admin/tmpwatch)
 # TMPWATCH: ruta al binario de tmpwatch
 # MTIME: tiempo de modificación utilizado para borrar archivos 
-# por defecto 720 (1 mes)
+# por defecto 180 (1 semana)
 TMPWATCH="/usr/sbin/tmpwatch"
-MTIME="720"
+MTIME="180"
 
 
 
