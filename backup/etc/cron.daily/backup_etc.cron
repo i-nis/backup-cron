@@ -11,6 +11,7 @@
 
 
 HOST=`hostname`
+NAME="backup_etc.cron"
 
 # Variables a editar por el usuario:
 # BACKUP_PATH: Ubicación de la copia de seguridad
@@ -21,7 +22,7 @@ FECHA=$(date +%G%m%d)
 FILE="backup-$HOST-etc-$FECHA.tar.bz2"
 
 # Algoritmos para verificar sumas
-HASHES="md5sum sha1sum"
+HASHES="md5sum sha1sum sha256sum"
 
 # Variables de tmpwatch
 # (Requiere el paquete app-admin/tmpwatch)
@@ -33,24 +34,47 @@ MTIME="720"
 
 
 
-# Verificación de existencia para $BACKUP_PATH
-if [ ! -e $BACKUP_PATH ]
-  then
-    mkdir --parents --mode=755 $BACKUP_PATH
+# Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
+# denominada logger. Para más detalles vea: man logger
+message_syslog () {
+  local MESSAGE="$1"
+  logger -i -t $NAME $MESSAGE
+}
+
+
+
+# Función para verificar la existencia de un directorio. Si este no existe es
+# creado. Recibe como argumento el nombre del directorio a verificar. 
+directory_mkdir() {
+  local DIRECTORY="$1"
+
+  if [ ! -e $DIRECTORY ]; then
+    mkdir --parents --mode=755 $DIRECTORY
+    message_syslog "El directorio $DIRECTORY fue creado"
   fi
+
+}
+
+
+
+# Verificación de existencia para $BACKUP_PATH
+directory_mkdir "$BACKUP_PATH"
   
 
 
 
 # Creación de archivo comprimido según la fecha del día
 tar cpf - /etc | bzip2 -f > $BACKUP_PATH/$FILE
+message_syslog "El archivo de respaldo $FILE fue creado"
 
 
-# Creación del archivo de sumas MD5 y SHA1
+# Creación del archivo de sumas MD5, SHA1 y SHA256
 cd $BACKUP_PATH
 
 for hash in $HASHES; do
-  $hash $FILE >> $FILE.DIGEST
+  SUM=`$hash $FILE`
+  echo "$SUM" >> $FILE.DIGEST
+  message_syslog "La suma $hash fue creada: $SUM"
 done
 
 
@@ -58,5 +82,6 @@ done
 # Borrado de copias de seguridad antiguas con tmpwatch
 if [[ -d $BACKUP_PATH ]]; then
   ${TMPWATCH} --mtime $MTIME $BACKUP_PATH
+  message_syslog "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
 fi
 
