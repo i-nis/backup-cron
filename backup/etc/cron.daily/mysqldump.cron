@@ -31,7 +31,7 @@ FECHA=$(date +%G%m%d)
 FILE="backup-$HOST-mysql-$FECHA.tar.bz2"
 
 # Algoritmos para verificar sumas
-HASHES="md5sum sha1sum"
+HASHES="md5sum sha1sum sha256sum"
 
 # Variables de tmpwatch
 # (Requiere el paquete app-admin/tmpwatch)
