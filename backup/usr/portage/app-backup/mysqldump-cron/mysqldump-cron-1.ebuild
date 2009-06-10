@@ -14,18 +14,23 @@ KEYWORDS="amd64 x86"
 DEPEND="app-admin/tmpwatch sys-process/vixie-cron virtual/mysql"
 
 src_unpack() {
-    ECVS_SERVER="cvs.i-nis.com.ar:/home/cvs"
-    ECVS_USER="anonymous"
-    ECVS_PASS="anonymous"
-    ECVS_AUTH="pserver"
-    ECVS_MODULE="gnu+linux/servidores/backup/etc/cron.daily"
-    ECVS_TOP_DIR="${DISTDIR}/cvs-src/${ECVS_MODULE}"
-    cvs_src_unpack
+  ECVS_SERVER="cvs.i-nis.com.ar:/home/cvs"
+  ECVS_USER="anonymous"
+  ECVS_PASS="anonymous"
+  ECVS_AUTH="pserver"
+  ECVS_MODULE="gnu+linux/servidores/backup/etc/cron.daily"
+  ECVS_TOP_DIR="${DISTDIR}/cvs-src/${ECVS_MODULE}"
+  cvs_src_unpack
 }
 
 src_install() {
-	dodir /etc/cron.daily
-	cp -pR ${WORKDIR}/${ECVS_MODULE}/mysqldump.cron ${D}/etc/cron.daily
-	fperms 700 /etc/cron.daily/mysqldump.cron
+  dodir /etc/cron.daily
+  cp -pR ${WORKDIR}/${ECVS_MODULE}/mysqldump.cron ${D}/etc/cron.daily
+  fperms 700 /etc/cron.daily/mysqldump.cron
+}
+
+pkg_postinst() {
+  local file="${ROOT}etc/cron.daily/mysqldump.cron"
+  einfo "Don't forget set root password in PASSWD parameter at '${file}' script."
 }
 
