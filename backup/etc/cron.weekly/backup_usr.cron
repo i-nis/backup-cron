@@ -69,7 +69,7 @@ cd $HOME_PATH
 
 tar cpf - $HOME_PATH --exclude=/usr/portage/* | bzip2 -f > \
 $BACKUP_PATH/$FILE-$FECHA.$EXT
-message_syslog "El archivo de respaldo $FILE fue creado"
+message_syslog "El archivo de respaldo $FILE-$FECHA.$EXT fue creado"
 
 
 # Creación del archivo de sumas MD5 y SHA1
