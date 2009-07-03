@@ -36,6 +36,10 @@ HASHES="md5sum sha1sum sha256sum"
 TMPWATCH="/usr/sbin/tmpwatch"
 MTIME="180"
 
+# Copiar archivos de respaldo a servidor remoto vía SCP
+REMOTE_IP=""
+REMOTE_USER="admin"
+
 
 
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
@@ -57,6 +61,19 @@ directory_mkdir() {
     message_syslog "El directorio $DIRECTORY fue creado"
   fi
 
+}
+
+
+
+# Función para copiar archivos de respaldo en servidores remotos
+remote_backup() {
+  local file="$1"
+
+  if [  ! `scp $file $REMOTE_USER@$REMOTE_IP:$BACKUP_PATH` ]; then
+    message_syslog "El archivo $file fue copiado al servidor $REMOTE_IP"
+  else
+    message_syslog "El archivo $file no pudo ser copiado al servidor $REMOTE_IP"
+  fi
 }
 
 
@@ -102,6 +119,12 @@ for file in $(find *-$FECHA.$EXT -maxdepth 0 -type f); do
     echo "$SUM" >> $file.DIGEST
     message_syslog "La suma $hash fue creada: $SUM"
   done
+  
+  # Copia de archivo de respaldo a servidor remoto.
+  if [ "$REMOTE_IP" != "" ]; then
+    remote_backup "$file"
+    remote_backup "$file.DIGEST"
+  fi
 
 done
 
