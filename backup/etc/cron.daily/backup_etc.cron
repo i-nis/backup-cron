@@ -104,7 +104,7 @@ fi
 
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ REMOTE_IP != "" ]; then
+if [ "$REMOTE_IP" != "" ]; then
   remote_backup "$FILE"
   remote_backup "$FILE.DIGEST"
 fi
