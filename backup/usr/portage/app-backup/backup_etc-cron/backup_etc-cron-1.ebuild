@@ -24,7 +24,7 @@ src_unpack() {
 }
 
 src_install() {
-	dodir /etc/cron.weekly
+	dodir /etc/cron.daily
 	cp -pR ${WORKDIR}/${ECVS_MODULE}/backup_etc.cron ${D}/etc/cron.daily
 	fperms 700 /etc/cron.daily/backup_etc.cron
 }
