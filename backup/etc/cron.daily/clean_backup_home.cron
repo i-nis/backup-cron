@@ -29,7 +29,7 @@ HOSTS=`ls -1 $BACKUP_PATH`
 for host in $HOSTS; do
 
   if [[ -d $BACKUP_PATH ]]; then
-    ${TMPWATCH} --mtime $MTIME $BACKUP_PATH/$host/system
+    ${TMPWATCH} --mtime $MTIME $BACKUP_PATH/$host/home
   fi
 
 done
