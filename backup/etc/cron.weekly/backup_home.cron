@@ -22,7 +22,7 @@ OMITIR="aquota.user aquota.group cache portage public_ftp samba spamtrap"
 # Opciones de copia de seguridad con tar y bzip2
 HOME_PATH="/home"
 FECHA=$(date +%G%m%d)
-FILE="backup"
+FILE="backup-$HOST"
 EXT="tar.bz2"
 
 # Algoritmos para verificar sumas
