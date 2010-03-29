@@ -27,7 +27,7 @@ directory_mkdir() {
 
   if [ ! -e $DIRECTORY ]; then
     mkdir --parents --mode=755 $DIRECTORY
-    message_syslog "El directorio $DIRECTORY fue creado"
+    message_syslog "$NAME" "El directorio $DIRECTORY fue creado"
   fi
 
 }
@@ -72,12 +72,16 @@ dump_mysql() {
 
 # Función para copiar archivos de respaldo en servidores remotos
 remote_backup() {
-  local file="$1"
+  local NAME="$1"
+  local FILE="$2"
+  local USER="$3"
+  local IP="$4"
+  local PATH="$5"
 
-  if [  ! `scp $file $REMOTE_USER@$REMOTE_IP:$BACKUP_PATH` ]; then
-    message_syslog "El archivo $file fue copiado al servidor $REMOTE_IP"
+  if [  ! `scp $FILE $USER@$IP:$PATH` ]; then
+    message_syslog "$NAME" "El archivo $file fue copiado al servidor $IP"
   else
-    message_syslog "El archivo $file no pudo ser copiado al servidor $REMOTE_IP"
+    message_syslog "$NAME" "El archivo $file no pudo ser copiado al servidor $IP"
   fi
 }
 

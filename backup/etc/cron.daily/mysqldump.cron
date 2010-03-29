@@ -16,7 +16,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BDB_BACKUP_PATH"
+directory_mkdir "$BDB_NAME" "$BDB_BACKUP_PATH"
 
  
 
@@ -29,14 +29,14 @@ dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH" "$TAPE" "disk"
 cd $BDB_BACKUP_PATH
 tar cpf - *.sql | bzip2 -f > $BDB_FILE
 rm -f *.sql
-message_syslog "El archivo de respaldo $BDB_FILE fue creado"
+message_syslog "$BDB_NAME" "El archivo de respaldo $BDB_FILE fue creado"
 
 
 # Creación del archivo de sumas MD5 y SHA1
 for hash in $HASHES; do
   SUM=`$hash $BDB_FILE`
   echo "$SUM" >> $BDB_FILE.DIGEST
-  message_syslog "La suma $hash fue creada: $SUM"
+  message_syslog "$BDB_NAME" "La suma $hash fue creada: $SUM"
 done
     
 
@@ -44,14 +44,14 @@ done
 # Borrado de copias de seguridad antiguas con tmpwatch
 if [[ -d $BDB_BACKUP_PATH ]]; then
   ${TMPWATCH} --mtime $MTIME $BDB_BACKUP_PATH
-  message_syslog "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
+  message_syslog "$BDB_NAME" "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
 fi
 
 
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BDB_FILE"
-  remote_backup "$BDB_FILE.DIGEST"
+  remote_backup "$BDB_FILE" "$REMOTE_IP""$REMOTE_USER" "$BDB_BACKUP_PATH"
+  remote_backup "$BDB_FILE.DIGEST" "$REMOTE_IP""$REMOTE_USER" "$BDB_BACKUP_PATH"
 fi
 
