@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# backup_tape.cron: script para hacer copias de seguridad de la raíz del 
+# sistema.
+#
+# (C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+# Revision : $Id$
+
+
+
+source /etc/backup-cron/backup-cron.conf
+source /usr/libexec/backup-cron/backup-cron_functions.sh
+
+
+
+tapebackup () {
+  dump_mysql "$BTAPE_NAME" "$BDB_OPTIONS" "$TAPE" "tape"
+}
+
+
+
+if [ -c $TAPE ]; then
+  tapebackup
+fi
+
