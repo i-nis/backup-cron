@@ -1,4 +1,4 @@
-# C) 2006 - 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 # $Header$
 
@@ -11,7 +11,7 @@ IUSE=""
 LICENSE="GPL v3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch app-admin/tmpreaper sys-process/vixie-cron virtual/mysql"
+DEPEND="app-admin/tmpwatch app-admin/tmpreaper sys-process/vixie-cron virtual/backup-cron virtual/mysql"
 
 src_unpack() {
   ECVS_SERVER="cvs.i-nis.com.ar:/home/cvs"
@@ -30,7 +30,7 @@ src_install() {
 }
 
 pkg_postinst() {
-  local file="${ROOT}etc/cron.daily/mysqldump.cron"
-  einfo "Don't forget set root password in PASSWD parameter at '${file}' script."
+  local file="${ROOT}etc/backup-cron/backup-cron.conf"
+  einfo "Don't forget set root password in BDB_PASSWD parameter at '${file}' script."
 }
 
