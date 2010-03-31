@@ -70,6 +70,22 @@ dump_mysql() {
 
 
 
+# Función para generar sumas MD5, SHA1, SHA256, etc
+gensum() {
+  local NAME="$1"
+  local SUM_HASHES="$2"
+  local FILE="$3"
+  
+  for hash in $SUM_HASHES; do
+    SUM=`$hash $FILE`
+    echo "$SUM" >> $FILE.DIGEST
+    message_syslog "$NAME" "La suma $hash fue creada: $SUM"
+  done
+  
+}
+
+
+
 # Función para copiar archivos de respaldo en servidores remotos
 remote_backup() {
   local NAME="$1"
