@@ -32,12 +32,8 @@ rm -f *.sql
 message_syslog "$BDB_NAME" "El archivo de respaldo $BDB_FILE fue creado"
 
 
-# Creación del archivo de sumas MD5 y SHA1
-for hash in $HASHES; do
-  SUM=`$hash $BDB_FILE`
-  echo "$SUM" >> $BDB_FILE.DIGEST
-  message_syslog "$BDB_NAME" "La suma $hash fue creada: $SUM"
-done
+# Creación del archivo de sumas MD5, SHA1 y SHA256
+gensum "$BDB_NAME" "$HASHES" "$BDB_FILE"
     
 
 
