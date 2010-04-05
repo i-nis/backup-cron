@@ -41,7 +41,7 @@ fi
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BETC_FILE"
-  remote_backup "$BETC_FILE.DIGEST"
+  remote_backup "$BETC_NAME" "$BETC_FILE" "$REMOTE_IP""$REMOTE_USER" "$BETC_BACKUP_PATH"
+  remote_backup "$BETC_NAME" "$BETC_FILE.DIGEST" "$REMOTE_IP""$REMOTE_USER" "$BETC_BACKUP_PATH"
 fi
 
