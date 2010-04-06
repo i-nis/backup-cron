@@ -18,17 +18,17 @@ src_unpack() {
   ECVS_USER="anonymous"
   ECVS_PASS="anonymous"
   ECVS_AUTH="pserver"
-  ECVS_MODULE="gnu+linux/servidores/backup/etc/backup-cron"
+  ECVS_MODULE="gnu+linux/servidores/backup"
   ECVS_TOP_DIR="${DISTDIR}/cvs-src/${ECVS_MODULE}"
   cvs_src_unpack
 }
 
 src_install() {
   dodir /etc/backup-cron
-  cp -pR ${WORKDIR}/${ECVS_MODULE}/backup-cron.conf ${D}/etc/backup-cron
-  fperms 700 /etc/backup-cron/backup-cron.conf
+  dodir /usr/libexec/backup-cron
+  cp -pR ${WORKDIR}/${ECVS_MODULE}/etc/backup-cron/backup-cron.conf ${D}/etc/backup-cron
+  cp -pR ${WORKDIR}/${ECVS_MODULE}/usr/libexec/backup-cron/backup-cron_functions.sh ${D}/usr/libexec/backup-cron/
+  fperms 600 /etc/backup-cron/backup-cron.conf
 }
 
-pkg_postinst() {
-}
 
