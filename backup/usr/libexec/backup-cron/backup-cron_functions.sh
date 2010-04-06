@@ -49,8 +49,7 @@ dump_mysql() {
   if [ -d $MYSQL_PATH ]; then
     cd $MYSQL_PATH
     
-    for database in `find * -maxdepth 0 -type d`;
-      do
+    for database in $(find * -maxdepth 0 -type d); do
 
         case $MODE in
           disk )
@@ -87,8 +86,7 @@ home_backup() {
   
   cd $BACKUP_PATH
     
-  for directory in $(find * -maxdepth 0 -type d);
-    do
+  for directory in $(find * -maxdepth 0 -type d); do
 
       case $MODE in
         disk )
@@ -104,6 +102,25 @@ home_backup() {
 
     done
 
+}
+
+
+
+# Función para respaldar otros directorios
+other_backup() {
+  local NAME="$1"
+  local TAPE="$2"
+  local DIRS="$3"
+  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
+  
+  for directory in $DIRS; do
+  
+    if [ -d $directory ]; then  
+      tar $TAR_OPTS $TAPE $directory
+      message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
+    fi
+  
+  done
 }
 
 
