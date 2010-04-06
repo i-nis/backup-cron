@@ -15,8 +15,8 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BETC_NAME" "$BACKUP_PATH"
+# Verificación de existencia para $BETC_BACKUP_PATH
+directory_mkdir "$BETC_NAME" "$BETC_BACKUP_PATH"
   
 
 
@@ -26,7 +26,7 @@ message_syslog "$BETC_NAME" "El archivo de respaldo $BETC_FILE fue creado"
 
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
-cd $BACKUP_PATH
+cd $BETC_BACKUP_PATH
 gensum "$BETC_NAME" "$HASHES" "$BETC_FILE"
 
 
