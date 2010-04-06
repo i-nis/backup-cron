@@ -23,7 +23,8 @@ message_syslog () {
 # Función para verificar la existencia de un directorio. Si este no existe es
 # creado. Recibe como argumento el nombre del directorio a verificar. 
 directory_mkdir() {
-  local DIRECTORY="$1"
+  local NAME="$1"
+  local DIRECTORY="$2"
 
   if [ ! -e $DIRECTORY ]; then
     mkdir --parents --mode=755 $DIRECTORY
@@ -43,7 +44,7 @@ dump_mysql() {
   local TAPE="$4"
   local MODE="$5"
   local MYSQL_PATH="/var/lib/mysql"
-  local TAR_OPTS="--create --bzip2 --preserve-permissions"
+  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
 
   if [ -d $MYSQL_PATH ]; then
     cd $MYSQL_PATH
@@ -54,17 +55,54 @@ dump_mysql() {
         case $MODE in
           disk )
             mysqldump $OPTIONS $database > $BACKUP_PATH/$database.sql
+            message_syslog $NAME "La base de datos $database fue extraida."
             ;;
           tape )
             mysqldump $OPTIONS $database | tar $TAR_OPTS $TAPE
+            message_syslog $NAME "La base de datos $database fue respaldada en $TAPE."
             ;;
         esac
-        
-        message_syslog $NAME "La base de datos $database fue extraida."
 
       done
       
   fi
+
+}
+
+
+
+# Función para respaldar /home
+home_backup() {
+  local NAME="$1"
+  local HOME_PATH="$2"
+  local BACKUP_PATH="$3"
+  local TAPE="$4"
+  local MODE="$5"
+  local directory=""
+  local HOST=`hostname`
+  local FECHA=$(date +%G%m%d)
+  local FILE="backup-$HOST"
+  local EXT="tar.bz2"
+  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
+  
+  cd $BACKUP_PATH
+    
+  for directory in $(find * -maxdepth 0 -type d);
+    do
+
+      case $MODE in
+        disk )
+          tar --exclude=backup/*/* --exclude=lost+found $TAR_OPTS \
+          $BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT $directory
+          message_syslog "$NAME" "El archivo de respaldo $FILE-$directory-$FECHA.$EXT fue creado"
+          ;;
+        tape )
+          tar --exclude=backup/*/* --exclude=lost+found $TAR_OPTS $TAPE $directory
+          message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
+          ;;
+      esac
+
+    done
 
 }
 
