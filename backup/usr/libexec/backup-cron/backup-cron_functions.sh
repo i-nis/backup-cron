@@ -89,9 +89,9 @@ home_backup() {
   local EXT="tar.bz2"
   local TAR="/bin/tar"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-  
-  cd $BACKUP_PATH
-    
+
+  cd $HOME_PATH
+
   for directory in $($FIND * -maxdepth 0 -type d); do
 
       case $MODE in
@@ -119,9 +119,9 @@ other_backup() {
   local DIRS="$3"
   local TAR="/bin/tar"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-  
+
   for directory in $DIRS; do
-  
+
     if [ -d $directory ]; then  
       $TAR $TAR_OPTS $TAPE $directory
       message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
