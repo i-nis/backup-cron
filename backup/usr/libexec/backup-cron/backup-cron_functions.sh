@@ -15,7 +15,8 @@
 message_syslog () {
   local NAME="$1"
   local MESSAGE="$2"
-  logger -i -t $NAME $MESSAGE
+  local LOGGER="/usr/bin/logger"
+  $LOGGER -i -t $NAME $MESSAGE
 }
 
 
@@ -145,11 +146,12 @@ gensum() {
 remote_backup() {
   local NAME="$1"
   local FILE="$2"
-  local USER="$3"
-  local IP="$4"
+  local IP="$3"
+  local USER="$4"
   local PATH="$5"
+  local SCP="/usr/bin/scp"
 
-  if [  ! `scp $FILE $USER@$IP:$PATH` ]; then
+  if [  ! $($SCP $FILE $USER@$IP:$PATH) ]; then
     message_syslog "$NAME" "El archivo $file fue copiado al servidor $IP"
   else
     message_syslog "$NAME" "El archivo $file no pudo ser copiado al servidor $IP"
