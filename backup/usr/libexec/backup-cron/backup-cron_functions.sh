@@ -26,9 +26,10 @@ message_syslog () {
 directory_mkdir() {
   local NAME="$1"
   local DIRECTORY="$2"
+  local MKDIR="/bin/mkdir"
 
   if [ ! -e $DIRECTORY ]; then
-    mkdir --parents --mode=755 $DIRECTORY
+    $MKDIR --parents --mode=755 $DIRECTORY
     message_syslog "$NAME" "El directorio $DIRECTORY fue creado"
   fi
 
@@ -44,21 +45,23 @@ dump_mysql() {
   local BACKUP_PATH="$3"
   local TAPE="$4"
   local MODE="$5"
+  local FIND="/usr/bin/find"
+  local MYSQLDUMP="/usr/bin/mysqldump"
   local MYSQL_PATH="/var/lib/mysql"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
 
   if [ -d $MYSQL_PATH ]; then
     cd $MYSQL_PATH
     
-    for database in $(find * -maxdepth 0 -type d); do
+    for database in $($FIND * -maxdepth 0 -type d); do
 
         case $MODE in
           disk )
-            mysqldump $OPTIONS $database > $BACKUP_PATH/$database.sql
+            $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
             message_syslog $NAME "La base de datos $database fue extraida."
             ;;
           tape )
-            mysqldump $OPTIONS $database | tar $TAR_OPTS $TAPE
+            $MYSQLDUMP $OPTIONS $database | tar $TAR_OPTS $TAPE
             message_syslog $NAME "La base de datos $database fue respaldada en $TAPE."
             ;;
         esac
@@ -79,24 +82,26 @@ home_backup() {
   local TAPE="$4"
   local MODE="$5"
   local directory=""
+  local FIND="/usr/bin/find"
   local HOST=`hostname`
   local FECHA=$(date +%G%m%d)
   local FILE="backup-$HOST"
   local EXT="tar.bz2"
+  local TAR="/bin/tar"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
   
   cd $BACKUP_PATH
     
-  for directory in $(find * -maxdepth 0 -type d); do
+  for directory in $($FIND * -maxdepth 0 -type d); do
 
       case $MODE in
         disk )
-          tar --exclude=backup/*/* --exclude=lost+found $TAR_OPTS \
+          $TAR --exclude=backup/*/* --exclude=lost+found $TAR_OPTS \
           $BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT $directory
           message_syslog "$NAME" "El archivo de respaldo $FILE-$directory-$FECHA.$EXT fue creado"
           ;;
         tape )
-          tar --exclude=backup/*/* --exclude=lost+found $TAR_OPTS $TAPE $directory
+          $TAR --exclude=backup/*/* --exclude=lost+found $TAR_OPTS $TAPE $directory
           message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
           ;;
       esac
@@ -112,12 +117,13 @@ other_backup() {
   local NAME="$1"
   local TAPE="$2"
   local DIRS="$3"
+  local TAR="/bin/tar"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
   
   for directory in $DIRS; do
   
     if [ -d $directory ]; then  
-      tar $TAR_OPTS $TAPE $directory
+      $TAR $TAR_OPTS $TAPE $directory
       message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
     fi
   
