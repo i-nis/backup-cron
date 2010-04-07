@@ -96,12 +96,12 @@ home_backup() {
 
       case $MODE in
         disk )
-          $TAR --exclude=backup/*/* --exclude=lost+found $TAR_OPTS \
+          $TAR --exclude=backup/*/* $TAR_OPTS \
           $BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT $directory
           message_syslog "$NAME" "El archivo de respaldo $FILE-$directory-$FECHA.$EXT fue creado"
           ;;
         tape )
-          $TAR --exclude=backup/*/* --exclude=lost+found $TAR_OPTS $TAPE $directory
+          $TAR --exclude=backup/*/* $TAR_OPTS $TAPE $directory
           message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
           ;;
       esac
