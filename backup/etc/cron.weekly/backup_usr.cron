@@ -16,7 +16,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BUSR_NAME" "$BACKUP_PATH"
+directory_mkdir "$BUSR_NAME" "$BACKUP_PATH_SYS"
 
 
 

@@ -16,15 +16,15 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BVAR_NAME" "$BACKUP_PATH"
+directory_mkdir "$BVAR_NAME" "$BACKUP_PATH_SYS"
 
 
 
 # Creación de archivo comprimido según la fecha del día
 cd $BVAR_HOME_PATH
 
-tar cpf - $BVAR_HOME_PATH --exclude=/var/cache/squid/* --exclude=/var/cache/edb/* \ 
---exclude=/var/lost+found/* --exclude=/var/tmp/ccache/* --exclude=/var/tmp/portage/* \
+tar cpf - $BVAR_HOME_PATH --exclude=/var/cache/squid/* --exclude=/var/cache/edb/* \
+--exclude=/var/tmp/ccache/* --exclude=/var/tmp/portage/* \
 --exclude=/var/chroot/dns/var/log/bind/* | bzip2 -f > $BACKUP_PATH_SYS/$BVAR_FILE
 message_syslog "$BVAR_NAME" "El archivo de respaldo $BVAR_FILE fue creado"
 
