@@ -21,13 +21,13 @@ tape_control() {
   
   case $(mt --file=$TAPE $OP) in
     0 )
-      message_syslog $NAME "La operación $OP tuvo éxito."
+      message_syslog "$BTAPE_NAME" "La operación \"$OP\" tuvo éxito."
       ;;
     1 )
-      message_syslog $NAME "Operación \"$OP\" o dispositivo \"$TAPE\" inválidos."
+      message_syslog "$BTAPE_NAME" "Operación \"$OP\" o dispositivo \"$TAPE\" inválidos."
       ;;
     2 )
-      message_syslog $NAME "La operación $OP falló."
+      message_syslog "$BTAPE_NAME" "La operación \"$OP\" falló."
       ;;
   esac
 

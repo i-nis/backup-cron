@@ -58,11 +58,11 @@ dump_mysql() {
         case $MODE in
           disk )
             $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
-            message_syslog $NAME "La base de datos $database fue extraida."
+            message_syslog "$NAME" "La base de datos $database fue extraida."
             ;;
           tape )
             $MYSQLDUMP $OPTIONS $database | tar $TAR_OPTS $TAPE
-            message_syslog $NAME "La base de datos $database fue respaldada en $TAPE."
+            message_syslog "$NAME" "La base de datos $database fue respaldada en $TAPE."
             ;;
         esac
 
