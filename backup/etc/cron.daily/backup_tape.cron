@@ -15,13 +15,34 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
+# Función para controlar la unidad de cintas. Para mas detalles vea man (1) mt.
+tape_control() {
+  local OP="$1"
+  
+  case $(mt --file=$TAPE $OP) in
+    0 )
+      message_syslog $NAME "La operación $OP tuvo éxito."
+      ;;
+    1 )
+      message_syslog $NAME "La operación $OP o dispositivo $TAPE inválidos."
+      ;;
+    2 )
+      message_syslog $NAME "La operación $OP falló."
+      ;;
+  esac
+
+}
+
+
+
 # Función para realizar copias de respaldo en cinta.
 tapebackup () {
-  mt --file=$TAPE rewind
+  tape_control "erase"
+  tape_control "rewind"
   dump_mysql "$BTAPE_NAME" "$BDB_OPTIONS" "$TAPE" "tape"
   home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH" "$TAPE" "tape"
   other_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK"
-  mt --file=$TAPE rewoffl
+  tape_control "rewoffl"
 }
 
 
