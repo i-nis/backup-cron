@@ -15,10 +15,13 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
+# Función para realizar copias de respaldo en cinta.
 tapebackup () {
+  mt --file=$TAPE rewind
   dump_mysql "$BTAPE_NAME" "$BDB_OPTIONS" "$TAPE" "tape"
   home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH" "$TAPE" "tape"
   other_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK"
+  mt --file=$TAPE rewoffl
 }
 
 
