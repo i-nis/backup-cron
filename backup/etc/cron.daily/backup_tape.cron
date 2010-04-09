@@ -18,8 +18,9 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 # Función para controlar la unidad de cintas. Para mas detalles vea man (1) mt.
 tape_control() {
   local OP="$1"
+  local MT="/usr/sbin/mt"
   
-  case $(mt --file=$TAPE $OP) in
+  case $($MT --file=$TAPE $OP) in
     0 )
       message_syslog "$BTAPE_NAME" "La operación \"$OP\" tuvo éxito."
       ;;
