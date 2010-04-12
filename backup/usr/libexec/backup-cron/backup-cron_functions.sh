@@ -113,21 +113,26 @@ home_backup() {
 
 
 # Función para respaldar otros directorios
-other_backup() {
+dir_backup() {
   local NAME="$1"
-  local TAPE="$2"
+  local BFILE="$2"
   local DIRS="$3"
+  local MODE="$4"
   local TAR="/bin/tar"
   local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-
-  for directory in $DIRS; do
-
-    if [ -d $directory ]; then  
-      $TAR $TAR_OPTS $TAPE $directory
-      message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
-    fi
+  local EXCLUDE="/etc/backup-cron/exclude.txt"
   
-  done
+  case $MODE in
+    disk )
+      $TAR $TAR_OPTS $BFILE $DIRS --exclude-from=$EXCLUDE
+      message_syslog "$NAME" "El archivo de respaldo $BFILE fue creado"
+      ;;
+    tape )
+      $TAR $TAR_OPTS $BFILE $DIRS --exclude-from=$EXCLUDE
+      message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"
+      ;;
+    esac
+
 }
 
 
