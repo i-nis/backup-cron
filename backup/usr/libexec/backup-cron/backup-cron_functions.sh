@@ -163,9 +163,9 @@ remote_backup() {
   local SCP="/usr/bin/scp"
 
   if [  ! $($SCP $FILE $USER@$IP:$PATH) ]; then
-    message_syslog "$NAME" "El archivo $file fue copiado al servidor $IP"
+    message_syslog "$NAME" "El archivo $FILE fue copiado al servidor $IP"
   else
-    message_syslog "$NAME" "El archivo $file no pudo ser copiado al servidor $IP"
+    message_syslog "$NAME" "El archivo $FILE no pudo ser copiado al servidor $IP"
   fi
 }
 
