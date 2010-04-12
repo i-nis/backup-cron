@@ -1,0 +1,17 @@
+/lost+found
+/home/*
+/media/*/*
+/mnt/*/*
+/proc/*
+/tmp/*
+/root/.ccache
+/srv/*
+/sys/*
+/usr/portage/*
+/usr/tmp/*
+/var/chroot/dns/var/log/bind/*
+/var/cache/edb/*
+/var/cache/squid/*
+/var/tmp/ccache/*
+/var/tmp/genkernel/*
+/var/tmp/portage/*
