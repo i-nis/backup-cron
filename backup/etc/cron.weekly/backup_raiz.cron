@@ -21,12 +21,8 @@ directory_mkdir "$BRAIZ_NAME" "$BACKUP_PATH_SYS"
 
 
 # Creación de archivo comprimido según la fecha del día
-cd $BRAIZ_HOME_PATH
-
-tar cpf - $BRAIZ_HOME_PATH --exclude=/home/* --exclude=/mnt/zip/* \
---exclude=/proc/* --exclude=/tmp/* --exclude=/root/.ccache --exclude=/srv/* \
---exclude=/sys/* --exclude=/usr/* --exclude=/var/* \
---exclude=/lost+found | bzip2 -f > $BACKUP_PATH_SYS/$BRAIZ_FILE
+dir_backup "$BRAIZ_NAME" "$BACKUP_PATH_SYS/$BRAIZ_FILE" \
+"/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
 message_syslog "$BRAIZ_NAME" "El archivo de respaldo $BRAIZ_FILE fue creado"
 
 

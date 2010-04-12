@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# backup_usr.cron: script para hacer copias de seguridad del 
+# backup_usr.cron: script para hacer copias de seguridad del
 # directorio /usr.
 #
 # (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
@@ -21,10 +21,7 @@ directory_mkdir "$BUSR_NAME" "$BACKUP_PATH_SYS"
 
 
 # Creación de archivo comprimido según la fecha del día
-cd $BUSR_HOME_PATH
-
-tar cpf - $BUSR_HOME_PATH --exclude=/usr/portage/* \
---exclude=/usr/tmp/* | bzip2 -f > $BACKUP_PATH_SYS/$BUSR_FILE
+dir_backup "$BUSR_NAME" "$BACKUP_PATH_SYS/$BUSR_FILE" "/usr" "disk"
 message_syslog "$BUSR_NAME" "El archivo de respaldo $BUSR_FILE fue creado"
 
 
