@@ -28,7 +28,8 @@ src_install() {
   dodir /usr/libexec/backup-cron
   cp -pR ${WORKDIR}/${ECVS_MODULE}/etc/backup-cron/backup-cron.conf ${D}/etc/backup-cron
   cp -pR ${WORKDIR}/${ECVS_MODULE}/usr/libexec/backup-cron/backup-cron_functions.sh ${D}/usr/libexec/backup-cron/
+  cp -pR ${WORKDIR}/${ECVS_MODULE}/usr/libexec/backup-cron/exclude.txt ${D}/usr/libexec/backup-cron/
   fperms 600 /etc/backup-cron/backup-cron.conf
+  fperms 600 /etc/backup-cron/exclude.txt
 }
-
 
