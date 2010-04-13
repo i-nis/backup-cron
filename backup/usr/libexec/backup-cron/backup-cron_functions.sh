@@ -43,30 +43,17 @@ dump_mysql() {
   local NAME="$1"
   local OPTIONS="$2"
   local BACKUP_PATH="$3"
-  local TAPE="$4"
-  local MODE="$5"
   local FIND="/usr/bin/find"
   local MYSQLDUMP="/usr/bin/mysqldump"
   local MYSQL_PATH="/var/lib/mysql"
-  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
 
   if [ -d $MYSQL_PATH ]; then
     cd $MYSQL_PATH
     
     for database in $($FIND * -maxdepth 0 -type d); do
-
-        case $MODE in
-          disk )
-            $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
-            message_syslog "$NAME" "La base de datos $database fue extraida."
-            ;;
-          tape )
-            $MYSQLDUMP $OPTIONS $database | tar $TAR_OPTS $TAPE
-            message_syslog "$NAME" "La base de datos $database fue respaldada en $TAPE."
-            ;;
-        esac
-
-      done
+      $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
+      message_syslog "$NAME" "La base de datos $database fue extraida."
+    done
       
   fi
 
@@ -87,26 +74,13 @@ home_backup() {
   local FECHA=$(date +%G%m%d)
   local FILE="backup-$HOST"
   local EXT="tar.bz2"
-  local TAR="/bin/tar"
-  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
 
   cd $HOME_PATH
 
   for directory in $($FIND * -maxdepth 0 -type d); do
-
-      case $MODE in
-        disk )
-          $TAR --exclude=backup/*/* $TAR_OPTS \
-          $BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT $directory
-          message_syslog "$NAME" "El archivo de respaldo $FILE-$directory-$FECHA.$EXT fue creado"
-          ;;
-        tape )
-          $TAR --exclude=backup/*/* $TAR_OPTS $TAPE $directory
-          message_syslog "$NAME" "El directorio $directory fue respaldado en $TAPE"
-          ;;
-      esac
-
-    done
+    dir_backup "$NAME" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
+    "$directory --exclude=backup/*/*" "disk"
+  done
 
 }
 
