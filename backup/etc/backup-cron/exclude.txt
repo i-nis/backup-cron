@@ -1,5 +1,8 @@
 /lost+found
-/home/*
+/*/lost+found
+/home/admin/backup/*/etc/*
+/home/admin/backup/*/home/*
+/home/admin/backup/*/system/*
 /media/*/*
 /mnt/*/*
 /proc/*
