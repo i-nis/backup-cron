@@ -66,8 +66,6 @@ home_backup() {
   local NAME="$1"
   local HOME_PATH="$2"
   local BACKUP_PATH="$3"
-  local TAPE="$4"
-  local MODE="$5"
   local directory=""
   local FIND="/usr/bin/find"
   local HOST=`hostname`

@@ -20,7 +20,7 @@ directory_mkdir "$BHOME_NAME" "$BHOME_BACKUP_PATH"
 
 
 # Creación de archivo comprimido según la fecha del día
-home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH" "$TAPE" "disk"
+home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH"
 
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
