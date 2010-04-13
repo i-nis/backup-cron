@@ -40,8 +40,6 @@ tape_control() {
 tapebackup () {
   tape_control "erase"
   tape_control "rewind"
-  dump_mysql "$BTAPE_NAME" "$BDB_OPTIONS" "$TAPE" "tape"
-  home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH" "$TAPE" "tape"
   dir_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK" "tape"
   tape_control "rewoffl"
 }
