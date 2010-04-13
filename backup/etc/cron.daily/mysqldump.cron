@@ -21,7 +21,7 @@ directory_mkdir "$BDB_NAME" "$BDB_BACKUP_PATH"
  
 
 # Volcado de bases de datos en SQL
-dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH" "$TAPE" "disk"
+dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH"
 
 
 
