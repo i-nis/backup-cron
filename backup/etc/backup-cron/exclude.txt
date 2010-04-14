@@ -12,7 +12,7 @@
 /sys/*
 /usr/portage/*
 /usr/tmp/*
-/var/chroot/dns/var/log/bind/*
+/var/chroot/*/var/log/*
 /var/cache/edb/*
 /var/cache/squid/*
 /var/tmp/ccache/*
