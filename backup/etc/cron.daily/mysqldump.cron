@@ -47,7 +47,7 @@ fi
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BDB_NAME" "$BDB_FILE" "$REMOTE_IP""$REMOTE_USER" "$BDB_BACKUP_PATH"
-  remote_backup "$BDB_NAME" "$BDB_FILE.DIGEST" "$REMOTE_IP""$REMOTE_USER" "$BDB_BACKUP_PATH"
+  remote_backup "$BDB_NAME" "$BDB_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
+  remote_backup "$BDB_NAME" "$BDB_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
 fi
 
