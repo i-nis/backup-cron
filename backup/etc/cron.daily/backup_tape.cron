@@ -20,15 +20,20 @@ tape_control() {
   local OP="$1"
   local MT="/usr/sbin/mt"
   
-  case $($MT -f $TAPE $OP) in
+  $MT -f $TAPE $OP &>/dev/null
+  
+  case ${?} in
     0 )
       message_syslog "$BTAPE_NAME" "La operación \"$OP\" tuvo éxito."
+      exit
       ;;
     1 )
       message_syslog "$BTAPE_NAME" "Operación \"$OP\" o dispositivo \"$TAPE\" inválidos."
+      exit
       ;;
     2 )
       message_syslog "$BTAPE_NAME" "La operación \"$OP\" falló."
+      exit
       ;;
   esac
 
