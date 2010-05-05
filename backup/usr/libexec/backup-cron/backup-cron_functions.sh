@@ -85,9 +85,9 @@ home_backup() {
 
 
 # Función para respaldar otros directorios
-dir_backup() {
+file_backup() {
   local NAME="$1"
-  local BFILE="$2"
+  local BACKUP_FILE="$2"
   local DIRS="$3"
   local MODE="$4"
   local TAR="/bin/tar"
@@ -96,11 +96,11 @@ dir_backup() {
   
   case $MODE in
     disk )
-      $TAR $TAR_OPTS $BFILE $DIRS --exclude-from=$EXCLUDE
+      $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE
       message_syslog "$NAME" "El archivo de respaldo $BFILE fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS $BFILE $DIRS --exclude-from=$EXCLUDE
+      $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"
       ;;
     esac
