@@ -80,7 +80,7 @@ home_backup() {
   cd $HOME_PATH
 
   for directory in $($FIND * -maxdepth 0 -type d); do
-    dir_backup "$NAME" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
+    file_backup "$NAME" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
     "$directory --exclude=backup/*/*" "disk"
   done
 
