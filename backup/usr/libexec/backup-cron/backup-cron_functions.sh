@@ -10,6 +10,10 @@
 
 
 
+source /etc/backup-cron/backup-cron.conf
+
+
+
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
 # denominada logger. Para más detalles vea: man logger
 message_syslog () {
@@ -97,7 +101,7 @@ file_backup() {
   case $MODE in
     disk )
       $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE
-      message_syslog "$NAME" "El archivo de respaldo $BFILE fue creado"
+      message_syslog "$NAME" "El archivo de respaldo $BACKUP_FILE fue creado"
       ;;
     tape )
       $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE
@@ -112,10 +116,9 @@ file_backup() {
 # Función para generar sumas MD5, SHA1, SHA256, etc
 gensum() {
   local NAME="$1"
-  local SUM_HASHES="$2"
-  local FILE="$3"
+  local FILE="$2"
   
-  for hash in $SUM_HASHES; do
+  for hash in $HASHES; do
     SUM=`$hash $FILE`
     echo "$SUM" >> $FILE.DIGEST
     message_syslog "$NAME" "La suma $hash fue creada: $SUM"
