@@ -21,8 +21,7 @@ directory_mkdir "$BVAR_NAME" "$BACKUP_PATH_SYS"
 
 
 # Creación de archivo comprimido según la fecha del día
-dir_backup "$BVAR_NAME" "$BACKUP_PATH_SYS/$BVAR_FILE" "/var" "disk"
-message_syslog "$BVAR_NAME" "El archivo de respaldo $BVAR_FILE fue creado"
+file_backup "$BVAR_NAME" "$BACKUP_PATH_SYS/$BVAR_FILE" "/var" "disk"
 
 
 

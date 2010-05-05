@@ -21,8 +21,7 @@ directory_mkdir "$BUSR_NAME" "$BACKUP_PATH_SYS"
 
 
 # Creación de archivo comprimido según la fecha del día
-dir_backup "$BUSR_NAME" "$BACKUP_PATH_SYS/$BUSR_FILE" "/usr" "disk"
-message_syslog "$BUSR_NAME" "El archivo de respaldo $BUSR_FILE fue creado"
+file_backup "$BUSR_NAME" "$BACKUP_PATH_SYS/$BUSR_FILE" "/usr" "disk"
 
 
 # Creación del archivo de sumas MD5 y SHA1
