@@ -25,7 +25,6 @@ tape_control() {
   case ${?} in
     0 )
       message_syslog "$BTAPE_NAME" "La operación \"$OP\" tuvo éxito."
-      exit
       ;;
     1 )
       message_syslog "$BTAPE_NAME" "Operación \"$OP\" o dispositivo \"$TAPE\" inválidos."
@@ -45,7 +44,7 @@ tape_control() {
 tapebackup () {
   tape_control "erase"
   tape_control "rewind"
-  dir_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK" "tape"
+  file_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK" "tape"
   tape_control "rewoffl"
 }
 
