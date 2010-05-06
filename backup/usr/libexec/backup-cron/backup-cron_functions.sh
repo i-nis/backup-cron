@@ -131,10 +131,12 @@ file_backup() {
 
 # Función para generar sumas MD5, SHA1, SHA256, etc. 
 # NAME: nombre del programa que invoca.
+# HASHES: algoritmos para verificar sumas.
 # FILE: archivo desde el cual se creará la suma. 
 gensum() {
   local NAME="$1"
-  local FILE="$2"
+  local HASHES="$2"
+  local FILE="$3"
   
   for hash in $HASHES; do
     SUM=`$hash $FILE`
