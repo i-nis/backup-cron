@@ -2,35 +2,25 @@
 #
 # clean_backup_home.cron: script para borrar copias de seguridad obsoletas.
 #
-# (C) 2006 - 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
 
 
 
-# Variables a editar por el usuario:
-# BACKUP_PATH: Ubicacion de la copia de seguridad
-BACKUP_PATH="/home/admin/backup"
+source /etc/backup-cron/backup-cron.conf
+source /usr/libexec/backup-cron/backup-cron_functions.sh
 
-# Variables de tmpwatch
-# (Requiere el paquete app-admin/tmpwatch)
-# TMPWATCH: ruta al binario de tmpwatch
-# MTIME: tiempo de modificacion utilizado para borrar archivos 
-# por defecto 720 (1 mes)
-TMPWATCH="/usr/sbin/tmpwatch"
-MTIME="720"
 
+
+NAME="clean_backup_home.cron"
+
+MMTIME=$(($SEMANAS*$MTIME))
 HOSTS=`ls -1 $BACKUP_PATH`
-
-
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 for host in $HOSTS; do
-
-  if [[ -d $BACKUP_PATH ]]; then
-    ${TMPWATCH} --mtime $MTIME $BACKUP_PATH/$host/home
-  fi
-
+  clean_old_backups "$NAME" "$TMPWATCH" "$MMTIME" "$BACKUP_PATH/$host/home"
 done
 
