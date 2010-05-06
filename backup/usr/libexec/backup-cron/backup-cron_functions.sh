@@ -15,7 +15,10 @@ source /etc/backup-cron/backup-cron.conf
 
 
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
-# denominada logger. Para más detalles vea: man logger
+# denominada logger. Para más detalles vea: man logger. 
+# NAME: nombre del programa que invoca.
+# MESSAGE: mensaje a enviar vía syslog.
+#
 message_syslog () {
   local NAME="$1"
   local MESSAGE="$2"
@@ -26,7 +29,10 @@ message_syslog () {
 
 
 # Función para verificar la existencia de un directorio. Si este no existe es
-# creado. Recibe como argumento el nombre del directorio a verificar. 
+# creado. 
+# NAME: nombre del programa que invoca.
+# DIRECTORY: ruta del directorio a verificar.
+#
 directory_mkdir() {
   local NAME="$1"
   local DIRECTORY="$2"
@@ -41,7 +47,10 @@ directory_mkdir() {
 
 
 
-# Función para el volcado de bases de datos en SQL en disco o en cinta DAT.
+# Función para el volcado de bases de datos en SQL en disco o en cinta DAT. 
+# NAME: nombre del programa que invoca.
+# OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
+# BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 # 
 dump_mysql() {
   local NAME="$1"
@@ -65,7 +74,10 @@ dump_mysql() {
 
 
 
-# Función para respaldar /home
+# Función para respaldar /home. 
+# NAME: nombre del programa que invoca.
+# HOME_PATH: ruta al directorio /home
+# BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
 home_backup() {
   local NAME="$1"
   local HOME_PATH="$2"
@@ -88,7 +100,11 @@ home_backup() {
 
 
 
-# Función para respaldar otros directorios
+# Función para respaldar otros directorios. 
+# NAME: nombre del programa que invoca.
+# BACKUP_FILE: archivo de respaldo a crear.
+# DIRS: directorios o archivos a respaldar.
+# MODE: modo de respaldo: [disk | tape]
 file_backup() {
   local NAME="$1"
   local BACKUP_FILE="$2"
@@ -113,7 +129,9 @@ file_backup() {
 
 
 
-# Función para generar sumas MD5, SHA1, SHA256, etc
+# Función para generar sumas MD5, SHA1, SHA256, etc. 
+# NAME: nombre del programa que invoca.
+# FILE: archivo desde el cual se creará la suma. 
 gensum() {
   local NAME="$1"
   local FILE="$2"
@@ -128,7 +146,12 @@ gensum() {
 
 
 
-# Función para copiar archivos de respaldo en servidores remotos
+# Función para copiar archivos de respaldo en servidores remotos. 
+# NAME: nombre del programa que invoca.
+# FILE: archivo a copiar al servidor remoto.
+# IP: dirección IP del servidor remoto.
+# USER: usuario para conectarse con el servidor remoto.
+# PATH: ruta al directorio donde se ubicará la copia de respaldo.
 remote_backup() {
   local NAME="$1"
   local FILE="$2"
