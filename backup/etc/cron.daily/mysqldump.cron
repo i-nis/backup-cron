@@ -18,32 +18,19 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 # Verificación de existencia para $BACKUP_PATH
 directory_mkdir "$BDB_NAME" "$BDB_BACKUP_PATH"
 
- 
-
 # Volcado de bases de datos en SQL
 dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH"
 
-
-
 # Creación de archivo comprimido según la fecha del día
 cd $BDB_BACKUP_PATH
-tar cpf - *.sql | bzip2 -f > $BDB_FILE
+file_backup "$BDB_NAME" "$BDB_BACKUP_PATH/$BDB_FILE" "*.sql" "disk"
 rm -f *.sql
-message_syslog "$BDB_NAME" "El archivo de respaldo $BDB_FILE fue creado"
-
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 gensum "$BDB_NAME" "$HASHES" "$BDB_FILE"
-    
-
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-if [[ -d $BDB_BACKUP_PATH ]]; then
-  ${TMPWATCH} --mtime $MTIME $BDB_BACKUP_PATH
-  message_syslog "$BDB_NAME" "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
-fi
-
-
+clean_old_backups "$BDB_NAME" "$TMPWATCH" "$MTIME" "$BDB_BACKUP_PATH"
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then
