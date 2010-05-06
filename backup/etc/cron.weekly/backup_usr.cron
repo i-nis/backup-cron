@@ -3,7 +3,7 @@
 # backup_usr.cron: script para hacer copias de seguridad del
 # directorio /usr.
 #
-# (C) 2009 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
