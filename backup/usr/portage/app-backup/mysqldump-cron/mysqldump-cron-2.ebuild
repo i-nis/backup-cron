@@ -4,14 +4,14 @@
 
 inherit cvs
 
-DESCRIPTION="Backup on DAT tapes."
+DESCRIPTION="Backup for MySQL."
 HOMEPAGE="https://www.i-nis.com.ar/"
 SRC_URI=""
 IUSE=""
 LICENSE="GPL v3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch app-arch/mt-st >=sys-process/vixie-cron-2 virtual/backup-cron"
+DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2 virtual/mysql"
 
 src_unpack() {
   ECVS_SERVER="cvs.i-nis.com.ar:/home/cvs"
@@ -25,8 +25,12 @@ src_unpack() {
 
 src_install() {
   dodir /etc/cron.daily
-  cp -pR ${WORKDIR}/${ECVS_MODULE}/backup_tape.cron ${D}/etc/cron.daily
-  fperms 700 /etc/cron.daily/backup_tape.cron
+  cp -pR ${WORKDIR}/${ECVS_MODULE}/mysqldump.cron ${D}/etc/cron.daily
+  fperms 700 /etc/cron.daily/mysqldump.cron
 }
 
+pkg_postinst() {
+  local file="${ROOT}etc/backup-cron/backup-cron.conf"
+  einfo "Don't forget set root password in BDB_PASSWD parameter at '${file}' script."
+}
 
