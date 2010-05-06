@@ -10,29 +10,22 @@
 
 
 
-
 source /etc/backup-cron/backup-cron.conf
 source /usr/libexec/backup-cron/backup-cron_functions.sh
+
 
 
 # Verificación de existencia para $BACKUP_PATH
 directory_mkdir "$BHOME_NAME" "$BHOME_BACKUP_PATH"
 
-
 # Creación de archivo comprimido según la fecha del día
 home_backup "$BTAPE_NAME" "$BHOME_PATH" "$BHOME_BACKUP_PATH"
-
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 cd $BHOME_BACKUP_PATH
 
 for file in $(find *-$FECHA.$EXT -maxdepth 0 -type f); do
-
-  for hash in $HASHES; do
-    SUM=`$hash $file`
-    echo "$SUM" >> $file.DIGEST
-    message_syslog "$BHOME_NAME" "La suma $hash fue creada: $SUM"
-  done
+  gensum "$BHOME_NAME" "$HASHES" "$file"
   
   # Copia de archivo de respaldo a servidor remoto.
   if [ "$REMOTE_IP" != "" ]; then
@@ -42,11 +35,6 @@ for file in $(find *-$FECHA.$EXT -maxdepth 0 -type f); do
 
 done
 
-
-
 # Borrado de copias de seguridad antiguas con tmpwatch
-if [[ -d $BHOME_BACKUP_PATH ]]; then
-  ${TMPWATCH} --mtime $MTIME $BHOME_BACKUP_PATH
-  message_syslog "$BHOME_NAME" "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
-fi
+clean_old_backups "$BHOME_NAME" "$TMPWATCH" "$MTIME" "$BHOME_BACKUP_PATH"
 
