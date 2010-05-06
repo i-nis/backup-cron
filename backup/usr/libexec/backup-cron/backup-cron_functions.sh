@@ -10,10 +10,6 @@
 
 
 
-source /etc/backup-cron/backup-cron.conf
-
-
-
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
 # denominada logger. Para más detalles vea: man logger. 
 # NAME: nombre del programa que invoca.
