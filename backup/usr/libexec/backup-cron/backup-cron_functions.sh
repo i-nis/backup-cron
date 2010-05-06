@@ -146,6 +146,26 @@ gensum() {
 
 
 
+# Función para borrar copias de respaldo antigüas. 
+# NAME: nombre del programa que invoca.
+# TIME: tiempo de modificación utilizado para borrar archivos.
+# TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
+# PATH: ruta al direcotorio donde se encuentran los archivos antigüos a borrar.
+clean_old_backups() {
+  local NAME="$1"
+  local TMPCLEAN="$2"
+  local TIME="$3"
+  local PATH="$4"
+  
+  if [[ -d $PATH ]]; then
+    ${TMPCLEAN} --mtime $TIME $PATH
+    message_syslog "$NAME" "Las copias con antigüedad mayor a $TIME hs fueron borradas."
+  fi
+
+}
+
+
+
 # Función para copiar archivos de respaldo en servidores remotos. 
 # NAME: nombre del programa que invoca.
 # FILE: archivo a copiar al servidor remoto.
