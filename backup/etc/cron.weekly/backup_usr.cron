@@ -3,7 +3,7 @@
 # backup_usr.cron: script para hacer copias de seguridad del
 # directorio /usr.
 #
-# (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -18,24 +18,15 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 # Verificación de existencia para $BACKUP_PATH
 directory_mkdir "$BUSR_NAME" "$BACKUP_PATH_SYS"
 
-
-
 # Creación de archivo comprimido según la fecha del día
 file_backup "$BUSR_NAME" "$BACKUP_PATH_SYS/$BUSR_FILE" "/usr" "disk"
-
 
 # Creación del archivo de sumas MD5 y SHA1
 cd $BACKUP_PATH_SYS
 gensum "$BUSR_NAME" "$HASHES" "$BUSR_FILE"
 
-
 # Borrado de copias de seguridad antiguas con tmpwatch
-if [[ -d $BACKUP_PATH ]]; then
-  ${TMPWATCH} --mtime $MTIME $BACKUP_PATH
-  message_syslog "$BUSR_NAME" "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
-fi
-
-
+clean_old_backups "$BUSR_NAME" "$TMPWATCH" "$MTIME" "$BACKUP_PATH_SYS"
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then

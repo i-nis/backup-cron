@@ -3,7 +3,7 @@
 # backup_raiz.cron: script para hacer copias de seguridad de la raíz del 
 # sistema.
 #
-# (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -18,28 +18,16 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 # Verificación de existencia para $BACKUP_PATH_SYS
 directory_mkdir "$BRAIZ_NAME" "$BACKUP_PATH_SYS"
 
-
-
 # Creación de archivo comprimido según la fecha del día
-dir_backup "$BRAIZ_NAME" "$BACKUP_PATH_SYS/$BRAIZ_FILE" \
+file_backup "$BRAIZ_NAME" "$BACKUP_PATH_SYS/$BRAIZ_FILE" \
 "/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
-message_syslog "$BRAIZ_NAME" "El archivo de respaldo $BRAIZ_FILE fue creado"
-
-
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 cd $BACKUP_PATH_SYS
 gensum "$BRAIZ_NAME" "$HASHES" "$BRAIZ_FILE"
 
-
-
 # Borrado de copias de seguridad antiguas con tmpwatch
-if [[ -d $BACKUP_PATH_SYS ]]; then
-  ${TMPWATCH} --mtime $MTIME $BACKUP_PATH_SYS
-  message_syslog "$BRAIZ_NAME" "Las copias con antigüedad mayor a $MTIME hs fueron borradas."
-fi
-
-
+clean_old_backups "$BRAIZ_NAME" "$TMPWATCH" "$MTIME" "$BACKUP_PATH_SYS"
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "$REMOTE_IP" != "" ]; then
