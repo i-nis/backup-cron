@@ -15,26 +15,37 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BDB_NAME" "$BDB_BACKUP_PATH"
+# Función para crear el respaldo de las bases de datos
+do_mysqldump() {
+  # Verificación de existencia para $BACKUP_PATH
+  directory_mkdir "$BDB_NAME" "$BDB_BACKUP_PATH"
 
-# Volcado de bases de datos en SQL
-dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH"
+  # Volcado de bases de datos en SQL
+  dump_mysql "$BDB_NAME" "$BDB_OPTIONS" "$BDB_BACKUP_PATH"
 
-# Creación de archivo comprimido según la fecha del día
-cd $BDB_BACKUP_PATH
-file_backup "$BDB_NAME" "$BDB_BACKUP_PATH/$BDB_FILE" "*.sql" "disk"
-rm -f *.sql
+  # Creación de archivo comprimido según la fecha del día y borrado de los
+  # archivos *.sql.
+  cd $BDB_BACKUP_PATH
+  file_backup "$BDB_NAME" "$BDB_BACKUP_PATH/$BDB_FILE" "*.sql" "disk"
+  rm -f *.sql
 
-# Creación del archivo de sumas MD5, SHA1 y SHA256
-gensum "$BDB_NAME" "$HASHES" "$BDB_FILE"
+  # Creación del archivo de sumas MD5, SHA1 y SHA256
+  gensum "$BDB_NAME" "$HASHES" "$BDB_FILE"
 
-# Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "$BDB_NAME" "$TMPWATCH" "$MTIME" "$BDB_BACKUP_PATH"
+  # Borrado de copias de seguridad antiguas con tmpwatch
+  clean_old_backups "$BDB_NAME" "$TMPWATCH" "$MTIME" "$BDB_BACKUP_PATH"
 
-# Copia de archivo de respaldo a servidor remoto.
-if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BDB_NAME" "$BDB_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
-  remote_backup "$BDB_NAME" "$BDB_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
+  # Copia de archivo de respaldo a servidor remoto.
+  if [ "$REMOTE_IP" != "" ]; then
+    remote_backup "$BDB_NAME" "$BDB_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
+    remote_backup "$BDB_NAME" "$BDB_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BDB_BACKUP_PATH"
+  fi
+
+}
+
+
+
+if [ -x $MYSQLDUMP ]; then
+  do_mysqldump
 fi
 
