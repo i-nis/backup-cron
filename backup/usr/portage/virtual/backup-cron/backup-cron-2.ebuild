@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v3
 # $Header$
 
-inherit cvs
+inherit cvs eutils
 
 DESCRIPTION="Config file for backup-cron scripts."
 HOMEPAGE="https://www.i-nis.com.ar/"
@@ -23,14 +23,6 @@ src_unpack() {
   cvs_src_unpack
 }
 
-group_user_check {
-  # Add backup user and group (issue #1)
-  einfo "Checking for admin group..."
-  enewgroup admin
-  einfo "Checking for admin user..."
-  enewuser admin -1 /bin/rbash /home/admin admin 
-}
-
 src_install() {
   dodir /etc/backup-cron
   dodir /usr/libexec/backup-cron
@@ -39,6 +31,14 @@ src_install() {
   cp -pR ${WORKDIR}/${ECVS_MODULE}/usr/libexec/backup-cron/backup-cron_functions.sh ${D}/usr/libexec/backup-cron/
   fperms 600 /etc/backup-cron/backup-cron.conf
   fperms 600 /etc/backup-cron/exclude.txt
+}
+
+pkg_postinst() {
+  # Add backup user and group, then check perms (issue #1)
+  einfo "Checking for admin group..."
+  enewgroup admin
+  einfo "Checking for admin user..."
+  enewuser admin -1 /bin/rbash /home/admin admin
   fperms 660 /home/admin
 }
 
