@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de 
 # seguridad.
 #
-# (C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -58,12 +58,12 @@ dump_mysql() {
 
   if [ -d $MYSQL_PATH ]; then
     cd $MYSQL_PATH
-    
+
     for database in $($FIND * -maxdepth 0 -type d); do
       $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
       message_syslog "$NAME" "La base de datos $database fue extraida."
     done
-      
+
   fi
 
 }
@@ -112,7 +112,7 @@ file_backup() {
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER="/usr/bin/mbuffer"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
-  
+
   case $MODE in
     disk )
       $TAR $TAR_OPTS_DISK $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE &>/dev/null
@@ -121,7 +121,7 @@ file_backup() {
     tape )
       $TAR $TAR_OPTS_TAPE $DIRS --exclude-from=$EXCLUDE \ | 
       $MBUFFER $MBUFFER_OPTS $BACKUP_FILE &>/dev/null
-      
+
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"
       ;;
     esac
@@ -138,13 +138,13 @@ gensum() {
   local NAME="$1"
   local HASHES="$2"
   local FILE="$3"
-  
+
   for hash in $HASHES; do
     SUM=`$hash $FILE`
     echo "$SUM" >> $FILE.DIGEST
     message_syslog "$NAME" "La suma $hash fue creada: $SUM"
   done
-  
+
 }
 
 
@@ -159,7 +159,7 @@ clean_old_backups() {
   local TMPCLEAN="$2"
   local TIME="$3"
   local PATH="$4"
-  
+
   if [[ -d $PATH ]]; then
     ${TMPCLEAN} --mtime $TIME $PATH
     message_syslog "$NAME" "Las copias con antigüedad mayor a $TIME hs fueron borradas."
@@ -188,5 +188,6 @@ remote_backup() {
   else
     message_syslog "$NAME" "El archivo $FILE no pudo ser copiado al servidor $IP"
   fi
+
 }
 
