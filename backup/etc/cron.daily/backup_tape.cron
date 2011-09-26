@@ -42,10 +42,12 @@ tape_control() {
 
 # Función para realizar copias de respaldo en cinta.
 tapebackup () {
+  tape_control "defcompression 1"
   tape_control "erase"
   tape_control "rewind"
   file_backup "$BTAPE_NAME" "$TAPE" "$DIRSTOBACK" "tape"
-  tape_control "rewoffl"
+  tape_control "rewind"
+  tape_control "offline"
 }
 
 
