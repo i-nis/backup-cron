@@ -108,8 +108,10 @@ file_backup() {
   local MODE="$4"
   local TAR="/bin/tar"
   local TAR_OPTS_DISK="--create --bzip2 --preserve-permissions --file"
-  local TAR_OPT_TAPE="--create --preserve-permissions --file"
+  local TAR_OPT_TAPE="--create --blocking-factor=64 --preserve-permissions"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
+  local MBUFFER="/usr/bin/mbuffer"
+  local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
   
   case $MODE in
     disk )
@@ -117,7 +119,9 @@ file_backup() {
       message_syslog "$NAME" "El archivo de respaldo $BACKUP_FILE fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS_TAPE $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE &>/dev/null
+      $TAR $TAR_OPTS_TAPE $DIRS --exclude-from=$EXCLUDE \ | 
+      $MBUFFER $MBUFFER_OPTS $BACKUP_FILE &>/dev/null
+      
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"
       ;;
     esac
