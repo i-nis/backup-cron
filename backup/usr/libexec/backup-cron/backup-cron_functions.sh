@@ -76,8 +76,9 @@ dump_mysql() {
 # BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
 home_backup() {
   local NAME="$1"
-  local HOME_PATH="$2"
-  local BACKUP_PATH="$3"
+  local TAR_OPTS="$2"
+  local HOME_PATH="$3"
+  local BACKUP_PATH="$4"
   local directory=""
   local FIND="/usr/bin/find"
   local HOST=`hostname`
@@ -88,7 +89,7 @@ home_backup() {
   cd $HOME_PATH
 
   for directory in $($FIND * -maxdepth 0 -type d); do
-    file_backup "$NAME" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
+    file_backup "$NAME" "$TAR_OPTS" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
     "$directory --exclude=backup/*/*" "disk"
   done
 
@@ -103,23 +104,22 @@ home_backup() {
 # MODE: modo de respaldo: [disk | tape]
 file_backup() {
   local NAME="$1"
-  local BACKUP_FILE="$2"
-  local DIRS="$3"
-  local MODE="$4"
+  local TAR_OPT="$2"
+  local BACKUP_FILE="$3"
+  local DIRS="$4"
+  local MODE="$5"
   local TAR="/bin/tar"
-  local TAR_OPTS_DISK="--create --bzip2 --preserve-permissions --file"
-  local TAR_OPT_TAPE="--create --blocking-factor=64 --preserve-permissions"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER="/usr/bin/mbuffer"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
   case $MODE in
     disk )
-      $TAR $TAR_OPTS_DISK $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE &>/dev/null
+      $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE &>/dev/null
       message_syslog "$NAME" "El archivo de respaldo $BACKUP_FILE fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS_TAPE $DIRS --exclude-from=$EXCLUDE | \ 
+      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | \ 
       $MBUFFER $MBUFFER_OPTS $BACKUP_FILE &>/dev/null
 
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"

@@ -3,7 +3,7 @@
 # backup_var.cron: script para hacer copias de seguridad del 
 # directorio /var.
 #
-# (C) 2009 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -19,7 +19,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 directory_mkdir "$BVAR_NAME" "$BACKUP_PATH_SYS"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "$BVAR_NAME" "$BACKUP_PATH_SYS/$BVAR_FILE" "/var" "disk"
+file_backup "$BVAR_NAME" "$TAR_OPTS_DISK" "$BACKUP_PATH_SYS/$BVAR_FILE" "/var" "disk"
 
 # Creación del archivo de sumas MD5 y SHA1
 cd $BACKUP_PATH_SYS
