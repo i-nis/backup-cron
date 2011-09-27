@@ -105,24 +105,21 @@ home_backup() {
 file_backup() {
   local NAME="$1"
   local TAR_OPT="$2"
-  local BACKUP_FILE="$3"
+  local BACKUP="$3"
   local DIRS="$4"
   local MODE="$5"
   local TAR="/bin/tar"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
-  local MBUFFER="/usr/bin/mbuffer"
-  local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
+  local MBUFFER="/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o"
 
   case $MODE in
     disk )
-      $TAR $TAR_OPTS $BACKUP_FILE $DIRS --exclude-from=$EXCLUDE &>/dev/null
-      message_syslog "$NAME" "El archivo de respaldo $BACKUP_FILE fue creado"
+      $TAR $TAR_OPTS $BACKUP $DIRS --exclude-from=$EXCLUDE &>/dev/null
+      message_syslog "$NAME" "El archivo de respaldo $BACKUP fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | \ 
-      $MBUFFER $MBUFFER_OPTS $BACKUP_FILE &>/dev/null
-
-      message_syslog "$NAME" "El directorio $DIRS fue respaldado en $TAPE"
+      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
+      message_syslog "$NAME" "El directorio $DIRS fue respaldado en $BACKUP"
       ;;
     esac
 
