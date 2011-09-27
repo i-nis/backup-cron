@@ -104,7 +104,7 @@ home_backup() {
 # MODE: modo de respaldo: [disk | tape]
 file_backup() {
   local NAME="$1"
-  local TAR_OPT="$2"
+  local TAR_OPTS="$2"
   local BACKUP="$3"
   local DIRS="$4"
   local MODE="$5"
@@ -118,7 +118,7 @@ file_backup() {
       message_syslog "$NAME" "El archivo de respaldo $BACKUP fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS - $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
+      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $BACKUP"
       ;;
     esac
