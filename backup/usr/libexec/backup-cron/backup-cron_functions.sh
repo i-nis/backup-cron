@@ -118,7 +118,7 @@ file_backup() {
       message_syslog "$NAME" "El archivo de respaldo $BACKUP fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
+      $TAR $TAR_OPTS - $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
       message_syslog "$NAME" "El directorio $DIRS fue respaldado en $BACKUP"
       ;;
     esac
