@@ -3,7 +3,7 @@
 # mysqldump.cron: script para hacer copias de seguridad de bases de
 # datos MySQL
 #
-# (C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -26,7 +26,7 @@ do_mysqldump() {
   # Creación de archivo comprimido según la fecha del día y borrado de los
   # archivos *.sql.
   cd $BDB_BACKUP_PATH
-  file_backup "$BDB_NAME" "$BDB_BACKUP_PATH/$BDB_FILE" "*.sql" "disk"
+  file_backup "$BDB_NAME" "$TAR_OPTS_DISK" "$BDB_BACKUP_PATH/$BDB_FILE" "*.sql" "disk"
   rm -f *.sql
 
   # Creación del archivo de sumas MD5, SHA1 y SHA256
