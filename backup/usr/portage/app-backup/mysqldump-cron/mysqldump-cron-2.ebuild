@@ -5,7 +5,7 @@
 inherit cvs
 
 DESCRIPTION="Backup for MySQL."
-HOMEPAGE="https://www.i-nis.com.ar/"
+HOMEPAGE="https://proyectos.i-nis.com.ar/projects/backup-cron"
 SRC_URI=""
 IUSE=""
 LICENSE="GPL v3"

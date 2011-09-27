@@ -1,4 +1,4 @@
-# C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 # $Header$
 

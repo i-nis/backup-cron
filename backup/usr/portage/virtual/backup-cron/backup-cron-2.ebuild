@@ -5,7 +5,7 @@
 inherit cvs eutils
 
 DESCRIPTION="Config file for backup-cron scripts."
-HOMEPAGE="https://www.i-nis.com.ar/"
+HOMEPAGE="https://proyectos.i-nis.com.ar/projects/backup-cron"
 SRC_URI=""
 IUSE=""
 LICENSE="GPL v3"
