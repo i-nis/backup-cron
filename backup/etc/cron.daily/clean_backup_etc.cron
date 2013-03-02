@@ -2,7 +2,7 @@
 #
 # clean_backup_etc.cron: script para borrar copias de seguridad obsoletas.
 #
-# (C) 2006 - 2010 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -16,11 +16,16 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 NAME="clean_backup_etc.cron"
 
-MMTIME=$(($SEMANAS*$MTIME))
-HOSTS=`ls -1 $BACKUP_PATH`
+MMTIME=$((${SEMANAS}*${MTIME}))
+
+# Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
+# caso de no haberlos búsca en ${BACKUP_PATH}.
+if [ "${HOSTS}" == "" ]; then
+  HOSTS=`ls -1 ${BACKUP_PATH}`
+fi
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-for host in $HOSTS; do
-  clean_old_backups "$NAME" "$TMPWATCH" "$MMTIME" "$BACKUP_PATH/$host/etc"
+for host in ${HOSTS}; do
+  clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/etc"
 done
 
