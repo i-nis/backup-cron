@@ -31,6 +31,6 @@ src_install() {
 
 pkg_postinst() {
   local file="${ROOT}etc/backup-cron/backup-cron.conf"
-  einfo "Don't forget set root password in DB_PG_PASSWD parameter at '${file}' script."
+  einfo "Don't forget set postgres password in DB_PG_PASSWD parameter at '${file}' script."
 }
 
