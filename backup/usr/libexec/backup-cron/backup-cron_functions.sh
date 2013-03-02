@@ -19,7 +19,7 @@ message_syslog () {
   local NAME="$1"
   local MESSAGE="$2"
   local LOGGER="/usr/bin/logger"
-  $LOGGER -i -t $NAME $MESSAGE
+  $LOGGER -i $NAME $MESSAGE
 }
 
 
@@ -65,6 +65,31 @@ dump_mysql() {
     done
 
   fi
+
+}
+
+
+
+# Función para el volcado de bases de datos en SQL en disco o en cinta DAT. 
+# NAME: nombre del programa que invoca.
+# OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
+# BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
+# 
+dump_pg() {
+  local NAME="$1"
+  local BDB_PG_USER="$2"
+  local BDB_PG_PASSWD="$3"
+  local BDB_PG_BACKUP_PATH="$4"
+  local PG_DUMP="/usr/bin/pg_dump"
+  
+  export PGPASSWORD=$BDB_PG_PASSWD
+  
+  DATABASES=$(psql -t -l --username=$BDB_PG_USER | awk -F \| /^.*/'{print $1}')
+  
+  for database in $DATABASES; do
+    $PG_DUMP --username=$BDB_PG_USER --create $database > $BDB_PG_BACKUP_PATH/$database.sql
+    message_syslog "$NAME" "La base de datos $database fue extraida."
+  done
 
 }
 
