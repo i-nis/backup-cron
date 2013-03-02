@@ -1,0 +1,96 @@
+2013-03-01    <mggimenez@i-nis.com.ar>
+
+	* pg_dump.cron: Script para realizar respaldos de bases de datos Postgres. 
+
+2011-09-26    <mggimenez@i-nis.com.ar>
+
+	*  backup_tape.cron: Se habilita compresión por hardware mediante las sentencias tape_control "defcompression 1" y tape_control "compression"
+	*  backup_tape.cron: Se eliminan las opciones de borrado y rebobinado de cinta por ser innecesarias.  
+	*  backup-cron_functions.sh: Utilización de compresión por hardware en vez de Bzip2.
+	*  backup-cron_functions.sh: Utilización de "/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o /dev/tape" como buffer para el dispositivo de 
+	   cintas.
+
+
+2010-06-24  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* Resolución del error al rebobinar la cinta (issue #5).
+
+2010-06-22  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup-cron_functions.sh: Resolución de la incidencia relacionada los mensajes enviados por tar vía Syslog (issue #4).
+
+2010-05-26  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: solución del error al intentar borrar cinta (issue #3)
+
+2010-05-17  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* Creación durante la instalación del usuario "admin" y del grupo "admin" (issue #1)
+
+2010-05-06  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* Ebuilds para la versión 2.
+	* backup_raiz.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
+	* backup_usr.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad..
+	* backup_var.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
+	* backup_tape.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
+	* backup-cron_functions.sh: función clean_old_backups() para borrar antigüas copias de seguridad.
+
+2010-05-03  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: Corrección en el manejo de errores de la función tape_control() que ocasionaba la ejecusión de la copia 
+	de respaldo aún cuando la cinta no estuviera disponible.
+
+2010-04-13  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: se eliminan las llamadas a dump_mysql() y backup_home(), en favor de respaldar todo el sistema.
+	* backup-cron_functions.sh: Modificaciones en la funciones dump_mysql() y home_backup(). Se elimina el soporte para cintas DAT.
+
+2010-04-12  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_raiz.cron: utilización de la función dir_backup() para respaldar /.
+	* backup_usr.cron: utilización de la función dir_backup() para respaldar /usr.
+	* backup_var.cron: utilización de la función dir_backup() para respaldar /var.
+	* backup_tape.cron: utilización de la función dir_backup() en lugar de other_backup() para respaldar otros directorios.
+	* backup-cron_functions.sh: función dir_backup() para hacer copias de resguardo de cualquier directorio del sistema.
+
+2010-04-08  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: uso de mt para controlar las operaciones en la unidad de cinta magnética.
+
+2010-04-06  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: utilización de la función other_backup() para respaldar otros directorios. 
+	* backup-cron_functions.sh: función other_backup() para respaldar otros directorios.
+	* backup-cron_functions.sh: función home_backup() para crear respaldos de /home.
+
+2010-04-05  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_home.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* backup_home.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+	* backup_raiz.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* backup_raiz.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+	* backup_usr.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* backup_usr.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+	* backup_var.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* backup_var.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+
+2010-03-31  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_etc.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* backup_etc.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+	* mysqldump.cron: utilización de la función gensum() para crear sumas.
+	* backup-cron_functions.sh: función gensum() para crear sumas.
+
+2010-03-29  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* backup_tape.cron: Volcado de bases de datos por mysqldump
+	* mysqldump: Utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
+	* mysqldump: Utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+
+2010-03-23  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+
+	* Creación de archivo de configuración general /etc/backup-cron/backup-cron.conf.
+	* Creación de funciones compartidas desde /usr/libexec/backup-cron/backup-cron_functions.sh
+
+
