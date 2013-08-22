@@ -1,3 +1,7 @@
+2013-08-22    <mggimenez@i-nis.com.ar>
+
+	* Soporte para envío de resumen vía correo electrónico en todos los scripts.
+
 2013-03-02    <mggimenez@i-nis.com.ar>
 
 	* Actualizacion de backup_clean.cron.
