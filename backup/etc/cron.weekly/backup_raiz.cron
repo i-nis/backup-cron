@@ -3,7 +3,7 @@
 # backup_raiz.cron: script para hacer copias de seguridad de la raíz del 
 # sistema.
 #
-# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -15,23 +15,30 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BACKUP_PATH_SYS
-directory_mkdir "$BRAIZ_NAME" "$BACKUP_PATH_SYS"
+message_syslog "${BRAIZ_NAME}" "Iniciando el respaldo del directorio /: $(date)."
+
+# Verificación de existencia para ${BACKUP_PATH_SYS}
+directory_mkdir "${BRAIZ_NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "$BRAIZ_NAME" "$TAR_OPTS_DISK" "$BACKUP_PATH_SYS/$BRAIZ_FILE" \
+file_backup "${BRAIZ_NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BRAIZ_FILE}" \
 "/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
-cd $BACKUP_PATH_SYS
-gensum "$BRAIZ_NAME" "$HASHES" "$BRAIZ_FILE"
+cd ${BACKUP_PATH_SYS}
+gensum "${BRAIZ_NAME}" "${HASHES}" "${BRAIZ_FILE}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "$BRAIZ_NAME" "$TMPWATCH" "$MTIME" "$BACKUP_PATH_SYS"
+clean_old_backups "${BRAIZ_NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BRAIZ_NAME" "$BRAIZ_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
-  remote_backup "$BRAIZ_NAME" "$BRAIZ_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
+if [ "${REMOTE_IP}" != "" ]; then
+  remote_backup "${BRAIZ_NAME}" "${BRAIZ_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+  remote_backup "${BRAIZ_NAME}" "${BRAIZ_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
 fi
+
+message_syslog "${BRAIZ_NAME}" "Respaldo del directorio / finalizado: $(date)."
+
+# Envío de correo informando sobre el respaldo
+send_mail "${BRAIZ_NAME}" "${GENERIC_SUBJECT} ${BRAIZ_NAME}" "${RECIPIENTS}"
 

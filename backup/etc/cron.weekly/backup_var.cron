@@ -3,7 +3,7 @@
 # backup_var.cron: script para hacer copias de seguridad del 
 # directorio /var.
 #
-# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -15,22 +15,29 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BVAR_NAME" "$BACKUP_PATH_SYS"
+message_syslog "${BVAR_NAME}" "Iniciando el respaldo del directorio /var: $(date)."
+
+# Verificación de existencia para ${BACKUP_PATH}
+directory_mkdir "${BVAR_NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "$BVAR_NAME" "$TAR_OPTS_DISK" "$BACKUP_PATH_SYS/$BVAR_FILE" "/var" "disk"
+file_backup "${BVAR_NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BVAR_FILE}" "/var" "disk"
 
 # Creación del archivo de sumas MD5 y SHA1
-cd $BACKUP_PATH_SYS
-gensum "$BVAR_NAME" "$HASHES" "$BVAR_FILE"
+cd ${BACKUP_PATH_SYS}
+gensum "${BVAR_NAME}" "${HASHES}" "${BVAR_FILE}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "$BVAR_NAME" "$TMPWATCH" "$MTIME" "$BACKUP_PATH_SYS"
+clean_old_backups "${BVAR_NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BVAR_NAME" "$BVAR_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
-  remote_backup "$BVAR_NAME" "$BVAR_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
+if [ "${REMOTE_IP}" != "" ]; then
+  remote_backup "${BVAR_NAME}" "${BVAR_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+  remote_backup "${BVAR_NAME}" "${BVAR_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
 fi
+
+message_syslog "${BVAR_NAME}" "Respaldo del directorio /var finalizado: $(date)."
+
+# Envío de correo informando sobre el respaldo
+send_mail "${BVAR_NAME}" "${GENERIC_SUBJECT} ${BVAR_NAME}" "${RECIPIENTS}"
 

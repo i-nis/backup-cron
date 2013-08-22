@@ -3,7 +3,7 @@
 # backup_etc.cron: script para hacer copias de seguridad de la 
 # configuracion del sistema.
 #
-# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -15,22 +15,29 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BETC_BACKUP_PATH
-directory_mkdir "$BETC_NAME" "$BETC_BACKUP_PATH"
+message_syslog "${BETC_NAME}" "Iniciando el respaldo del directorio /etc: $(date)."
+
+# Verificación de existencia para ${BETC_BACKUP_PATH}
+directory_mkdir "${BETC_NAME}" "${BETC_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "$BETC_NAME" "$TAR_OPTS_DISK" "$BETC_BACKUP_PATH/$BETC_FILE" "/etc" "disk"
+file_backup "${BETC_NAME}" "${TAR_OPTS_DISK}" "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
-cd $BETC_BACKUP_PATH
-gensum "$BETC_NAME" "$HASHES" "$BETC_FILE"
+cd ${BETC_BACKUP_PATH}
+gensum "${BETC_NAME}" "${HASHES}" "${BETC_FILE}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch.
-clean_old_backups "$BETC_NAME" "$TMPWATCH" "$MTIME" "$BETC_BACKUP_PATH"
+clean_old_backups "${BETC_NAME}" "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BETC_NAME" "$BETC_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BETC_BACKUP_PATH"
-  remote_backup "$BETC_NAME" "$BETC_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BETC_BACKUP_PATH"
+if [ "${REMOTE_IP}" != "" ]; then
+  remote_backup "${BETC_NAME}" "${BETC_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}"
+  remote_backup "${BETC_NAME}" "${BETC_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}"
 fi
+
+message_syslog "${BETC_NAME}" "Respaldo del directorio /etc finalizado: $(date)."
+
+# Envío de correo informando sobre el respaldo
+send_mail "${BETC_NAME}" "${GENERIC_SUBJECT} ${BETC_NAME}" "${RECIPIENTS}"
 

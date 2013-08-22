@@ -3,7 +3,7 @@
 # backup_tape.cron: script para hacer copias de seguridad de la raíz del 
 # sistema.
 #
-# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2006 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -17,21 +17,21 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Función para controlar la unidad de cintas. Para mas detalles vea man (1) mt.
 tape_control() {
-  local OP="$1"
+  local OP="${1}"
   local MT="/usr/sbin/mt"
 
-  $MT -f $TAPE $OP &>/dev/null
+  ${MT} -f ${TAPE} ${OP} &>/dev/null
 
   case ${?} in
     0 )
-      message_syslog "$BTAPE_NAME" "La operación \"$OP\" tuvo éxito."
+      message_syslog "${BTAPE_NAME}" "La operación \"${OP}\" tuvo éxito."
       ;;
     1 )
-      message_syslog "$BTAPE_NAME" "Operación \"$OP\" o dispositivo \"$TAPE\" inválidos."
+      message_syslog "${BTAPE_NAME}" "Operación \"${OP}\" o dispositivo \"${TAPE}\" inválidos."
       exit
       ;;
     2 )
-      message_syslog "$BTAPE_NAME" "La operación \"$OP\" falló."
+      message_syslog "${BTAPE_NAME}" "La operación \"${OP}\" falló."
       exit
       ;;
   esac
@@ -44,13 +44,20 @@ tape_control() {
 tapebackup () {
   tape_control "defcompression 1"
   tape_control "compression 1"
-  file_backup "$BTAPE_NAME" "$TAR_OPTS_TAPE" "$TAPE" "$DIRSTOBACK" "tape"
+  file_backup "${BTAPE_NAME}" "${TAR_OPTS_TAPE}" "${TAPE}" "${DIRSTOBACK}" "tape"
   tape_control "offline"
 }
 
 
 
-if [ -c $TAPE ]; then
+if [ -c ${TAPE} ]; then
+  message_syslog "${BTAPE_NAME}" "Iniciando el respaldo en cinta: $(date)."
+
   tapebackup
+
+  message_syslog "${BTAPE_NAME}" "Respaldo en cinta finalizado: $(date)."
+
+  # Envío de correo informando sobre el respaldo
+  send_mail "${BTAPE_NAME}" "${GENERIC_SUBJECT} ${BTAPE_NAME}" "${RECIPIENTS}"
 fi
 

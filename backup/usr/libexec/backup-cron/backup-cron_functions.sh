@@ -16,11 +16,27 @@
 # MESSAGE: mensaje a enviar vía syslog.
 #
 message_syslog () {
-  local NAME="$1"
-  local MESSAGE="$2"
+  local NAME="${1}"
+  local MESSAGE="${2}"
   local LOGGER="/usr/bin/logger"
-  $LOGGER -i $NAME $MESSAGE
+  ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}.txt
 }
+
+
+
+# Función para enviar mensajes vía correo electrónico.. 
+# NAME: nombre del programa que invoca.
+# MESSAGE: mensaje a enviar.
+# RECIPIENTS: destinatarios de correo electrónico.
+#
+send_mail () {
+  local NAME="${1}"
+  local SUBJECT="${2}"
+  local RECIPIENTS="${3}"
+  cat /tmp/${NAME}.txt | mail -s "${SUBJECT}" "${RECIPENTS}"
+  rm -f /tmp/${NAME}.txt
+}
+
 
 
 
@@ -30,13 +46,13 @@ message_syslog () {
 # DIRECTORY: ruta del directorio a verificar.
 #
 directory_mkdir() {
-  local NAME="$1"
-  local DIRECTORY="$2"
+  local NAME="${1}"
+  local DIRECTORY="${2}"
   local MKDIR="/bin/mkdir"
 
-  if [ ! -e $DIRECTORY ]; then
-    $MKDIR --parents --mode=755 $DIRECTORY
-    message_syslog "$NAME" "El directorio $DIRECTORY fue creado"
+  if [ ! -e ${DIRECTORY} ]; then
+    ${MKDIR} --parents --mode=755 ${DIRECTORY}
+    message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado"
   fi
 
 }
@@ -49,19 +65,19 @@ directory_mkdir() {
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 # 
 dump_mysql() {
-  local NAME="$1"
-  local OPTIONS="$2"
-  local BACKUP_PATH="$3"
+  local NAME="${1}"
+  local OPTIONS="${2}"
+  local BACKUP_PATH="${3}"
   local FIND="/usr/bin/find"
   local MYSQLDUMP="/usr/bin/mysqldump"
   local MYSQL_PATH="/var/lib/mysql"
 
-  if [ -d $MYSQL_PATH ]; then
-    cd $MYSQL_PATH
+  if [ -d ${MYSQL_PATH} ]; then
+    cd ${MYSQL_PATH}
 
-    for database in $($FIND * -maxdepth 0 -type d); do
-      $MYSQLDUMP $OPTIONS $database > $BACKUP_PATH/$database.sql
-      message_syslog "$NAME" "La base de datos $database fue extraida."
+    for database in $(${FIND} * -maxdepth 0 -type d); do
+      ${MYSQLDUMP} ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
+      message_syslog "${NAME}" "La base de datos ${database} fue extraida."
     done
 
   fi
@@ -76,19 +92,19 @@ dump_mysql() {
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 # 
 dump_pg() {
-  local NAME="$1"
-  local BDB_PG_USER="$2"
-  local BDB_PG_PASSWD="$3"
-  local BDB_PG_BACKUP_PATH="$4"
+  local NAME="${1}"
+  local BDB_PG_USER="${2}"
+  local BDB_PG_PASSWD="${3}"
+  local BDB_PG_BACKUP_PATH="${4}"
   local PG_DUMP="/usr/bin/pg_dump"
   
-  export PGPASSWORD=$BDB_PG_PASSWD
+  export PGPASSWORD=${BDB_PG_PASSWD}
   
-  DATABASES=$(psql -t -l --username=$BDB_PG_USER | awk -F \| /^.*/'{print $1}')
+  DATABASES=$(psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
   
-  for database in $DATABASES; do
-    $PG_DUMP --username=$BDB_PG_USER --create $database > $BDB_PG_BACKUP_PATH/$database.sql
-    message_syslog "$NAME" "La base de datos $database fue extraida."
+  for database in ${DATABASES}; do
+    $PG_DUMP --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
+    message_syslog "${NAME}" "La base de datos ${database} fue extraida."
   done
 
 }
@@ -100,10 +116,10 @@ dump_pg() {
 # HOME_PATH: ruta al directorio /home
 # BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
 home_backup() {
-  local NAME="$1"
-  local TAR_OPTS="$2"
-  local HOME_PATH="$3"
-  local BACKUP_PATH="$4"
+  local NAME="${1}"
+  local TAR_OPTS="${2}"
+  local HOME_PATH="${3}"
+  local BACKUP_PATH="${4}"
   local directory=""
   local FIND="/usr/bin/find"
   local HOST=`hostname`
@@ -111,11 +127,11 @@ home_backup() {
   local FILE="backup-$HOST"
   local EXT="tar.bz2"
 
-  cd $HOME_PATH
+  cd ${HOME_PATH}
 
-  for directory in $($FIND * -maxdepth 0 -type d); do
-    file_backup "$NAME" "$TAR_OPTS" "$BHOME_BACKUP_PATH/$FILE-$directory-$FECHA.$EXT" \
-    "$directory --exclude=backup/*/*" "disk"
+  for directory in $(${FIND} * -maxdepth 0 -type d); do
+    file_backup "${NAME}" "${TAR_OPTS}" "${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.${EXT}" \
+    "${directory} --exclude=backup/*/*" "disk"
   done
 
 }
@@ -128,23 +144,23 @@ home_backup() {
 # DIRS: directorios o archivos a respaldar.
 # MODE: modo de respaldo: [disk | tape]
 file_backup() {
-  local NAME="$1"
-  local TAR_OPTS="$2"
-  local BACKUP="$3"
-  local DIRS="$4"
-  local MODE="$5"
+  local NAME="${1}"
+  local TAR_OPTS="${2}"
+  local BACKUP="${3}"
+  local DIRS="${4}"
+  local MODE="${5}"
   local TAR="/bin/tar"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER="/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o"
 
-  case $MODE in
+  case ${MODE} in
     disk )
-      $TAR $TAR_OPTS $BACKUP $DIRS --exclude-from=$EXCLUDE &>/dev/null
-      message_syslog "$NAME" "El archivo de respaldo $BACKUP fue creado"
+      ${TAR} ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
+      message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado"
       ;;
     tape )
-      $TAR $TAR_OPTS $DIRS --exclude-from=$EXCLUDE | $MBUFFER $BACKUP &>/dev/null
-      message_syslog "$NAME" "El directorio $DIRS fue respaldado en $BACKUP"
+      ${TAR} ${TAR_OPTS} ${DIRS} --exclude-from=${EXCLUDE} | ${MBUFFER} ${BACKUP} &>/dev/null
+      message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}"
       ;;
     esac
 
@@ -161,10 +177,10 @@ gensum() {
   local HASHES="$2"
   local FILE="$3"
 
-  for hash in $HASHES; do
-    SUM=`$hash $FILE`
-    echo "$SUM" >> $FILE.DIGEST
-    message_syslog "$NAME" "La suma $hash fue creada: $SUM"
+  for hash in ${HASHES}; do
+    SUM=`${hash} ${FILE}`
+    echo "${SUM}" >> ${FILE}.DIGEST
+    message_syslog "${NAME}" "La suma ${hash} fue creada: ${SUM}"
   done
 
 }
@@ -177,14 +193,14 @@ gensum() {
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
 # PATH: ruta al direcotorio donde se encuentran los archivos antigüos a borrar.
 clean_old_backups() {
-  local NAME="$1"
-  local TMPCLEAN="$2"
-  local TIME="$3"
-  local PATH="$4"
+  local NAME="${1}"
+  local TMPCLEAN="${2}"
+  local TIME="${3}"
+  local PATH="${4}"
 
-  if [[ -d $PATH ]]; then
-    ${TMPCLEAN} --mtime $TIME $PATH
-    message_syslog "$NAME" "Las copias con antigüedad mayor a $TIME hs fueron borradas."
+  if [[ -d ${PATH} ]]; then
+    ${TMPCLEAN} --mtime ${TIME} ${PATH}
+    message_syslog "${NAME}" "Las copias con antigüedad mayor a ${TIME} hs fueron borradas."
   fi
 
 }
@@ -198,17 +214,17 @@ clean_old_backups() {
 # USER: usuario para conectarse con el servidor remoto.
 # PATH: ruta al directorio donde se ubicará la copia de respaldo.
 remote_backup() {
-  local NAME="$1"
-  local FILE="$2"
-  local IP="$3"
-  local USER="$4"
-  local PATH="$5"
+  local NAME="${1}"
+  local FILE="${2}"
+  local IP="${3}"
+  local USER="${4}"
+  local PATH="${5}"
   local SCP="/usr/bin/scp"
 
-  if [  ! $($SCP $FILE $USER@$IP:$PATH) ]; then
-    message_syslog "$NAME" "El archivo $FILE fue copiado al servidor $IP"
+  if [  ! $(${SCP} ${FILE} ${USER}@${IP}:${PATH}) ]; then
+    message_syslog "${NAME}" "El archivo ${FILE} fue copiado al servidor ${IP}"
   else
-    message_syslog "$NAME" "El archivo $FILE no pudo ser copiado al servidor $IP"
+    message_syslog "${NAME}" "El archivo ${FILE} no pudo ser copiado al servidor ${IP}"
   fi
 
 }

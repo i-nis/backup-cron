@@ -3,7 +3,7 @@
 # backup_usr.cron: script para hacer copias de seguridad del
 # directorio /usr.
 #
-# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2009 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 # Revision : $Id$
@@ -15,22 +15,29 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Verificación de existencia para $BACKUP_PATH
-directory_mkdir "$BUSR_NAME" "$BACKUP_PATH_SYS"
+message_syslog "${BUSR_NAME}" "Iniciando el respaldo del directorio /usr: $(date)."
+
+# Verificación de existencia para ${BACKUP_PATH}
+directory_mkdir "${BUSR_NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "$BUSR_NAME" "$TAR_OPTS_DISK" "$BACKUP_PATH_SYS/$BUSR_FILE" "/usr" "disk"
+file_backup "${BUSR_NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BUSR_FILE}" "/usr" "disk"
 
 # Creación del archivo de sumas MD5 y SHA1
-cd $BACKUP_PATH_SYS
-gensum "$BUSR_NAME" "$HASHES" "$BUSR_FILE"
+cd ${BACKUP_PATH_SYS}
+gensum "${BUSR_NAME}" "${HASHES}" "${BUSR_FILE}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "$BUSR_NAME" "$TMPWATCH" "$MTIME" "$BACKUP_PATH_SYS"
+clean_old_backups "${BUSR_NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "$REMOTE_IP" != "" ]; then
-  remote_backup "$BUSR_NAME" "$BUSR_FILE" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
-  remote_backup "$BUSR_NAME" "$BUSR_FILE.DIGEST" "$REMOTE_IP" "$REMOTE_USER" "$BACKUP_PATH_SYS"
+if [ "${REMOTE_IP}" != "" ]; then
+  remote_backup "${BUSR_NAME}" "${BUSR_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+  remote_backup "${BUSR_NAME}" "${BUSR_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
 fi
+
+message_syslog "${BUSR_NAME}" "Respaldo del directorio /usr finalizado: $(date)."
+
+# Envío de correo informando sobre el respaldo
+send_mail "${BUSR_NAME}" "${GENERIC_SUBJECT} ${BUSR_NAME}" "${RECIPIENTS}"
 
