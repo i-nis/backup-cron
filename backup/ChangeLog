@@ -1,3 +1,7 @@
+2013-08-24    <mggimenez@vostro>
+
+	* Solución del error al informar copia errónea vía scp.
+
 2013-08-22    <mggimenez@i-nis.com.ar>
 
 	* Soporte para envío de resumen vía correo electrónico en todos los scripts.
