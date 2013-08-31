@@ -6,6 +6,7 @@
 /proc/*
 /tmp/*
 /root/.ccache
+/run/*
 /srv/*
 /sys/*
 /usr/portage/*
