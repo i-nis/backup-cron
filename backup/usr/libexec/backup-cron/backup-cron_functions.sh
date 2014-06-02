@@ -33,7 +33,7 @@ send_mail () {
   local NAME="${1}"
   local SUBJECT="${2}"
   local RECIPIENTS="${3}"
-  cat /tmp/${NAME}.txt | mail -s "${SUBJECT}" "${RECIPENTS}"
+  cat /tmp/${NAME}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
   rm -f /tmp/${NAME}.txt
 }
 
