@@ -5,7 +5,7 @@
 
 inherit git-2
 
-DESCRIPTION="Backup for system configuration files in /etc."
+DESCRIPTION="Clear utility for old backups from remote hosts."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 IUSE=""
@@ -21,6 +21,11 @@ src_unpack() {
 
 src_install() {
 	dodir /etc/cron.daily
-	cp -pR ${WORKDIR}/${P}/etc/cron.daily/backup_etc.cron ${D}/etc/cron.daily
-	fperms 700 /etc/cron.daily/backup_etc.cron
+	cp -pR ${WORKDIR}/${P}/etc/cron.daily/clean_*.cron ${D}/etc/cron.daily
+        fperms 700 /etc/cron.daily/clean_*.cron
+}
+
+pkg_postinst() {
+  local file="${ROOT}etc/backup-cron/backup-cron.conf"
+  einfo "Do not forget to set the list of remote hosts in HOSTS parameter at '${file}' script."
 }
