@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# clean_backup_home.cron: script para borrar copias de seguridad obsoletas.
+#
+# (C) 2006 - 2013 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+# Revision : $Id: clean_backup_home.cron,v 1.5 2013/03/02 20:02:46 mggimenez Exp $
+
+
+
+source /etc/backup-cron/backup-cron.conf
+source /usr/libexec/backup-cron/backup-cron_functions.sh
+
+
+
+NAME="clean_mysqldump.cron"
+
+MMTIME=$((${SEMANAS}*${MTIME}))
+
+# Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
+# caso de no haberlos búsca en ${BACKUP_PATH}.
+if [ "${HOSTS}" == "" ]; then
+  HOSTS=`ls -1 ${BACKUP_PATH}`
+fi
+
+# Borrado de copias de seguridad antiguas con tmpwatch
+for host in ${HOSTS}; do
+  clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/mysql"
+done
+
