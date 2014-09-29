@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
-<herd>app-backup</herd>
-<maintainer>
-  <email>mggimenez@i-nis.com.ar</email>
-</maintainer>
+  <herd>app-backup</herd>
+  <maintainer>
+    <email>mggimenez@ingeniovirtual.com.ar</email>
+  </maintainer>
+  <use>
+    <flag name="no-home">Not install the backup_home.cron script to back up /home directory.</flag>
+    <flag name="no-system">Not install the scripts to back up the root directory, /usr and /var.</flag>
+  </use>
 </pkgmetadata>
