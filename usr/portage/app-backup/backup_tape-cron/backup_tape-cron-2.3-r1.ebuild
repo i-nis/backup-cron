@@ -6,7 +6,7 @@
 inherit git-2
 
 DESCRIPTION="Backup on DAT tapes."
-HOMEPAGE="https://proyectos.i-nis.com.ar/projects/backup-cron"
+HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 IUSE=""
 LICENSE="GPL v3"
