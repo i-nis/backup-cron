@@ -1,16 +1,21 @@
-2013-08-24    <mggimenez@vostro>
+2014-09-29    <mggimenez@ingeniovirtual.com.ar>
+
+	* Migración de código fuente al repositorio Git.
+	* Actualización de ebuilds para soportar el repositorio Git
+
+2013-08-24    <mggimenez@ingeniovirtual.com.ar>
 
 	* Solución del error al informar copia errónea vía scp.
 
-2013-08-22    <mggimenez@i-nis.com.ar>
+2013-08-22    <mggimenez@ingeniovirtual.com.ar>
 
 	* Soporte para envío de resumen vía correo electrónico en todos los scripts.
 
-2013-03-02    <mggimenez@i-nis.com.ar>
+2013-03-02    <mggimenez@ingeniovirtual.com.ar>
 
 	* Actualizacion de backup_clean.cron.
 
-2013-03-01    <mggimenez@i-nis.com.ar>
+2013-03-01    <mggimenez@ingeniovirtual.com.ar>
 
 	* pg_dump.cron: Script para realizar respaldos de bases de datos Postgres. 
 
