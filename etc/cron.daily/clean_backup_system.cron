@@ -24,8 +24,10 @@ if [ "${HOSTS}" == "" ]; then
   HOSTS=`ls -1 ${BACKUP_PATH}`
 fi
 
-# Borrado de copias de seguridad antiguas con tmpwatch
+# Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
+# con tmpwatch.
 for host in ${HOSTS}; do
+  directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/system"
   clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/system"
 done
 
