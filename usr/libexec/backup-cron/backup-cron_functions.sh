@@ -53,7 +53,7 @@ directory_mkdir() {
 
   if [ ! -e ${DIRECTORY} ]; then
     ${MKDIR} --parents --mode=770 ${DIRECTORY}
-    ${CHOWN} root:admin ${DIRECTORY}
+    ${CHOWN} admin:admin ${DIRECTORY}
     message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado"
   fi
 
