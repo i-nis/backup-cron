@@ -51,7 +51,7 @@ directory_mkdir() {
   local MKDIR="/bin/mkdir"
 
   if [ ! -e ${DIRECTORY} ]; then
-    ${MKDIR} --parents --mode=755 ${DIRECTORY}
+    ${MKDIR} --parents --mode=750 ${DIRECTORY}
     message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado"
   fi
 
