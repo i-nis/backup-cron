@@ -49,9 +49,11 @@ directory_mkdir() {
   local NAME="${1}"
   local DIRECTORY="${2}"
   local MKDIR="/bin/mkdir"
+  local CHOWN="/bin/chown"
 
   if [ ! -e ${DIRECTORY} ]; then
-    ${MKDIR} --parents --mode=750 ${DIRECTORY}
+    ${MKDIR} --parents --mode=770 ${DIRECTORY}
+    ${CHOWN} root:admin ${DIRECTORY}
     message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado"
   fi
 
