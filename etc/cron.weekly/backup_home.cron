@@ -15,33 +15,41 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-message_syslog "${BHOME_NAME}" "Iniciando el respaldo de los directorios contenidos en /home: $(date)."
+NAME="backup_home.cron"
+
+# Nombre del servidor
+HOST=$(hostname)
+
+# Ubicación de la copia de seguridad.
+BHOME_BACKUP_PATH="${BACKUP_PATH}/${HOST}/home"
+
+message_syslog "${NAME}" "Iniciando el respaldo de los directorios contenidos en /home: $(date)."
 
 # Verificación de existencia para ${BACKUP_PATH}
-directory_mkdir "${BHOME_NAME}" "${BHOME_BACKUP_PATH}"
+directory_mkdir "${NAME}" "${BHOME_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
-home_backup "${BTAPE_NAME}" "${TAR_OPTS_DISK}" "${BHOME_PATH}" "${BHOME_BACKUP_PATH}"
+home_backup "${NAME}" "${TAR_OPTS_DISK}" "/home" "${BHOME_BACKUP_PATH}"
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 cd ${BHOME_BACKUP_PATH}
 
 for file in $(find *-${FECHA}.${EXT} -maxdepth 0 -type f); do
-  gensum "${BHOME_NAME}" "${HASHES}" "${file}"
+  gensum "${NAME}" "${HASHES}" "${file}"
   
   # Copia de archivo de respaldo a servidor remoto.
   if [ "${REMOTE_IP}" != "" ]; then
-    remote_backup "${BHOME_NAME}" "${file}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
-    remote_backup "${BHOME_NAME}" "${file}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
+    remote_backup "${NAME}" "${file}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
+    remote_backup "${NAME}" "${file}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
   fi
 
 done
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "${BHOME_NAME}" "${TMPWATCH}" "${MTIME}" "${BHOME_BACKUP_PATH}"
+clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BHOME_BACKUP_PATH}"
 
-message_syslog "${BHOME_NAME}" "Respaldo de los directorios contenidos en /home finalizado: $(date)."
+message_syslog "${NAME}" "Respaldo de los directorios contenidos en /home finalizado: $(date)."
 
 # Envío de correo informando sobre el respaldo
-send_mail "${BHOME_NAME}" "${GENERIC_SUBJECT} ${BHOME_NAME}" "${RECIPIENTS}"
+send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
 

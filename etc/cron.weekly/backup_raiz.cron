@@ -15,30 +15,41 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-message_syslog "${BRAIZ_NAME}" "Iniciando el respaldo del directorio /: $(date)."
+NAME="backup_raiz.cron"
+
+# Nombre del servidor
+HOST=$(hostname)
+
+# Ubicación de la copia de seguridad.
+BACKUP_PATH_SYS="${BACKUP_PATH}/${HOST}/system"
+
+# Nombre del archivo de respaldo.
+BROOT_FILE="${FILE}-raiz-${FECHA}.${EXT}"
+
+message_syslog "${NAME}" "Iniciando el respaldo del directorio /: $(date)."
 
 # Verificación de existencia para ${BACKUP_PATH_SYS}
-directory_mkdir "${BRAIZ_NAME}" "${BACKUP_PATH_SYS}"
+directory_mkdir "${NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${BRAIZ_NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BRAIZ_FILE}" \
+file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BROOT_FILE}" \
 "/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 cd ${BACKUP_PATH_SYS}
-gensum "${BRAIZ_NAME}" "${HASHES}" "${BRAIZ_FILE}"
+gensum "${NAME}" "${HASHES}" "${BROOT_FILE}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "${BRAIZ_NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
+clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
 # Copia de archivo de respaldo a servidor remoto.
 if [ "${REMOTE_IP}" != "" ]; then
-  remote_backup "${BRAIZ_NAME}" "${BRAIZ_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
-  remote_backup "${BRAIZ_NAME}" "${BRAIZ_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+  remote_backup "${NAME}" "${BROOT_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+  remote_backup "${NAME}" "${BROOT_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
 fi
 
-message_syslog "${BRAIZ_NAME}" "Respaldo del directorio / finalizado: $(date)."
+message_syslog "${NAME}" "Respaldo del directorio / finalizado: $(date)."
 
 # Envío de correo informando sobre el respaldo
-send_mail "${BRAIZ_NAME}" "${GENERIC_SUBJECT} ${BRAIZ_NAME}" "${RECIPIENTS}"
+send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
 

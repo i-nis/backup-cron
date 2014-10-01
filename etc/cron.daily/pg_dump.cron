@@ -15,30 +15,44 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
+# Variables para mysqldump
+PG_DUMP="/usr/bin/pg_dump"
+
+NAME="pg_dump.cron"
+
+# Nombre del servidor
+HOST=$(hostname)
+
+# Ubicación de la copia de seguridad.
+BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
+
+# Nombre del archivo de respaldo.
+BDB_PG_FILE="${FILE}-postgresql-${FECHA}.${EXT}"
+
 # Función para crear el respaldo de las bases de datos
 do_pg_dump() {
   # Verificación de existencia para ${BACKUP_PATH}
-  directory_mkdir "${BDB_PG_NAME}" "${BDB_PG_BACKUP_PATH}"
+  directory_mkdir "${NAME}" "${BDB_PG_BACKUP_PATH}"
 
   # Volcado de bases de datos en SQL
-  dump_pg "${BDB_PG_NAME}" "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_BACKUP_PATH}"
+  dump_pg "${NAME}" "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_BACKUP_PATH}"
 
   # Creación de archivo comprimido según la fecha del día y borrado de los
   # archivos *.sql.
   cd ${BDB_PG_BACKUP_PATH}
-  file_backup "${BDB_PG_NAME}" "${TAR_OPTS_DISK}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
+  file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
   rm -f *.sql
 
   # Creación del archivo de sumas MD5, SHA1 y SHA256
-  gensum "${BDB_PG_NAME}" "${HASHES}" "${BDB_PG_FILE}"
+  gensum "${NAME}" "${HASHES}" "${BDB_PG_FILE}"
 
   # Borrado de copias de seguridad antiguas con tmpwatch
-  clean_old_backups "${BDB_PG_NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
+  clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
 
   # Copia de archivo de respaldo a servidor remoto.
   if [ "${REMOTE_IP}" != "" ]; then
-    remote_backup "${BDB_PG_NAME}" "${BDB_PG_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
-    remote_backup "${BDB_PG_NAME}" "${BDB_PG_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+    remote_backup "${NAME}" "${BDB_PG_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+    remote_backup "${NAME}" "${BDB_PG_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
   fi
 
 }
@@ -48,14 +62,14 @@ do_pg_dump() {
 if [ -e ${BACKUP_PATH} ]; then
 
   if [ -x ${PG_DUMP} ]; then
-    message_syslog "${BDB_PG_NAME}" "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
+    message_syslog "${NAME}" "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
 
     do_pg_dump
 
-    message_syslog "${BDB_PG_NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
+    message_syslog "${NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
 
     # Envío de correo informando sobre el respaldo
-    send_mail "${BDB_PG_NAME}" "${GENERIC_SUBJECT} ${BDB_PG_NAME}" "${RECIPIENTS}"
+    send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
   fi
   
 fi
