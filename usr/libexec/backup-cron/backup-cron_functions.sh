@@ -136,7 +136,7 @@ libvirt_backup() {
   qemu-img snapshot -d ${SNAPSHOT} ${IMAGE}
 
   # Generación de sumas MD5, SHA1, SHA256, etc.
-  gensum "${NAME}" "${HASHES}" "${IMAGE_BACKUP}"
+  gensum "${NAME}" "${IMAGE_BACKUP}"
 
 done
 }
@@ -206,8 +206,8 @@ file_backup() {
 # FILE: archivo desde el cual se creará la suma. 
 gensum() {
   local NAME="$1"
-  local HASHES="$2"
-  local FILE="$3"
+  local FILE="$2"
+  local HASHES="md5sum sha1sum sha256sum"
 
   for hash in ${HASHES}; do
     SUM=`${hash} ${FILE}`
