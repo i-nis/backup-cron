@@ -113,6 +113,36 @@ dump_pg() {
 
 
 
+# Función para respaldar las imágenes qcow2 de las máquinas virtuales 
+# administradas con app-emulation/libvirt.
+#
+libvirt_backup() {
+  local NAME="${1}"
+  local BLIBVIRT_BACKUP_PATH="${2}"
+  local LIBVIRT_PATH="/var/lib/libvirt/images"
+  local FECHA=$(date +%G%m%d)
+
+  IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
+
+  for image in ${IMAGES}; do
+
+  SNAPSHOT="${image}-${FECHA}"
+  IMAGE="${LIBVIRT_PATH}/${image}.img"
+  IMAGE_BACKUP="${BLIBVIRT_BACKUP_PATH}/${image}-${FECHA}.img"
+
+  # Creación de imagen de respaldo basada en un snapshot temporal.
+  qemu-img snapshot -c ${SNAPSHOT} ${IMAGE}
+  qemu-img convert -c -f qcow2 -O qcow2 -s ${SNAPSHOT} ${IMAGE} ${IMAGE_BACKUP}
+  qemu-img snapshot -d ${SNAPSHOT} ${IMAGE}
+
+  # Generación de sumas MD5, SHA1, SHA256, etc.
+  gensum "${NAME}" "${HASHES}" "${IMAGE_BACKUP}"
+
+done
+}
+
+
+
 # Función para respaldar /home. 
 # NAME: nombre del programa que invoca.
 # HOME_PATH: ruta al directorio /home
