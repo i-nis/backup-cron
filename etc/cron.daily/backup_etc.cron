@@ -23,8 +23,11 @@ HOST=$(hostname)
 # Ubicación de la copia de seguridad.
 BETC_BACKUP_PATH="${BACKUP_PATH}/${HOST}/etc"
 
+# Fecha para el respaldo
+FECHA=$(date +%G%m%d)
+
 # Nombre del archivo de respaldo.
-BETC_FILE="${FILE}-etc-${FECHA}.${EXT}"
+BETC_FILE="backup-${HOST}-etc-${FECHA}.tar.bz2"
 
 message_syslog "${NAME}" "Iniciando el respaldo del directorio /etc: $(date)."
 

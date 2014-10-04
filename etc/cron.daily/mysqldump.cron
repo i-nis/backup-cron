@@ -28,8 +28,11 @@ HOST=$(hostname)
 # Ubicación de la copia de seguridad.
 BDB_BACKUP_PATH="${BACKUP_PATH}/${HOST}/mysql"
 
+# Fecha para el respaldo
+FECHA=$(date +%G%m%d)
+
 # Nombre del archivo de respaldo.
-BDB_FILE="${FILE}-mysql-${FECHA}.${EXT}"
+BDB_FILE="backup-${HOST}-mysql-${FECHA}.tar.bz2"
 
 if [ -x ${MYSQLDUMP} ]; then
   message_syslog "${NAME}" "Iniciando el respaldo de bases de datos MySQL: $(date)."

@@ -23,8 +23,11 @@ HOST=$(hostname)
 # Ubicación de la copia de seguridad.
 BACKUP_PATH_SYS="${BACKUP_PATH}/${HOST}/system"
 
+# Fecha para el respaldo
+FECHA=$(date +%G%m%d)
+
 # Nombre del archivo de respaldo.
-BUSR_FILE="${FILE}-usr-${FECHA}.${EXT}"
+BUSR_FILE="backup-${HOST}-usr-${FECHA}.tar.bz2"
 
 message_syslog "${NAME}" "Iniciando el respaldo del directorio /usr: $(date)."
 

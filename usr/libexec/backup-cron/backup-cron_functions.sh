@@ -18,8 +18,9 @@
 message_syslog () {
   local NAME="${1}"
   local MESSAGE="${2}"
+  local HOST=$(hostname)
   local LOGGER="/usr/bin/logger"
-  ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}.txt
+  ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -33,8 +34,9 @@ send_mail () {
   local NAME="${1}"
   local SUBJECT="${2}"
   local RECIPIENTS="${3}"
-  cat /tmp/${NAME}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
-  rm -f /tmp/${NAME}.txt
+  local HOST=$(hostname)
+  cat /tmp/${NAME}-${HOST}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
+  rm -f /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -152,16 +154,15 @@ home_backup() {
   local BACKUP_PATH="${3}"
   local directory=""
   local FIND="/usr/bin/find"
-  local HOST=`hostname`
+  local HOST=$(hostname)
   local FECHA=$(date +%G%m%d)
   local FILE="backup-$HOST"
-  local EXT="tar.bz2"
 
   cd ${HOME_PATH}
 
   for directory in $(${FIND} * -maxdepth 0 -type d); do
 
-    DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.${EXT}"
+    DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
   
     file_backup "${NAME}""${DIRECTORY_BACKUP}" "${directory} --exclude=backup/*/*" "disk"
     gensum "${NAME}" "${DIRECTORY_BACKUP}"
