@@ -41,10 +41,7 @@ file_backup "${NAME}" "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "${REMOTE_IP}" != "" ]; then
-  remote_backup "${NAME}" "${BETC_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}"
-  remote_backup "${NAME}" "${BETC_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}"
-fi
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}"
 
 message_syslog "${NAME}" "Respaldo del directorio /etc finalizado: $(date)."
 

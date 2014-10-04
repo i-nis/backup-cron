@@ -41,10 +41,7 @@ file_backup "${NAME}" "${BACKUP_PATH_SYS}/${BVAR_FILE}" "/var" "disk"
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "${REMOTE_IP}" != "" ]; then
-  remote_backup "${NAME}" "${BVAR_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
-  remote_backup "${NAME}" "${BVAR_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
-fi
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
 
 message_syslog "${NAME}" "Respaldo del directorio /var finalizado: $(date)."
 

@@ -247,24 +247,30 @@ clean_old_backups() {
 
 # Función para copiar archivos de respaldo en servidores remotos. 
 # NAME: nombre del programa que invoca.
-# FILE: archivo a copiar al servidor remoto.
-# IP: dirección IP del servidor remoto.
+# IP: URL o dirección IP del servidor remoto.
 # USER: usuario para conectarse con el servidor remoto.
-# PATH: ruta al directorio donde se ubicará la copia de respaldo.
+# PATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
 remote_backup() {
   local NAME="${1}"
-  local FILE="${2}"
-  local IP="${3}"
-  local USER="${4}"
-  local PATH="${5}"
+  local IP="${2}"
+  local USER="${3}"
+  local PATH="${4}"
+  local FECHA=$(date +%G%m%d)
   local SCP="/usr/bin/scp"
 
-  ${SCP} ${FILE} ${USER}@${IP}:${PATH}
+  if [ "${REMOTE_IP}" != "" ]; then
 
-  if [  ${?} -eq 0 ]; then
-    message_syslog "${NAME}" "El archivo ${FILE} fue copiado al servidor ${IP}"
-  else
-    message_syslog "${NAME}" "El archivo ${FILE} no pudo ser copiado al servidor ${IP}"
+    for file in $(find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
+      ${SCP} ${file} ${USER}@${IP}:${PATH}
+
+      if [  ${?} -eq 0 ]; then
+          message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}"
+        else
+          message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${IP}"
+      fi
+
+    done
+
   fi
 
 }

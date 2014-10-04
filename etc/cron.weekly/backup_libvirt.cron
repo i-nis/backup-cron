@@ -35,10 +35,7 @@ directory_mkdir "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
 libvirt_backup "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
 
 # Copia de archivo de respaldo a servidor remoto.
-if [ "${REMOTE_IP}" != "" ]; then
-  remote_backup "${NAME}" "${IMAGE_BACKUP}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
-  remote_backup "${NAME}" "${IMAGE_BACKUP}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
-fi
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"

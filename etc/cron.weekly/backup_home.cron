@@ -30,19 +30,9 @@ directory_mkdir "${NAME}" "${BHOME_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
 home_backup "${NAME}" "/home" "${BHOME_BACKUP_PATH}"
-
-# Creación del archivo de sumas MD5, SHA1 y SHA256
-cd ${BHOME_BACKUP_PATH}
-
-for file in $(find *-${FECHA}.${EXT} -maxdepth 0 -type f); do
   
-  # Copia de archivo de respaldo a servidor remoto.
-  if [ "${REMOTE_IP}" != "" ]; then
-    remote_backup "${NAME}" "${file}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
-    remote_backup "${NAME}" "${file}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
-  fi
-
-done
+# Copia de archivo de respaldo a servidor remoto.
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BHOME_BACKUP_PATH}"
