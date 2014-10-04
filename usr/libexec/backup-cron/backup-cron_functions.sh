@@ -61,7 +61,7 @@ directory_mkdir() {
 
 
 
-# Función para el volcado de bases de datos en SQL en disco o en cinta DAT. 
+# Función para el volcado de bases de datos en SQL en disco. 
 # NAME: nombre del programa que invoca.
 # OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
@@ -121,8 +121,7 @@ libvirt_backup() {
   local BLIBVIRT_BACKUP_PATH="${2}"
   local LIBVIRT_PATH="/var/lib/libvirt/images"
   local FECHA=$(date +%G%m%d)
-
-  IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
+  local IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
 
   for image in ${IMAGES}; do
 
@@ -162,8 +161,14 @@ home_backup() {
   cd ${HOME_PATH}
 
   for directory in $(${FIND} * -maxdepth 0 -type d); do
-    file_backup "${NAME}" "${TAR_OPTS}" "${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.${EXT}" \
+
+    DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.${EXT}"
+  
+    file_backup "${NAME}" "${TAR_OPTS}" "${DIRECTORY_BACKUP}" \
     "${directory} --exclude=backup/*/*" "disk"
+
+    gensum "${NAME}" "${DIRECTORY_BACKUP}"
+
   done
 
 }
@@ -188,6 +193,7 @@ file_backup() {
   case ${MODE} in
     disk )
       ${TAR} ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
+      gensum "${NAME}" "${BACKUP}"
       message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado"
       ;;
     tape )

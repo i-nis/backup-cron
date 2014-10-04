@@ -35,10 +35,6 @@ directory_mkdir "${NAME}" "${BACKUP_PATH_SYS}"
 file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BROOT_FILE}" \
 "/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
 
-# Creación del archivo de sumas MD5, SHA1 y SHA256
-cd ${BACKUP_PATH_SYS}
-gensum "${NAME}" "${HASHES}" "${BROOT_FILE}"
-
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 

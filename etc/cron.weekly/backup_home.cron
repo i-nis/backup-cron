@@ -35,7 +35,6 @@ home_backup "${NAME}" "${TAR_OPTS_DISK}" "/home" "${BHOME_BACKUP_PATH}"
 cd ${BHOME_BACKUP_PATH}
 
 for file in $(find *-${FECHA}.${EXT} -maxdepth 0 -type f); do
-  gensum "${NAME}" "${HASHES}" "${file}"
   
   # Copia de archivo de respaldo a servidor remoto.
   if [ "${REMOTE_IP}" != "" ]; then

@@ -15,7 +15,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME="backup_libvirt.cron"NAME="backup_etc.cron"
+NAME="backup_libvirt.cron"
 
 # Nombre del servidor
 HOST=$(hostname)
@@ -23,8 +23,28 @@ HOST=$(hostname)
 # Ubicación de la copia de seguridad.
 BLIBVIRT_BACKUP_PATH="${BACKUP_PATH}/${HOST}/libvirt"
 
+# Ubicación de las imagenes a respaldar.
+LIBVIRT_PATH="/var/lib/libvirt/images"
+
 message_syslog "${NAME}" "Iniciando el respaldo de las imágenes de Libvirt: $(date)."
 
 # Verificación de existencia para ${BLIBVIRT_BACKUP_PATH}
 directory_mkdir "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
+
+# Respaldo de imagenes qcow2.
+libvirt_backup "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
+
+# Copia de archivo de respaldo a servidor remoto.
+if [ "${REMOTE_IP}" != "" ]; then
+  remote_backup "${NAME}" "${IMAGE_BACKUP}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
+  remote_backup "${NAME}" "${IMAGE_BACKUP}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
+fi
+
+# Borrado de copias de seguridad antiguas con tmpwatch
+clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"
+
+message_syslog "${NAME}" "Respaldo de las imágenes de Libvirt finalizado: $(date)."
+
+# Envío de correo informando sobre el respaldo
+send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
 

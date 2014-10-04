@@ -29,42 +29,31 @@ BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
 # Nombre del archivo de respaldo.
 BDB_PG_FILE="${FILE}-postgresql-${FECHA}.${EXT}"
 
-# Función para crear el respaldo de las bases de datos
-do_pg_dump() {
-  # Verificación de existencia para ${BACKUP_PATH}
-  directory_mkdir "${NAME}" "${BDB_PG_BACKUP_PATH}"
-
-  # Volcado de bases de datos en SQL
-  dump_pg "${NAME}" "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_BACKUP_PATH}"
-
-  # Creación de archivo comprimido según la fecha del día y borrado de los
-  # archivos *.sql.
-  cd ${BDB_PG_BACKUP_PATH}
-  file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
-  rm -f *.sql
-
-  # Creación del archivo de sumas MD5, SHA1 y SHA256
-  gensum "${NAME}" "${HASHES}" "${BDB_PG_FILE}"
-
-  # Borrado de copias de seguridad antiguas con tmpwatch
-  clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
-
-  # Copia de archivo de respaldo a servidor remoto.
-  if [ "${REMOTE_IP}" != "" ]; then
-    remote_backup "${NAME}" "${BDB_PG_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
-    remote_backup "${NAME}" "${BDB_PG_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
-  fi
-
-}
-
-
-
 if [ -e ${BACKUP_PATH} ]; then
 
   if [ -x ${PG_DUMP} ]; then
     message_syslog "${NAME}" "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
 
-    do_pg_dump
+    # Verificación de existencia para ${BACKUP_PATH}
+    directory_mkdir "${NAME}" "${BDB_PG_BACKUP_PATH}"
+
+    # Volcado de bases de datos en SQL
+    dump_pg "${NAME}" "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_BACKUP_PATH}"
+
+    # Creación de archivo comprimido según la fecha del día y borrado de los
+    # archivos *.sql.
+    cd ${BDB_PG_BACKUP_PATH}
+    file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
+    rm -f *.sql
+
+    # Borrado de copias de seguridad antiguas con tmpwatch
+    clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
+
+    # Copia de archivo de respaldo a servidor remoto.
+    if [ "${REMOTE_IP}" != "" ]; then
+      remote_backup "${NAME}" "${BDB_PG_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+      remote_backup "${NAME}" "${BDB_PG_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+    fi
 
     message_syslog "${NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
 

@@ -31,8 +31,9 @@ BDB_BACKUP_PATH="${BACKUP_PATH}/${HOST}/mysql"
 # Nombre del archivo de respaldo.
 BDB_FILE="${FILE}-mysql-${FECHA}.${EXT}"
 
-# Función para crear el respaldo de las bases de datos
-do_mysqldump() {
+if [ -x ${MYSQLDUMP} ]; then
+  message_syslog "${NAME}" "Iniciando el respaldo de bases de datos MySQL: $(date)."
+
   # Verificación de existencia para ${BACKUP_PATH}
   directory_mkdir "${NAME}" "${BDB_BACKUP_PATH}"
 
@@ -45,9 +46,6 @@ do_mysqldump() {
   file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql" "disk"
   rm -f *.sql
 
-  # Creación del archivo de sumas MD5, SHA1 y SHA256
-  gensum "${NAME}" "${HASHES}" "${BDB_FILE}"
-
   # Borrado de copias de seguridad antiguas con tmpwatch
   clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_BACKUP_PATH}"
 
@@ -56,15 +54,6 @@ do_mysqldump() {
     remote_backup "${NAME}" "${BDB_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_BACKUP_PATH}"
     remote_backup "${NAME}" "${BDB_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_BACKUP_PATH}"
   fi
-
-}
-
-
-
-if [ -x ${MYSQLDUMP} ]; then
-  message_syslog "${NAME}" "Iniciando el respaldo de bases de datos MySQL: $(date)."
-
-  do_mysqldump
 
   message_syslog "${NAME}" "Respaldo de bases de datos MySQL finalizado: $(date)."
 

@@ -34,10 +34,6 @@ directory_mkdir "${NAME}" "${BETC_BACKUP_PATH}"
 # Creación de archivo comprimido según la fecha del día
 file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
 
-# Creación del archivo de sumas MD5, SHA1 y SHA256
-cd ${BETC_BACKUP_PATH}
-gensum "${NAME}" "${HASHES}" "${BETC_FILE}"
-
 # Borrado de copias de seguridad antiguas con tmpwatch.
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
 
