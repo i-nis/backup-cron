@@ -46,7 +46,7 @@ tape_control() {
 tapebackup () {
   tape_control "defcompression 1"
   tape_control "compression 1"
-  file_backup "${NAME}" "${TAR_OPTS_TAPE}" "${TAPE}" "${DIRSTOBACK}" "tape"
+  file_backup "${NAME}" "${TAPE}" "${DIRSTOBACK}" "tape"
   tape_control "offline"
 }
 

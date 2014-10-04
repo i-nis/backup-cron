@@ -43,7 +43,7 @@ if [ -e ${BACKUP_PATH} ]; then
     # Creación de archivo comprimido según la fecha del día y borrado de los
     # archivos *.sql.
     cd ${BDB_PG_BACKUP_PATH}
-    file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
+    file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
     rm -f *.sql
 
     # Borrado de copias de seguridad antiguas con tmpwatch

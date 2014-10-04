@@ -32,7 +32,7 @@ message_syslog "${NAME}" "Iniciando el respaldo del directorio /usr: $(date)."
 directory_mkdir "${NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${NAME}" "${TAR_OPTS_DISK}" "${BACKUP_PATH_SYS}/${BUSR_FILE}" "/usr" "disk"
+file_backup "${NAME}" "${BACKUP_PATH_SYS}/${BUSR_FILE}" "/usr" "disk"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"

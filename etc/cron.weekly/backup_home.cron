@@ -29,7 +29,7 @@ message_syslog "${NAME}" "Iniciando el respaldo de los directorios contenidos en
 directory_mkdir "${NAME}" "${BHOME_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
-home_backup "${NAME}" "${TAR_OPTS_DISK}" "/home" "${BHOME_BACKUP_PATH}"
+home_backup "${NAME}" "/home" "${BHOME_BACKUP_PATH}"
 
 # Creación del archivo de sumas MD5, SHA1 y SHA256
 cd ${BHOME_BACKUP_PATH}
