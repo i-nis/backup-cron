@@ -1,0 +1,10 @@
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (logger|root)\[[[:digit:]]+\]: [._[:alnum:]-]+ Iniciando el respaldo (de bases de datos|del directorio|de las imágenes|en) [/._[:alnum:]-]+: \w{3} \w{3} [ :[:digit:]]+ [ :[:digit:]]{8} \w{3} [[:digit:]]{4}.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ logger\[[[:digit:]]+\]: [._[:alnum:]-]+ La base de datos [._[:alnum:]-]+ fue extraida.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (logger|root)\[[[:digit:]]+\]: [._[:alnum:]-]+ El directorio [/._[:alnum:]-]+ fue creado.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ logger\[[[:digit:]]+\]: [._[:alnum:]-]+ El archivo de respaldo [/._[:alnum:]-]+ fue creado.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ logger\[[[:digit:]]+\]: [._[:alnum:]-]+ La suma [/._[:alnum:]-]+ fue creada: [/._[:alnum:]-]+ [._[:alnum:]-]+.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ logger\[[[:digit:]]+\]: [._[:alnum:]-]+ El archivo [/._[:alnum:]-]+ fue copiado al servidor [/._[:alnum:]-]+.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ logger\[[[:digit:]]+\]: [._[:alnum:]-]+ Las copias con antigüedad mayor a [[:digit:]]+ hs fueron borradas.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (logger|root)\[[[:digit:]]+\]: [._[:alnum:]-]+ Respaldo (de bases de datos|del directorio|de las imágenes|en) [/._[:alnum:]-]+ finalizado: \w{3} \w{3} [ :[:digit:]]+ [ :[:digit:]]{8} \w{3} [[:digit:]]{4}.
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [._[:alnum:]-]+ from [/._:[:alnum:]-]+ port [/._[:alnum:]-]+ ssh2: RSA [/:[:alnum:]-]+
+
