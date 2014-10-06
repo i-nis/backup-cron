@@ -1,3 +1,24 @@
+2014-10-06    <mggimenez@ingeniovirtual.com.ar>
+
+	* backup_libvirt.cron: Soporte para respaldo de imágenes de maquinas 
+	  virtuales en formato qcow2.
+	* clean_backup_libvirt.cron: script para borrar copias de seguridad 
+	  obsoletas de backup_libvirt-cron.
+	* backup_cron.conf: Re-estructuración quitando las variables que no deberían
+	  ser modificadas por los usuarios, en su lugar se mueven a los respectivos scripts.
+	* backup-cron_functions.sh: Modificación de la función gensum() para evitar
+	  pasar como parámetros los algoritmos de sumas.
+	* backup-cron_functions.sh: Cambios en la función file_backup() para 
+	  simplificar el archivo de configuración backup-cron.conf, quedando 
+	  predeterminadamente y sin posibilidad de cambio el modo de compresión bzip2.
+	* backup-cron_functions.sh: Cambios en las funciones message_syslog () y
+	  send_mail () para diferenciar los mensajes de los distintos servidores 
+	  en sistemas virtualizados que comparten el directorio /tmp.
+	 * backup-cron_functions.sh: Cambios en la función remote_backup(): No 
+	   es necesario indicarle el archivo a transferir, ya que se le dotó de 
+	   capacidad de búsqueda en el directorio que se le pasa como cuarto 
+	   parámetro. La validación de IP existente ahora es soportada por la función
+
 2014-09-29    <mggimenez@ingeniovirtual.com.ar>
 
 	* Migración de código fuente al repositorio Git.
@@ -21,11 +42,14 @@
 
 2011-09-26    <mggimenez@i-nis.com.ar>
 
-	*  backup_tape.cron: Se habilita compresión por hardware mediante las sentencias tape_control "defcompression 1" y tape_control "compression"
-	*  backup_tape.cron: Se eliminan las opciones de borrado y rebobinado de cinta por ser innecesarias.  
-	*  backup-cron_functions.sh: Utilización de compresión por hardware en vez de Bzip2.
-	*  backup-cron_functions.sh: Utilización de "/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o /dev/tape" como buffer para el dispositivo de 
-	   cintas.
+	*  backup_tape.cron: Se habilita compresión por hardware mediante las 
+	   sentencias tape_control "defcompression 1" y tape_control "compression"
+	*  backup_tape.cron: Se eliminan las opciones de borrado y rebobinado de 
+	   cinta por ser innecesarias.  
+	*  backup-cron_functions.sh: Utilización de compresión por hardware en 
+	   vez de Bzip2.
+	*  backup-cron_functions.sh: Utilización de "/usr/bin/mbuffer -t -m 128M 
+	   -p 90 -s 65536 -f -o /dev/tape" como buffer para el dispositivo de cintas.
 
 
 2010-06-24  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
