@@ -53,10 +53,7 @@ if [ -x ${MYSQLDUMP} ]; then
   clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_BACKUP_PATH}"
 
   # Copia de archivo de respaldo a servidor remoto.
-  if [ "${REMOTE_IP}" != "" ]; then
-    remote_backup "${NAME}" "${BDB_FILE}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_BACKUP_PATH}"
-    remote_backup "${NAME}" "${BDB_FILE}.DIGEST" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_BACKUP_PATH}"
-  fi
+  remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_BACKUP_PATH}"
 
   message_syslog "${NAME}" "Respaldo de bases de datos MySQL finalizado: $(date)."
 
