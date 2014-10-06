@@ -18,3 +18,4 @@
 /var/tmp/ccache/*
 /var/tmp/genkernel/*
 /var/tmp/portage/*
+

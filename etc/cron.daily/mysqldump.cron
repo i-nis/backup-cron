@@ -22,14 +22,8 @@ MYSQLDUMP="/usr/bin/mysqldump"
 
 NAME="mysqldump.cron"
 
-# Nombre del servidor
-HOST=$(hostname)
-
 # Ubicación de la copia de seguridad.
 BDB_BACKUP_PATH="${BACKUP_PATH}/${HOST}/mysql"
-
-# Fecha para el respaldo
-FECHA=$(date +%G%m%d)
 
 # Nombre del archivo de respaldo.
 BDB_FILE="backup-${HOST}-mysql-${FECHA}.tar.bz2"

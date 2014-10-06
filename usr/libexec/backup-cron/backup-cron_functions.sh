@@ -18,7 +18,7 @@
 message_syslog () {
   local NAME="${1}"
   local MESSAGE="${2}"
-  local HOST=$(hostname)
+  HOST=$(/bin/hostname -s)
   local LOGGER="/usr/bin/logger"
   ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
@@ -34,7 +34,7 @@ send_mail () {
   local NAME="${1}"
   local SUBJECT="${2}"
   local RECIPIENTS="${3}"
-  local HOST=$(hostname)
+  local HOST="$(/bin/hostname -s)"
   cat /tmp/${NAME}-${HOST}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
   rm -f /tmp/${NAME}-${HOST}.txt
 }
@@ -122,7 +122,7 @@ libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
   local LIBVIRT_PATH="/var/lib/libvirt/images"
-  local FECHA=$(date +%G%m%d)
+  local FECHA="$(/bin/date +%G%m%d)"
   local IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
 
   for image in ${IMAGES}; do
@@ -154,19 +154,16 @@ home_backup() {
   local BACKUP_PATH="${3}"
   local directory=""
   local FIND="/usr/bin/find"
-  local HOST=$(hostname)
-  local FECHA=$(date +%G%m%d)
+  local HOST="$(/bin/hostname -s)"
+  local FECHA="$(/bin/date +%G%m%d)"
   local FILE="backup-$HOST"
 
   cd ${HOME_PATH}
 
   for directory in $(${FIND} * -maxdepth 0 -type d); do
-
     DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
-  
-    file_backup "${NAME}""${DIRECTORY_BACKUP}" "${directory} --exclude=backup/*/*" "disk"
-    gensum "${NAME}" "${DIRECTORY_BACKUP}"
 
+    file_backup "${NAME}" "${DIRECTORY_BACKUP}" "${directory} --exclude=backup/*/*" "disk"
   done
 
 }
@@ -255,7 +252,7 @@ remote_backup() {
   local IP="${2}"
   local USER="${3}"
   local PATH="${4}"
-  local FECHA=$(date +%G%m%d)
+  local FECHA="$(/bin/date +%G%m%d)"
   local SCP="/usr/bin/scp"
 
   if [ "${REMOTE_IP}" != "" ]; then

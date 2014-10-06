@@ -1,21 +1,22 @@
-# (C) 2012 - 2014 Ingenio Virtual
-# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
-# Distributed under the terms of the GNU General Public License v3
-#
+# Copyright 1999-2014 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
 
 inherit git-2
 
 DESCRIPTION="Backup for all files in the system."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
+EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
+EGIT_COMMIT="v${PV}"
 IUSE="no-home no-system"
 LICENSE="GPL v3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch >=sys-process/vixie-cron-2 >=virtual/backup-cron-2.3"
+DEPEND="app-admin/tmpwatch >=sys-process/vixie-cron-2 >=virtual/backup-cron-2.4"
 
 src_unpack() {
-    EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
     git-2_src_unpack
 }
 

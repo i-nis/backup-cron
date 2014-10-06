@@ -17,14 +17,8 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 NAME="backup_usr.cron"
 
-# Nombre del servidor
-HOST=$(hostname)
-
 # Ubicación de la copia de seguridad.
 BACKUP_PATH_SYS="${BACKUP_PATH}/${HOST}/system"
-
-# Fecha para el respaldo
-FECHA=$(date +%G%m%d)
 
 # Nombre del archivo de respaldo.
 BUSR_FILE="backup-${HOST}-usr-${FECHA}.tar.bz2"

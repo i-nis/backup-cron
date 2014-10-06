@@ -20,14 +20,8 @@ PG_DUMP="/usr/bin/pg_dump"
 
 NAME="pg_dump.cron"
 
-# Nombre del servidor
-HOST=$(hostname)
-
 # Ubicación de la copia de seguridad.
 BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
-
-# Fecha para el respaldo
-FECHA=$(date +%G%m%d)
 
 # Nombre del archivo de respaldo.
 BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.tar.bz2"

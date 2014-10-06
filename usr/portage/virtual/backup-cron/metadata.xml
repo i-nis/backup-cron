@@ -2,7 +2,11 @@
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
 <herd>virtual</herd>
-<maintainer>
-  <email>mggimenez@ingeniovirtual.com.ar</email>
-</maintainer>
+  <maintainer>
+    <email>mggimenez@ingeniovirtual.com.ar</email>
+  </maintainer>
+  <use>
+    <flag name="logcheck">Rules for mails anomalies with app-admin/logcheck</flag>
+  </use>
 </pkgmetadata>
+

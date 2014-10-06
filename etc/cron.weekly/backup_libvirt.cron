@@ -17,9 +17,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 NAME="backup_libvirt.cron"
 
-# Nombre del servidor
-HOST=$(hostname)
-
 # Ubicación de la copia de seguridad.
 BLIBVIRT_BACKUP_PATH="${BACKUP_PATH}/${HOST}/libvirt"
 

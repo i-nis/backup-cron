@@ -17,9 +17,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 NAME="backup_home.cron"
 
-# Nombre del servidor
-HOST=$(hostname)
-
 # Ubicación de la copia de seguridad.
 BHOME_BACKUP_PATH="${BACKUP_PATH}/${HOST}/home"
 
