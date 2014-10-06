@@ -14,6 +14,7 @@
 /var/chroot/*/var/log/*
 /var/cache/edb/*
 /var/cache/squid/*
+/var/lib/libvirt/images/*
 /var/tmp/ccache/*
 /var/tmp/genkernel/*
 /var/tmp/portage/*
