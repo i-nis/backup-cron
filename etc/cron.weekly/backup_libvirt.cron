@@ -26,7 +26,7 @@ BLIBVIRT_BACKUP_PATH="${BACKUP_PATH}/${HOST}/libvirt"
 # Ubicación de las imagenes a respaldar.
 LIBVIRT_PATH="/var/lib/libvirt/images"
 
-message_syslog "${NAME}" "Iniciando el respaldo de las imágenes de Libvirt: $(date)."
+message_syslog "${NAME}" "Iniciando el respaldo de las imágenes qcow2: $(date)."
 
 # Verificación de existencia para ${BLIBVIRT_BACKUP_PATH}
 directory_mkdir "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
@@ -40,7 +40,7 @@ remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"
 
-message_syslog "${NAME}" "Respaldo de las imágenes de Libvirt finalizado: $(date)."
+message_syslog "${NAME}" "Respaldo de las imágenes qcow2 finalizado: $(date)."
 
 # Envío de correo informando sobre el respaldo
 send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"

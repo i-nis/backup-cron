@@ -56,7 +56,7 @@ directory_mkdir() {
   if [ ! -e ${DIRECTORY} ]; then
     ${MKDIR} --parents --mode=770 ${DIRECTORY}
     ${CHOWN} admin:admin ${DIRECTORY}
-    message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado"
+    message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado."
   fi
 
 }
@@ -193,12 +193,12 @@ file_backup() {
       TAR_OPTS="--create --bzip2 --preserve-permissions --file"
       ${TAR} ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
       gensum "${NAME}" "${BACKUP}"
-      message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado"
+      message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado."
       ;;
     tape )
       TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
       ${TAR} ${TAR_OPTS} ${DIRS} --exclude-from=${EXCLUDE} | ${MBUFFER} ${BACKUP} &>/dev/null
-      message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}"
+      message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}."
       ;;
     esac
 
@@ -218,7 +218,7 @@ gensum() {
   for hash in ${HASHES}; do
     SUM=`${hash} ${FILE}`
     echo "${SUM}" >> ${FILE}.DIGEST
-    message_syslog "${NAME}" "La suma ${hash} fue creada: ${SUM}"
+    message_syslog "${NAME}" "La suma ${hash} fue creada: ${SUM}."
   done
 
 }
@@ -264,9 +264,9 @@ remote_backup() {
       ${SCP} ${file} ${USER}@${IP}:${PATH}
 
       if [  ${?} -eq 0 ]; then
-          message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}"
+          message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}."
         else
-          message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${IP}"
+          message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${IP}."
       fi
 
     done
