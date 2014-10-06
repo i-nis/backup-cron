@@ -18,7 +18,7 @@
 message_syslog () {
   local NAME="${1}"
   local MESSAGE="${2}"
-  HOST=$(/bin/hostname -s)
+  local HOST=$(/bin/hostname -s)
   local LOGGER="/usr/bin/logger"
   ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
