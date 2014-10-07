@@ -1,3 +1,8 @@
+2014-10-07    <mggimenez@ingeniovirtual.com.ar>
+
+	* backup-cron_functions.sh: Función file_perms() para cambiar los permisos 
+	  de un archivo.
+
 2014-10-06    <mggimenez@ingeniovirtual.com.ar>
 
 	* backup_libvirt.cron: Soporte para respaldo de imágenes de maquinas 
