@@ -54,11 +54,28 @@ directory_mkdir() {
   local CHOWN="/bin/chown"
 
   if [ ! -e ${DIRECTORY} ]; then
-    ${MKDIR} --parents --mode=770 ${DIRECTORY}
+    ${MKDIR} --parents --mode=755 ${DIRECTORY}
     ${CHOWN} admin:admin ${DIRECTORY}
     message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado."
   fi
 
+}
+
+
+
+
+# Función para cambiar los permisos de un archivo. 
+# NAME: nombre del programa que invoca.
+# FILE: ruta al archivo al cual deben cambiarse los permisos.
+#
+file_perms() {
+  local NAME="${1}"
+  local FILE="${2}"
+  local CHMOD="/bin/chmod"
+  local CHOWN="/bin/chown"
+
+  ${CHOWN} admin:admin ${FILE}
+  ${CHMOD} 640 ${FILE}
 }
 
 
@@ -81,6 +98,7 @@ dump_mysql() {
 
     for database in $(${FIND} * -maxdepth 0 -type d); do
       ${MYSQLDUMP} ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
+      file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
       message_syslog "${NAME}" "La base de datos ${database} fue extraida."
     done
 
@@ -108,6 +126,7 @@ dump_pg() {
   
   for database in ${DATABASES}; do
     $PG_DUMP --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
+    file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
     message_syslog "${NAME}" "La base de datos ${database} fue extraida."
   done
 
@@ -135,6 +154,8 @@ libvirt_backup() {
   qemu-img snapshot -c ${SNAPSHOT} ${IMAGE}
   qemu-img convert -c -f qcow2 -O qcow2 -s ${SNAPSHOT} ${IMAGE} ${IMAGE_BACKUP}
   qemu-img snapshot -d ${SNAPSHOT} ${IMAGE}
+  
+  file_perms "${NAME}" "${IMAGE_BACKUP}"
 
   # Generación de sumas MD5, SHA1, SHA256, etc.
   gensum "${NAME}" "${IMAGE_BACKUP}"
@@ -189,6 +210,7 @@ file_backup() {
     disk )
       TAR_OPTS="--create --bzip2 --preserve-permissions --file"
       ${TAR} ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
+      file_perms "${NAME}" "${BACKUP}"
       gensum "${NAME}" "${BACKUP}"
       message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado."
       ;;
@@ -215,6 +237,7 @@ gensum() {
   for hash in ${HASHES}; do
     SUM=`${hash} ${FILE}`
     echo "${SUM}" >> ${FILE}.DIGEST
+    file_perms "${NAME}" "${FILE}.DIGEST"
     message_syslog "${NAME}" "La suma ${hash} fue creada: ${SUM}."
   done
 
