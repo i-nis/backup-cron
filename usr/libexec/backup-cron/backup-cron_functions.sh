@@ -276,11 +276,12 @@ remote_backup() {
   local USER="${3}"
   local PATH="${4}"
   local FECHA="$(/bin/date +%G%m%d)"
+  local FIND="/usr/bin/find"
   local SCP="/usr/bin/scp"
 
   if [ "${REMOTE_IP}" != "" ]; then
 
-    for file in $(find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
+    for file in $(${FIND} ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
       ${SCP} ${file} ${USER}@${IP}:${PATH}
 
       if [  ${?} -eq 0 ]; then
