@@ -21,7 +21,7 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.daily
-    cp -pR ${WORKDIR}/${P}/etc/cron.daily/pg_dump.cron ${D}/etc/cron.daily
+    cp -pR ${S}/etc/cron.daily/pg_dump.cron ${D}/etc/cron.daily
     fperms 700 /etc/cron.daily/pg_dump.cron
 }
 

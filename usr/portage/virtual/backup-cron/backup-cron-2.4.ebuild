@@ -34,13 +34,13 @@ pkg_setup() {
 src_install() {
     dodir /etc/backup-cron
     dodir /usr/libexec/backup-cron
-    cp -pR ${WORKDIR}/${P}/etc/backup-cron/backup-cron.conf ${D}/etc/backup-cron
-    cp -pR ${WORKDIR}/${P}/etc/backup-cron/exclude.txt ${D}/etc/backup-cron
-    cp -pR ${WORKDIR}/${P}/usr/libexec/backup-cron/backup-cron_functions.sh ${D}/usr/libexec/backup-cron/
+    cp -pR ${S}/etc/backup-cron/backup-cron.conf ${D}/etc/backup-cron
+    cp -pR ${S}/etc/backup-cron/exclude.txt ${D}/etc/backup-cron
+    cp -pR ${S}/usr/libexec/backup-cron/backup-cron_functions.sh ${D}/usr/libexec/backup-cron/
 
     if use logcheck ; then
       dodir /etc/logcheck/ignore.d.server
-      cp -pR ${WORKDIR}/${P}/etc/logcheck/ignore.d.server/backup-cron ${D}/etc/logcheck/ignore.d.server
+      cp -pR ${S}/etc/logcheck/ignore.d.server/backup-cron ${D}/etc/logcheck/ignore.d.server
     fi
 
     einfo "Setting permissions for files in /etc/backup-cron."

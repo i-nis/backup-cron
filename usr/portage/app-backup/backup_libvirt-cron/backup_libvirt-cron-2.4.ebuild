@@ -24,7 +24,7 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.weekly
-    cp -pR ${WORKDIR}/${P}/etc/cron.weekly/backup_libvirt.cron ${D}/etc/cron.weekly
+    cp -pR ${S}/etc/cron.weekly/backup_libvirt.cron ${D}/etc/cron.weekly
     fperms 700 /etc/cron.weekly/backup_libvirt.cron
 }
 
