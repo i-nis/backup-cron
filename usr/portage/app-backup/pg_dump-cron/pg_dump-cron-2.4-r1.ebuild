@@ -13,7 +13,7 @@ IUSE=""
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2.3 dev-db/postgresql-server"
+DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2.3 dev-db/postgresql"
 
 src_unpack() {
     git-2_src_unpack
