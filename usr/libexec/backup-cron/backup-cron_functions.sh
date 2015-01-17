@@ -84,7 +84,7 @@ file_perms() {
 # NAME: nombre del programa que invoca.
 # OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
-# 
+#
 dump_mysql() {
   local NAME="${1}"
   local OPTIONS="${2}"
@@ -112,18 +112,18 @@ dump_mysql() {
 # NAME: nombre del programa que invoca.
 # OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
-# 
+#
 dump_pg() {
   local NAME="${1}"
   local BDB_PG_USER="${2}"
   local BDB_PG_PASSWD="${3}"
   local BDB_PG_BACKUP_PATH="${4}"
   local PG_DUMP="/usr/bin/pg_dump"
-  
+
   export PGPASSWORD=${BDB_PG_PASSWD}
-  
+
   DATABASES=$(psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
-  
+
   for database in ${DATABASES}; do
     $PG_DUMP --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
     file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
@@ -141,7 +141,7 @@ libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
   local LIBVIRT_PATH="/var/lib/libvirt/images"
-  local FECHA="$(/bin/date +%G%m%d)"
+  local FECHA="$(/bin/date +%G%m%d%H%M%S%N)"
   local IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
 
   for image in ${IMAGES}; do
@@ -154,7 +154,7 @@ libvirt_backup() {
   qemu-img snapshot -c ${SNAPSHOT} ${IMAGE}
   qemu-img convert -c -f qcow2 -O qcow2 -s ${SNAPSHOT} ${IMAGE} ${IMAGE_BACKUP}
   qemu-img snapshot -d ${SNAPSHOT} ${IMAGE}
-  
+
   file_perms "${NAME}" "${IMAGE_BACKUP}"
 
   # Generación de sumas MD5, SHA1, SHA256, etc.
