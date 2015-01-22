@@ -10,7 +10,7 @@ HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
 EGIT_COMMIT="v${PV}"
-IUSE="no-home no-system"
+IUSE="no-home no-system var-only"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
@@ -25,14 +25,17 @@ src_install() {
 
     # USE conditional blocks...
     if use no-home ; then
-	cp -pR ${S}/etc/cron.weekly/backup_{raiz,usr,var}.cron ${D}/etc/cron.weekly
-	fperms 700 /etc/cron.weekly/backup_{raiz,usr,var}.cron
+		cp -pR ${S}/etc/cron.weekly/backup_{raiz,usr,var}.cron ${D}/etc/cron.weekly
+		fperms 700 /etc/cron.weekly/backup_{raiz,usr,var}.cron
     elif use no-system ; then
     	cp -pR ${S}/etc/cron.weekly/backup_home.cron ${D}/etc/cron.weekly
-	fperms 700 /etc/cron.weekly/backup_home.cron
+		fperms 700 /etc/cron.weekly/backup_home.cron
+    elif use var-only ; then
+        cp -pR ${S}/etc/cron.weekly/backup_var.cron ${D}/etc/cron.weekly
+        fperms 700 /etc/cron.weekly/backup_var.cron
     else
     	cp -pR ${S}/etc/cron.weekly/backup_{home,raiz,usr,var}.cron ${D}/etc/cron.weekly
-	fperms 700 /etc/cron.weekly/backup_{home,raiz,usr,var}.cron
+		fperms 700 /etc/cron.weekly/backup_{home,raiz,usr,var}.cron
     fi
 
 }

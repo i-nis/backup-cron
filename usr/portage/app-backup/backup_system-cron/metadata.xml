@@ -8,5 +8,6 @@
   <use>
     <flag name="no-home">Not install the backup_home.cron script to back up /home directory.</flag>
     <flag name="no-system">Not install the scripts to back up the root directory, /usr and /var.</flag>
+    <flag name="var-only">Install only the scripts to back up the /var directory.</flag>
   </use>
 </pkgmetadata>
