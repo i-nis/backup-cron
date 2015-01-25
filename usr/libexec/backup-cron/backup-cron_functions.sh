@@ -43,7 +43,7 @@ send_mail () {
 
 
 # Función para verificar la existencia de un directorio. Si este no existe es
-# creado. 
+# creado.
 # NAME: nombre del programa que invoca.
 # DIRECTORY: ruta del directorio a verificar.
 #
@@ -141,7 +141,7 @@ libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
   local LIBVIRT_PATH="/var/lib/libvirt/images"
-  local FECHA="$(/bin/date +%G%m%d%H%M%S%N)"
+  local FECHA="$(/bin/date +%G%m%d)"
   local IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
 
   for image in ${IMAGES}; do
