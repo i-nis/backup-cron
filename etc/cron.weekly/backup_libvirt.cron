@@ -28,6 +28,9 @@ message_syslog "${NAME}" "Iniciando el respaldo de las imágenes qcow2: $(date).
 # Verificación de existencia para ${BLIBVIRT_BACKUP_PATH}
 directory_mkdir "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
 
+# Borrado de copias de seguridad antiguas con tmpwatch
+clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"
+
 # Respaldo de imagenes qcow2.
 libvirt_backup "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
 
