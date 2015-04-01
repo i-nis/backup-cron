@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# backup-cron_functions.sh: funciones comunes para los script de copias de 
+# backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
 # (C) 2012 - 2014 Ingenio Virtual
@@ -11,7 +11,7 @@
 
 
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
-# denominada logger. Para más detalles vea: man logger. 
+# denominada logger. Para más detalles vea: man logger.
 # NAME: nombre del programa que invoca.
 # MESSAGE: mensaje a enviar vía syslog.
 #
@@ -25,7 +25,7 @@ message_syslog () {
 
 
 
-# Función para enviar mensajes vía correo electrónico.. 
+# Función para enviar mensajes vía correo electrónico.
 # NAME: nombre del programa que invoca.
 # MESSAGE: mensaje a enviar.
 # RECIPIENTS: destinatarios de correo electrónico.
@@ -64,7 +64,7 @@ directory_mkdir() {
 
 
 
-# Función para cambiar los permisos de un archivo. 
+# Función para cambiar los permisos de un archivo.
 # NAME: nombre del programa que invoca.
 # FILE: ruta al archivo al cual deben cambiarse los permisos.
 #
@@ -80,7 +80,7 @@ file_perms() {
 
 
 
-# Función para el volcado de bases de datos en SQL en disco. 
+# Función para el volcado de bases de datos en SQL en disco.
 # NAME: nombre del programa que invoca.
 # OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
@@ -108,7 +108,7 @@ dump_mysql() {
 
 
 
-# Función para el volcado de bases de datos en SQL en disco o en cinta DAT. 
+# Función para el volcado de bases de datos en SQL en disco o en cinta DAT.
 # NAME: nombre del programa que invoca.
 # OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
 # BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
@@ -134,7 +134,7 @@ dump_pg() {
 
 
 
-# Función para respaldar las imágenes qcow2 de las máquinas virtuales 
+# Función para respaldar las imágenes qcow2 de las máquinas virtuales
 # administradas con app-emulation/libvirt.
 #
 libvirt_backup() {
@@ -165,7 +165,7 @@ done
 
 
 
-# Función para respaldar /home. 
+# Función para respaldar /home.
 # NAME: nombre del programa que invoca.
 # HOME_PATH: ruta al directorio /home
 # BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
@@ -191,7 +191,7 @@ home_backup() {
 
 
 
-# Función para respaldar otros directorios. 
+# Función para respaldar otros directorios.
 # NAME: nombre del programa que invoca.
 # BACKUP_FILE: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
@@ -225,27 +225,32 @@ file_backup() {
 
 
 
-# Función para generar sumas MD5, SHA1, SHA256, etc. 
+# Función para generar sumas MD5, SHA1, SHA256, etc.
 # NAME: nombre del programa que invoca.
+# FILE: archivo desde el cual se creará la suma.
+# DIRECTORY: directorio en el que se encuentran los respaldos.
 # HASHES: algoritmos para verificar sumas.
-# FILE: archivo desde el cual se creará la suma. 
 gensum() {
-  local NAME="$1"
-  local FILE="$2"
-  local HASHES="md5sum sha1sum sha256sum"
+  local NAME="${1}"
+  local FILE=$(echo "${2}" | awk -F \/ //'{print $(NF)}')
+  local DIRECTORY=$(echo "${2}" | awk -F \/${FILE} //'{print $1}')
+  local HASHES="md5 sha1 sha256"
+
+  cd ${DIRECTORY}
 
   for hash in ${HASHES}; do
-    SUM=`${hash} ${FILE}`
-    echo "${SUM}" >> ${FILE}.DIGEST
-    file_perms "${NAME}" "${FILE}.DIGEST"
-    message_syslog "${NAME}" "La suma ${hash} fue creada: ${SUM}."
+    PROGRAM="${hash}sum"
+    CHECKSUM=$(${PROGRAM} ${FILE})
+    echo "${CHECKSUM}" >> ${FILE}.${hash}
+    file_perms "${NAME}" "${FILE}.${hash}"
+    message_syslog "${NAME}" "La suma ${hash} fue creada: ${CHECKSUM}."
   done
 
 }
 
 
 
-# Función para borrar copias de respaldo antigüas. 
+# Función para borrar copias de respaldo antigüas.
 # NAME: nombre del programa que invoca.
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
@@ -265,7 +270,7 @@ clean_old_backups() {
 
 
 
-# Función para copiar archivos de respaldo en servidores remotos. 
+# Función para copiar archivos de respaldo en servidores remotos.
 # NAME: nombre del programa que invoca.
 # IP: URL o dirección IP del servidor remoto.
 # USER: usuario para conectarse con el servidor remoto.
@@ -295,4 +300,3 @@ remote_backup() {
   fi
 
 }
-
