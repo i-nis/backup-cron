@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2012 - 2014 Ingenio Virtual
+# (C) 2012 - 2015 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -134,33 +134,130 @@ dump_pg() {
 
 
 
-# Función para respaldar las imágenes qcow2 de las máquinas virtuales
+# Función para devolver la ruta a la imagen de disco de una maquina virtual
+# DOMAIN: nombre de la maquina virtual.
+# DISK: disco utilizado por la maquina virtual.
+#
+image_path() {
+  local DOMAIN="${1}"
+  local DISK="${2}"
+
+  echo "$(virsh domblklist ${DOMAIN} | awk -F \  /${DISK}/'{print $2}')"
+}
+
+
+
+# Función para devolver el nombre de una imagen de disco de una maquina virtual
+# DOMAIN: nombre de la maquina virtual.
+# DISK: disco utilizado por la maquina virtual.
+#
+image_name() {
+  local DOMAIN="${1}"
+  local DISK="${2}"
+
+  IMAGE="$(image_path "${DOMAIN}" "${DISK}")"
+  echo "$(echo "${IMAGE}" | awk -F \/ //'{print $(NF)}' | awk -F \. //'{print $1}')"
+}
+
+
+
+# Función para administrar instantáneas en las imágenes de disco.
+# ACTION: [create | delete]
+# DOMAIN: Nombre de la maquina virtual.
+# DISK: disco utilizado por la maquina virtual.
+# SNAPSHOT: Nombre de la instantánea a crear para la imagen a respaldar. 
+#
+snapshot() {
+  local ACTION="${1}"
+  local DOMAIN="${2}"
+  local DISK="${3}"
+  local SNAPSHOT="${4}"
+  local NAME="backup_libvirt.cron"
+
+  case ${ACTION} in
+    create )
+      IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
+      SNAPSHOT_FILE="${IMAGE_PATH}-${SNAPSHOT}"
+      DISKSPEC="${DISK},snapshot=external,file=${SNAPSHOT_FILE}"
+      SNAPSHOT_CREATE_OPTIONS="--disk-only --atomic --quiesce --diskspec ${DISKSPEC}"
+
+      # Se crea la instantánea como archivo separado y este pasa a ser la imagen.
+      virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} ${SNAPSHOT_CREATE_OPTIONS}
+      message_syslog "${NAME}" "Se ha creado la instantánea ${SNAPSHOT}."
+      ;;
+    delete )
+      SNAPSHOT_FILE=$(image_path "${DOMAIN}" "${DISK}")
+
+      # Se envían los cambios desde la instantánea a la imagen principal y luego
+      # se realiza el cambio a esta última.
+      virsh blockcommit ${DOMAIN} ${DISK} --active --pivot
+
+      # Se eliminan los metadatos de la instantánea y luego la imagen de esta.
+      virsh snapshot-delete ${DOMAIN} ${SNAPSHOT} --metadata
+      rm -f ${SNAPSHOT_FILE}
+      message_syslog "${NAME}" "Se ha eliminado la instantánea ${SNAPSHOT}."
+      ;;
+  esac
+
+}
+
+
+
+# Función para crear un respaldo en formato qcow2 comprimido de una imágen de 
+# disco en cualquiera de los siguientes formatos: raw, bochs,qcow, qcow2,qed,vmdk.
+# NAME: nombre del programa que invoca.
+# DOMAIN: nombre de la maquina virtual.
+# DISK: disco utilizado por la maquina virtual.
+# BACKUP_FILE: archivo de respaldo a crear.
+#
+qcow2_backup() {
+  local NAME="${1}"
+  local DOMAIN="${2}"
+  local DISK="${3}"
+  local BACKUP_FILE="${4}"
+  local FECHA=$(/bin/date +%G%m%d%H%M%S)
+  local SNAPSHOT="snapshot-${DISK}-${FECHA}"
+  local IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
+
+  snapshot "create" "${DOMAIN}" "${DISK}" "${SNAPSHOT}"
+  qemu-img convert -c -O qcow2 ${IMAGE_PATH} ${BACKUP_FILE}
+  message_syslog "${NAME}" "El archivo de respaldo ${BACKUP_FILE} fue creado."
+  snapshot "delete" "${DOMAIN}" "${DISK}" "${SNAPSHOT}"
+}
+
+
+
+# Función para buscar y respaldar las imágenes de disco de las máquinas virtuales.
 # administradas con app-emulation/libvirt.
+# NAME: nombre del programa que invoca.
+# BLIBVIRT_BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 #
 libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
-  local LIBVIRT_PATH="/var/lib/libvirt/images"
-  local FECHA="$(/bin/date +%G%m%d)"
-  local IMAGES=$(ls -1 ${LIBVIRT_PATH} | awk -F \.img /img/'{print $1}')
+  local DOMAINS=$(virsh list --all --name)
+  local FECHA=$(/bin/date +%G%m%d)
 
-  for image in ${IMAGES}; do
+  for domain in ${DOMAINS}; do
+    # Búsqueda de discos utilizados por cada dominio (maquina virtual).
+    DISKS=$(virsh domblklist ${domain} | awk -F \  /.img/'{print $1}')
+    message_syslog "${NAME}" "Comenzando el respaldo para el dominio ${domain}."
 
-  SNAPSHOT="${image}-${FECHA}"
-  IMAGE="${LIBVIRT_PATH}/${image}.img"
-  IMAGE_BACKUP="${BLIBVIRT_BACKUP_PATH}/${image}-${FECHA}.img"
+    for disk in ${DISKS}; do
+      IMAGE_NAME=$(image_name "${domain}" "${disk}")
+      BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
 
-  # Creación de imagen de respaldo basada en un snapshot temporal.
-  qemu-img snapshot -c ${SNAPSHOT} ${IMAGE}
-  qemu-img convert -c -f qcow2 -O qcow2 -s ${SNAPSHOT} ${IMAGE} ${IMAGE_BACKUP}
-  qemu-img snapshot -d ${SNAPSHOT} ${IMAGE}
+      # Creación del respaldo de la imagen de disco.
+      qcow2_backup "${NAME}" "${domain}" "${disk}" "${BACKUP_FILE}"
 
-  file_perms "${NAME}" "${IMAGE_BACKUP}"
+      # Cambio de permisos para el respaldo.
+      file_perms "${NAME}" "${BACKUP_FILE}"
 
-  # Generación de sumas MD5, SHA1, SHA256, etc.
-  gensum "${NAME}" "${IMAGE_BACKUP}"
+      # Generación de sumas MD5, SHA1, SHA256, etc.
+      gensum "${NAME}" "${BACKUP_FILE}"
+    done
 
-done
+  done
 }
 
 
@@ -169,6 +266,7 @@ done
 # NAME: nombre del programa que invoca.
 # HOME_PATH: ruta al directorio /home
 # BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
+#
 home_backup() {
   local NAME="${1}"
   local HOME_PATH="${2}"
@@ -196,6 +294,7 @@ home_backup() {
 # BACKUP_FILE: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
 # MODE: modo de respaldo: [disk | tape]
+#
 file_backup() {
   local NAME="${1}"
   local BACKUP="${2}"
@@ -230,6 +329,7 @@ file_backup() {
 # FILE: archivo desde el cual se creará la suma.
 # DIRECTORY: directorio en el que se encuentran los respaldos.
 # HASHES: algoritmos para verificar sumas.
+#
 gensum() {
   local NAME="${1}"
   local FILE=$(echo "${2}" | awk -F \/ //'{print $(NF)}')
@@ -241,7 +341,7 @@ gensum() {
   for hash in ${HASHES}; do
     PROGRAM="${hash}sum"
     CHECKSUM=$(${PROGRAM} ${FILE})
-    echo "${CHECKSUM}" >> ${FILE}.${hash}
+    echo "${CHECKSUM}" > ${FILE}.${hash}
     file_perms "${NAME}" "${FILE}.${hash}"
     message_syslog "${NAME}" "La suma ${hash} fue creada: ${CHECKSUM}."
   done
@@ -255,6 +355,7 @@ gensum() {
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
 # PATH: ruta al direcotorio donde se encuentran los archivos antigüos a borrar.
+#
 clean_old_backups() {
   local NAME="${1}"
   local TMPCLEAN="${2}"
@@ -275,6 +376,7 @@ clean_old_backups() {
 # IP: URL o dirección IP del servidor remoto.
 # USER: usuario para conectarse con el servidor remoto.
 # PATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
+#
 remote_backup() {
   local NAME="${1}"
   local IP="${2}"
@@ -300,3 +402,4 @@ remote_backup() {
   fi
 
 }
+
