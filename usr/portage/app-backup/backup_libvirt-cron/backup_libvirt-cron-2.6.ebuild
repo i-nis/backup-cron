@@ -4,7 +4,7 @@
 
 inherit git-2
 
-DESCRIPTION="Backup for qcow2 disk images of virtual machines managed by Libvirt."
+DESCRIPTION="Backup for disk images of virtual machines managed by Libvirt."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
@@ -15,7 +15,7 @@ SLOT="0"
 KEYWORDS="amd64 x86"
 DEPEND="app-admin/tmpwatch 
         sys-process/vixie-cron 
-        >=virtual/backup-cron-2.4 
+        >=virtual/backup-cron-2.6 
         app-emulation/libvirt"
 
 src_unpack() {
@@ -29,7 +29,10 @@ src_install() {
 }
 
 pkg_postinst() {
-    ewarn "This utility backs only disk images on qcow2 format with .img file extension."
+    ewarn "See previous considerations at: "
+    ewarn "https://proyectos.ingeniovirtual.com.ar/projects/backup-cron/wiki/Consideraciones_previas"
+    einfo "This utility backs disk images of virtual machines managed by libvirt to the compressed qcow2 format."
+    einfo "The backup files have .qcow2 file extension."
     einfo "More information about qcow2 in: https://people.gnome.org/~markmc/qcow-image-format.html"
 }
 

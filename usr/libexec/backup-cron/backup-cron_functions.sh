@@ -204,7 +204,7 @@ snapshot() {
 
 
 # Función para crear un respaldo en formato qcow2 comprimido de una imágen de 
-# disco en cualquiera de los siguientes formatos: raw, bochs,qcow, qcow2,qed,vmdk.
+# disco en cualquiera de los siguientes formatos: raw,bochs,qcow,qcow2,qed,vmdk.
 # NAME: nombre del programa que invoca.
 # DOMAIN: nombre de la maquina virtual.
 # DISK: disco utilizado por la maquina virtual.
