@@ -235,7 +235,7 @@ qcow2_backup() {
 libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
-  local DOMAINS=$(virsh list --all --name)
+  local DOMAINS=$(virsh list --name)
   local FECHA=$(/bin/date +%G%m%d)
 
   for domain in ${DOMAINS}; do
