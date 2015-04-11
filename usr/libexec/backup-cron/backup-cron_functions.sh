@@ -156,7 +156,7 @@ image_name() {
   local DISK="${2}"
 
   IMAGE="$(image_path "${DOMAIN}" "${DISK}")"
-  echo "$(echo "${IMAGE}" | awk -F \/ //'{print $(NF)}' | awk -F \. //'{print $1}')"
+  echo "$(echo "${IMAGE}" | awk -F \/ //'{print $(NF)}' | awk -F \.img //'{print $1}')"
 }
 
 
