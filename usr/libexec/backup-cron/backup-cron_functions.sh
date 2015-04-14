@@ -134,7 +134,32 @@ dump_pg() {
 
 
 
-# Función para devolver la ruta a la imagen de disco de una maquina virtual
+# Función para devolver el nombre de una imagen de disco de una maquina virtual.
+# IMAGE_PATH: ruta completa a la imagen de disco utilizado por la maquina virtual.
+#
+image_name_ext() {
+  local IMAGE_PATH="${1}"
+
+  echo "$(echo "${IMAGE_PATH}" | awk -F \/ //'{print $(NF)}')"
+}
+
+
+
+# Función para devolver el nombre sin la extensión de una imagen de disco de una
+# maquina virtual.
+# IMAGE_PATH: ruta completa a la imagen de disco utilizado por la maquina virtual.
+#
+image_name() {
+  local IMAGE_PATH="${1}"
+
+  # Se busca la extensión de imagen: .img, .qcow, .qcow2, .raw, etc.
+  local EXT=$(echo "${IMAGE_PATH}" | awk -F \. //'{print $(NF)}')
+  echo "$(image_name_ext "${IMAGE_PATH}" | awk -F \.${EXT}$ //'{print $1}')"
+}
+
+
+
+# Función para devolver la ruta a la imagen de disco de una maquina virtual.
 # DOMAIN: nombre de la maquina virtual.
 # DISK: disco utilizado por la maquina virtual.
 #
@@ -147,16 +172,17 @@ image_path() {
 
 
 
-# Función para devolver el nombre de una imagen de disco de una maquina virtual
+# Función para devolver la ruta completa correspondiente a la imagen de disco
+# de una maquina virtual.
 # DOMAIN: nombre de la maquina virtual.
-# DISK: disco utilizado por la maquina virtual.
+# IMAGE_NAME: nombre de la imagen de disco utilizado por la maquina virtual.
 #
-image_name() {
+image_disk() {
   local DOMAIN="${1}"
-  local DISK="${2}"
+  local IMAGE_PATH="${2}"
 
-  IMAGE="$(image_path "${DOMAIN}" "${DISK}")"
-  echo "$(echo "${IMAGE}" | awk -F \/ //'{print $(NF)}' | awk -F \.img //'{print $1}')"
+  local IMAGE_NAME=$(image_name_ext "${IMAGE_PATH}")
+  echo "$(virsh domblklist ${DOMAIN} | awk -F \  /${IMAGE_NAME}/'{print $1}')"
 }
 
 
@@ -164,7 +190,7 @@ image_name() {
 # Función para administrar instantáneas en las imágenes de disco.
 # ACTION: [create | delete]
 # DOMAIN: Nombre de la maquina virtual.
-# DISK: disco utilizado por la maquina virtual.
+# DISK: Nombre del disco correspondiente a la imagen de disco.
 # SNAPSHOT: Nombre de la instantánea a crear para la imagen a respaldar. 
 #
 snapshot() {
@@ -176,24 +202,18 @@ snapshot() {
 
   case ${ACTION} in
     create )
-      IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
-      SNAPSHOT_FILE="${IMAGE_PATH}-${SNAPSHOT}"
-      DISKSPEC="${DISK},snapshot=external,file=${SNAPSHOT_FILE}"
-      SNAPSHOT_CREATE_OPTIONS="--disk-only --atomic --quiesce --diskspec ${DISKSPEC}"
-
       # Se crea la instantánea como archivo separado y este pasa a ser la imagen.
-      virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} ${SNAPSHOT_CREATE_OPTIONS}
+      virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} --disk-only --atomic --quiesce
       message_syslog "${NAME}" "Se ha creado la instantánea ${SNAPSHOT}."
       ;;
     delete )
-      SNAPSHOT_FILE=$(image_path "${DOMAIN}" "${DISK}")
-
+      IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
       # Se envían los cambios desde la instantánea a la imagen principal y luego
       # se realiza el cambio a esta última.
       virsh blockcommit ${DOMAIN} ${DISK} --active --pivot
 
-      # Se eliminan los metadatos de la instantánea y luego la imagen de esta.
-      virsh snapshot-delete ${DOMAIN} ${SNAPSHOT} --metadata
+      # Se elimina el archivo creado por la instantánea.
+      SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep ${SNAPSHOT})
       rm -f ${SNAPSHOT_FILE}
       message_syslog "${NAME}" "Se ha eliminado la instantánea ${SNAPSHOT}."
       ;;
@@ -207,22 +227,15 @@ snapshot() {
 # disco en cualquiera de los siguientes formatos: raw,bochs,qcow,qcow2,qed,vmdk.
 # NAME: nombre del programa que invoca.
 # DOMAIN: nombre de la maquina virtual.
-# DISK: disco utilizado por la maquina virtual.
 # BACKUP_FILE: archivo de respaldo a crear.
 #
 qcow2_backup() {
   local NAME="${1}"
-  local DOMAIN="${2}"
-  local DISK="${3}"
-  local BACKUP_FILE="${4}"
-  local FECHA=$(/bin/date +%G%m%d%H%M%S)
-  local SNAPSHOT="snapshot-${DISK}-${FECHA}"
-  local IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
+  local IMAGE="${2}"
+  local BACKUP_FILE="${3}"
 
-  snapshot "create" "${DOMAIN}" "${DISK}" "${SNAPSHOT}"
-  qemu-img convert -c -O qcow2 ${IMAGE_PATH} ${BACKUP_FILE}
+  qemu-img convert -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
   message_syslog "${NAME}" "El archivo de respaldo ${BACKUP_FILE} fue creado."
-  snapshot "delete" "${DOMAIN}" "${DISK}" "${SNAPSHOT}"
 }
 
 
@@ -239,16 +252,25 @@ libvirt_backup() {
   local FECHA=$(/bin/date +%G%m%d)
 
   for domain in ${DOMAINS}; do
-    # Búsqueda de discos utilizados por cada dominio (maquina virtual).
-    DISKS=$(virsh domblklist ${domain} | awk -F \  /.img/'{print $1}')
+    # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
+    IMAGES=$(virsh domblklist ${domain} | awk -F \  /^vd*/'{print $2}')
     message_syslog "${NAME}" "Comenzando el respaldo para el dominio ${domain}."
 
-    for disk in ${DISKS}; do
-      IMAGE_NAME=$(image_name "${domain}" "${disk}")
+    # Creación de instantáneas para los discos del dominio.
+    SNAPSHOT_TIME=$(/bin/date +%G%m%d%H%M%S)
+    SNAPSHOT="snapshot-${SNAPSHOT_TIME}"
+    snapshot "create" "${domain}" "null" "${SNAPSHOT}"
+
+    for image in ${IMAGES}; do
+      IMAGE_NAME=$(image_name "${image}")
+      DISK=$(image_disk "${domain}" "${IMAGE_NAME}.${SNAPSHOT}")
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
 
       # Creación del respaldo de la imagen de disco.
-      qcow2_backup "${NAME}" "${domain}" "${disk}" "${BACKUP_FILE}"
+      qcow2_backup "${NAME}" "${image}" "${BACKUP_FILE}"
+
+      # Borrado de la instantánea correspondiente al disco actual.
+      snapshot "delete" "${domain}" "${DISK}" "${SNAPSHOT}"
 
       # Cambio de permisos para el respaldo.
       file_perms "${NAME}" "${BACKUP_FILE}"
@@ -256,6 +278,9 @@ libvirt_backup() {
       # Generación de sumas MD5, SHA1, SHA256, etc.
       gensum "${NAME}" "${BACKUP_FILE}"
     done
+
+    # Se eliminan los metadatos de la instantánea.
+    virsh snapshot-delete ${domain} ${SNAPSHOT} --metadata
 
   done
 }
