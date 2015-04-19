@@ -215,7 +215,7 @@ snapshot() {
       # Se elimina el archivo creado por la instantánea.
       SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep ${SNAPSHOT})
       rm -f ${SNAPSHOT_FILE}
-      message_syslog "${NAME}" "Se ha eliminado la instantánea ${SNAPSHOT}."
+      message_syslog "${NAME}" "Se ha eliminado la instantánea ${SNAPSHOT_FILE}."
       ;;
   esac
 
