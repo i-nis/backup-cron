@@ -235,7 +235,7 @@ libvirt_backup() {
       # el nombre sin extensión en IMAGE_NAME.
       local EXT=$(echo "${image}" | awk -F \. //'{print $(NF)}')
       IMAGE_NAME=$(basename ${image} .${EXT})
-      
+
       DISK=$(image_disk "${domain}" "${IMAGE_NAME}.${SNAPSHOT}")
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
 
