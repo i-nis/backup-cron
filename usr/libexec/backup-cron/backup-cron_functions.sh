@@ -19,8 +19,8 @@ message_syslog () {
   local NAME="${1}"
   local MESSAGE="${2}"
   local HOST=$(/bin/hostname -s)
-  local LOGGER="/usr/bin/logger"
-  ${LOGGER} --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
+
+  logger --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -35,6 +35,7 @@ send_mail () {
   local SUBJECT="${2}"
   local RECIPIENTS="${3}"
   local HOST="$(/bin/hostname -s)"
+
   cat /tmp/${NAME}-${HOST}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
   rm -f /tmp/${NAME}-${HOST}.txt
 }
@@ -50,17 +51,14 @@ send_mail () {
 directory_mkdir() {
   local NAME="${1}"
   local DIRECTORY="${2}"
-  local MKDIR="/bin/mkdir"
-  local CHOWN="/bin/chown"
 
   if [ ! -e ${DIRECTORY} ]; then
-    ${MKDIR} --parents --mode=755 ${DIRECTORY}
-    ${CHOWN} admin:admin ${DIRECTORY}
+    mkdir --parents --mode=755 ${DIRECTORY}
+    chown admin:admin ${DIRECTORY}
     message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado."
   fi
 
 }
-
 
 
 
@@ -71,11 +69,10 @@ directory_mkdir() {
 file_perms() {
   local NAME="${1}"
   local FILE="${2}"
-  local CHMOD="/bin/chmod"
-  local CHOWN="/bin/chown"
 
-  ${CHOWN} admin:admin ${FILE}
-  ${CHMOD} 640 ${FILE}
+  chown admin:admin ${FILE}
+  chmod 640 ${FILE}
+  message_syslog "${NAME}" "Modificado dueño y permisos para ${FILE}."
 }
 
 
@@ -89,15 +86,13 @@ dump_mysql() {
   local NAME="${1}"
   local OPTIONS="${2}"
   local BACKUP_PATH="${3}"
-  local FIND="/usr/bin/find"
-  local MYSQLDUMP="/usr/bin/mysqldump"
   local MYSQL_PATH="/var/lib/mysql"
 
   if [ -d ${MYSQL_PATH} ]; then
     cd ${MYSQL_PATH}
 
-    for database in $(${FIND} * -maxdepth 0 -type d); do
-      ${MYSQLDUMP} ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
+    for database in $(find * -maxdepth 0 -type d); do
+      mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
       file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
       message_syslog "${NAME}" "La base de datos ${database} fue extraida."
     done
@@ -118,14 +113,13 @@ dump_pg() {
   local BDB_PG_USER="${2}"
   local BDB_PG_PASSWD="${3}"
   local BDB_PG_BACKUP_PATH="${4}"
-  local PG_DUMP="/usr/bin/pg_dump"
 
   export PGPASSWORD=${BDB_PG_PASSWD}
 
   DATABASES=$(psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
 
   for database in ${DATABASES}; do
-    $PG_DUMP --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
+    pg_dump --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
     file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
     message_syslog "${NAME}" "La base de datos ${database} fue extraida."
   done
@@ -287,36 +281,9 @@ libvirt_backup() {
 
 
 
-# Función para respaldar /home.
-# NAME: nombre del programa que invoca.
-# HOME_PATH: ruta al directorio /home
-# BACKUP_PATH: ruta al directorio donde se ubicará la copia de respaldo.
-#
-home_backup() {
-  local NAME="${1}"
-  local HOME_PATH="${2}"
-  local BACKUP_PATH="${3}"
-  local directory=""
-  local FIND="/usr/bin/find"
-  local HOST="$(/bin/hostname -s)"
-  local FECHA="$(/bin/date +%G%m%d)"
-  local FILE="backup-$HOST"
-
-  cd ${HOME_PATH}
-
-  for directory in $(${FIND} * -maxdepth 0 -type d); do
-    DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
-
-    file_backup "${NAME}" "${DIRECTORY_BACKUP}" "${directory} --exclude=backup/*/*" "disk"
-  done
-
-}
-
-
-
 # Función para respaldar otros directorios.
 # NAME: nombre del programa que invoca.
-# BACKUP_FILE: archivo de respaldo a crear.
+# BACKUP: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
 # MODE: modo de respaldo: [disk | tape]
 #
@@ -325,22 +292,21 @@ file_backup() {
   local BACKUP="${2}"
   local DIRS="${3}"
   local MODE="${4}"
-  local TAR="/bin/tar"
   local TAR_OPTS=""
   local EXCLUDE="/etc/backup-cron/exclude.txt"
-  local MBUFFER="/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o"
+  local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
   case ${MODE} in
     disk )
       TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-      ${TAR} ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
+      tar ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
       file_perms "${NAME}" "${BACKUP}"
       gensum "${NAME}" "${BACKUP}"
       message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado."
       ;;
     tape )
       TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
-      ${TAR} ${TAR_OPTS} ${DIRS} --exclude-from=${EXCLUDE} | ${MBUFFER} ${BACKUP} &>/dev/null
+      tar ${TAR_OPTS} ${DIRS} --exclude-from=${EXCLUDE} | mbuffer ${MBUFFER_OPTS} ${BACKUP} &>/dev/null
       message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}."
       ;;
     esac
@@ -408,13 +374,11 @@ remote_backup() {
   local USER="${3}"
   local PATH="${4}"
   local FECHA="$(/bin/date +%G%m%d)"
-  local FIND="/usr/bin/find"
-  local SCP="/usr/bin/scp"
 
   if [ "${REMOTE_IP}" != "" ]; then
 
-    for file in $(${FIND} ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
-      ${SCP} ${file} ${USER}@${IP}:${PATH}
+    for file in $(find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
+      scp ${file} ${USER}@${IP}:${PATH}
 
       if [  ${?} -eq 0 ]; then
           message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}."

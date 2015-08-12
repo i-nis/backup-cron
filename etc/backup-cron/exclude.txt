@@ -1,6 +1,4 @@
-/home/admin/backup/*/etc/*
-/home/admin/backup/*/home/*
-/home/admin/backup/*/system/*
+/home/admin/backup/*/*/*
 /media/*/*
 /mnt/*/*
 /proc/*

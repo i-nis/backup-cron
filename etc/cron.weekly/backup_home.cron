@@ -16,6 +16,9 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 NAME="backup_home.cron"
+HOST="$(/bin/hostname -s)"
+FECHA="$(/bin/date +%G%m%d)"
+FILE="backup-$HOST-home"
 
 # Ubicación de la copia de seguridad.
 BHOME_BACKUP_PATH="${BACKUP_PATH}/${HOST}/home"
@@ -25,9 +28,15 @@ message_syslog "${NAME}" "Iniciando el respaldo de los directorios contenidos en
 # Verificación de existencia para ${BACKUP_PATH}
 directory_mkdir "${NAME}" "${BHOME_BACKUP_PATH}"
 
-# Creación de archivo comprimido según la fecha del día
-home_backup "${NAME}" "/home" "${BHOME_BACKUP_PATH}"
-  
+# Respaldo de directorios /home en archivos comprimidos según la fecha del día.
+cd /home
+
+for directory in $(find * -maxdepth 0 -type d); do
+  DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
+
+  file_backup "${NAME}" "${DIRECTORY_BACKUP}" "/home/${directory}" "disk"
+done
+
 # Copia de archivo de respaldo a servidor remoto.
 remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
 
