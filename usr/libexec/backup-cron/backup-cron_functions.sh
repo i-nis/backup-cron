@@ -128,31 +128,6 @@ dump_pg() {
 
 
 
-# Función para devolver el nombre de una imagen de disco de una maquina virtual.
-# IMAGE_PATH: ruta completa a la imagen de disco utilizado por la maquina virtual.
-#
-image_name_ext() {
-  local IMAGE_PATH="${1}"
-
-  echo "$(echo "${IMAGE_PATH}" | awk -F \/ //'{print $(NF)}')"
-}
-
-
-
-# Función para devolver el nombre sin la extensión de una imagen de disco de una
-# maquina virtual.
-# IMAGE_PATH: ruta completa a la imagen de disco utilizado por la maquina virtual.
-#
-image_name() {
-  local IMAGE_PATH="${1}"
-
-  # Se busca la extensión de imagen: .img, .qcow, .qcow2, .raw, etc.
-  local EXT=$(echo "${IMAGE_PATH}" | awk -F \. //'{print $(NF)}')
-  echo "$(image_name_ext "${IMAGE_PATH}" | awk -F \.${EXT}$ //'{print $1}')"
-}
-
-
-
 # Función para devolver la ruta a la imagen de disco de una maquina virtual.
 # DOMAIN: nombre de la maquina virtual.
 # DISK: disco utilizado por la maquina virtual.
@@ -175,7 +150,7 @@ image_disk() {
   local DOMAIN="${1}"
   local IMAGE_PATH="${2}"
 
-  local IMAGE_NAME=$(image_name_ext "${IMAGE_PATH}")
+  local IMAGE_NAME=$(basename ${IMAGE_PATH})
   echo "$(virsh domblklist ${DOMAIN} | awk -F \  /${IMAGE_NAME}/'{print $1}')"
 }
 
@@ -256,7 +231,11 @@ libvirt_backup() {
     snapshot "create" "${domain}" "null" "${SNAPSHOT}"
 
     for image in ${IMAGES}; do
-      IMAGE_NAME=$(image_name "${image}")
+      # Busca la extensión de imagen: .img, .qcow, .qcow2, .raw, etc. Para devolver
+      # el nombre sin extensión en IMAGE_NAME.
+      local EXT=$(echo "${image}" | awk -F \. //'{print $(NF)}')
+      IMAGE_NAME=$(basename ${image} .${EXT})
+      
       DISK=$(image_disk "${domain}" "${IMAGE_NAME}.${SNAPSHOT}")
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
 
