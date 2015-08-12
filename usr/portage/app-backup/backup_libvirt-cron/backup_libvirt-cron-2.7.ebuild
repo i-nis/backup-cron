@@ -13,10 +13,10 @@ IUSE=""
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch 
-        sys-process/vixie-cron 
-        >=virtual/backup-cron-2.6 
-        app-emulation/libvirt"
+DEPEND="app-admin/tmpwatch
+        sys-process/vixie-cron
+        >=virtual/backup-cron-2.7
+        >=app-emulation/libvirt-1.2.17"
 
 src_unpack() {
     git-2_src_unpack
@@ -24,8 +24,12 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.weekly
-    cp -pR ${S}/etc/cron.weekly/backup_libvirt.cron ${D}/etc/cron.weekly
-    fperms 700 /etc/cron.weekly/backup_libvirt.cron
+    dosbin ${S}/usr/sbin/backup_libvirt.cron
+
+	if [ ! -h /etc/cron.*/backup_libvirt.cron ]; then
+		dosym /usr/sbin/backup_libvirt.cron /etc/cron.weekly/backup_libvirt.cron
+	fi
+
 }
 
 pkg_postinst() {
@@ -35,4 +39,3 @@ pkg_postinst() {
     einfo "The backup files have .qcow2 file extension."
     einfo "More information about qcow2 in: https://people.gnome.org/~markmc/qcow-image-format.html"
 }
-

@@ -4,7 +4,7 @@
 
 inherit git-2
 
-DESCRIPTION="Clear utility for old backups from remote hosts."
+DESCRIPTION="Backup for system configuration files in /etc."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
@@ -13,7 +13,7 @@ IUSE=""
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2.4"
+DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2.7"
 
 src_unpack() {
     git-2_src_unpack
@@ -21,12 +21,11 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.daily
-    cp -pR ${S}/etc/cron.daily/clean_*.cron ${D}/etc/cron.daily
-    fperms 700 /etc/cron.daily/clean_*.cron
-}
+    dosbin ${S}/usr/sbin/backup_etc.cron
 
-pkg_postinst() {
-    local file="${ROOT}etc/backup-cron/backup-cron.conf"
-    einfo "Do not forget to set the list of remote hosts in HOSTS parameter at '${file}' script."
+	if [ ! -h /etc/cron.*/backup_etc.cron ]; then
+		dosym /usr/sbin/backup_etc.cron /etc/cron.daily/backup_etc.cron
+	fi
+
 }
 

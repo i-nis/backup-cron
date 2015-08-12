@@ -28,6 +28,7 @@ pkg_setup() {
     einfo "Checking for admin user..."
     enewuser admin -1 /bin/rbash /home/admin admin
     einfo "Setting permissions for /home/admin directory."
+	dodir /home/admin
     fperms 0770 /home/admin
 }
 
@@ -47,4 +48,3 @@ src_install() {
     fperms 600 /etc/backup-cron/backup-cron.conf
     fperms 600 /etc/backup-cron/exclude.txt
 }
-

@@ -4,7 +4,7 @@
 
 inherit git-2
 
-DESCRIPTION="Backup on DAT and LTO tapes."
+DESCRIPTION="Backup for MySQL."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
@@ -13,7 +13,10 @@ IUSE=""
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch app-arch/mt-st >=sys-process/vixie-cron-4 >=virtual/backup-cron-2.4"
+DEPEND="app-admin/tmpwatch
+	sys-process/vixie-cron
+	>=virtual/backup-cron-2.7
+	virtual/mysql"
 
 src_unpack() {
     git-2_src_unpack
@@ -21,7 +24,14 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.daily
-    cp -pR ${S}/etc/cron.daily/backup_tape.cron ${D}/etc/cron.daily
-    fperms 700 /etc/cron.daily/backup_tape.cron
+    dosbin ${S}/usr/sbin/mysqldump.cron
+
+	if [ ! -h /etc/cron.*/mysqldump.cron ]; then
+		dosym /usr/sbin/mysqldump.cron /etc/cron.daily/mysqldump.cron
+	fi
 }
 
+pkg_postinst() {
+    local file="${ROOT}etc/backup-cron/backup-cron.conf"
+    einfo "Don't forget set root password in BDB_PASSWD parameter at '${file}' script."
+}

@@ -4,7 +4,7 @@
 
 inherit git-2
 
-DESCRIPTION="Backup for Postgresql."
+DESCRIPTION="Backup on DAT and LTO tapes."
 HOMEPAGE="https://proyectos.ingeniovirtual.com.ar/projects/backup-cron"
 SRC_URI=""
 EGIT_REPO_URI="https://proyectos.ingeniovirtual.com.ar/backup.git"
@@ -13,7 +13,10 @@ IUSE=""
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="amd64 x86"
-DEPEND="app-admin/tmpwatch sys-process/vixie-cron >=virtual/backup-cron-2.3 dev-db/postgresql"
+DEPEND="app-admin/tmpwatch
+	app-arch/mt-st
+	>=sys-process/vixie-cron-4
+	>=virtual/backup-cron-2.7"
 
 src_unpack() {
     git-2_src_unpack
@@ -21,12 +24,9 @@ src_unpack() {
 
 src_install() {
     dodir /etc/cron.daily
-    cp -pR ${S}/etc/cron.daily/pg_dump.cron ${D}/etc/cron.daily
-    fperms 700 /etc/cron.daily/pg_dump.cron
-}
+    dosbin ${S}/etc/cron.daily/backup_tape.cron
 
-pkg_postinst() {
-    local file="${ROOT}etc/backup-cron/backup-cron.conf"
-    einfo "Don't forget set postgres password in DB_PG_PASSWD parameter at '${file}' script."
+	if [ ! -h /etc/cron.*/backup_tape.cron ]; then
+		dosym /usr/sbin/backup_tape.cron /etc/cron.daily/backup_tape.cron
+	fi
 }
-
