@@ -20,7 +20,7 @@ message_syslog () {
   local MESSAGE="${2}"
   local HOST=$(/bin/hostname -s)
 
-  logger --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
+  /usr/bin/logger --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -91,8 +91,8 @@ dump_mysql() {
   if [ -d ${MYSQL_PATH} ]; then
     cd ${MYSQL_PATH}
 
-    for database in $(find * -maxdepth 0 -type d); do
-      mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
+    for database in $(/usr/bin/find * -maxdepth 0 -type d); do
+      /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
       file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
       message_syslog "${NAME}" "La base de datos ${database} fue extraida."
     done
@@ -116,10 +116,10 @@ dump_pg() {
 
   export PGPASSWORD=${BDB_PG_PASSWD}
 
-  DATABASES=$(psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
+  DATABASES=$(/usr/bin/psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
 
   for database in ${DATABASES}; do
-    pg_dump --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
+    /usr/bin/pg_dump --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
     file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
     message_syslog "${NAME}" "La base de datos ${database} fue extraida."
   done
@@ -136,7 +136,7 @@ image_path() {
   local DOMAIN="${1}"
   local DISK="${2}"
 
-  echo "$(virsh domblklist ${DOMAIN} | awk -F \  /${DISK}/'{print $2}')"
+  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | awk -F \  /${DISK}/'{print $2}')"
 }
 
 
@@ -151,7 +151,7 @@ image_disk() {
   local IMAGE_PATH="${2}"
 
   local IMAGE_NAME=$(basename ${IMAGE_PATH})
-  echo "$(virsh domblklist ${DOMAIN} | awk -F \  /${IMAGE_NAME}/'{print $1}')"
+  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | awk -F \  /${IMAGE_NAME}/'{print $1}')"
 }
 
 
@@ -172,14 +172,14 @@ snapshot() {
   case ${ACTION} in
     create )
       # Se crea la instantánea como archivo separado y este pasa a ser la imagen.
-      virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} --disk-only --atomic --quiesce
+      /usr/bin/virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} --disk-only --atomic --quiesce
       message_syslog "${NAME}" "Se ha creado la instantánea ${SNAPSHOT}."
       ;;
     delete )
       IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
       # Se envían los cambios desde la instantánea a la imagen principal y luego
       # se realiza el cambio a esta última.
-      virsh blockcommit ${DOMAIN} ${DISK} --active --pivot
+      /usr/bin/virsh blockcommit ${DOMAIN} ${DISK} --active --pivot
 
       # Se elimina el archivo creado por la instantánea.
       SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep ${SNAPSHOT})
@@ -203,7 +203,7 @@ qcow2_backup() {
   local IMAGE="${2}"
   local BACKUP_FILE="${3}"
 
-  qemu-img convert -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
+  /usr/bin/qemu-img convert -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
   message_syslog "${NAME}" "El archivo de respaldo ${BACKUP_FILE} fue creado."
 }
 
@@ -222,7 +222,7 @@ libvirt_backup() {
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
-    IMAGES=$(virsh domblklist ${domain} | awk -F \  /^vd*/'{print $2}')
+    IMAGES=$(/usr/bin/virsh domblklist ${domain} | awk -F \  /^vd*/'{print $2}')
     message_syslog "${NAME}" "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
@@ -253,7 +253,7 @@ libvirt_backup() {
     done
 
     # Se eliminan los metadatos de la instantánea.
-    virsh snapshot-delete ${domain} ${SNAPSHOT} --metadata
+    /usr/bin/virsh snapshot-delete ${domain} ${SNAPSHOT} --metadata
 
   done
 }
@@ -356,8 +356,8 @@ remote_backup() {
 
   if [ "${REMOTE_IP}" != "" ]; then
 
-    for file in $(find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
-      scp ${file} ${USER}@${IP}:${PATH}
+    for file in $(/usr/bin/find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
+      /usr/bin/scp ${file} ${USER}@${IP}:${PATH}
 
       if [  ${?} -eq 0 ]; then
           message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}."
