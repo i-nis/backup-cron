@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# remote_backup_sync.cron: script para sincronizar copias de seguridad entre 
+# servidores.
+#
+# (C) 2012 - 2015 Ingenio Virtual
+# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+source /etc/backup-cron/backup-cron.conf
+
+if [ "${REMOTE_IP}" != "" ]; then
+
+  for ip in ${REMOTE_IP}; do
+    rsync -av ${BACKUP_PATH} -e "ssh -l admin" admin@${ip}:/${BACKUP_PATH}
+  done
+
+fi
+
