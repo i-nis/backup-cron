@@ -15,7 +15,7 @@ source /etc/backup-cron/backup-cron.conf
 if [ "${REMOTE_IP}" != "" ]; then
 
   for ip in ${REMOTE_IP}; do
-    rsync --archive --quiet ${BACKUP_PATH} -e "ssh -l admin" admin@${ip}:/${BACKUP_PATH}
+    rsync --archive --quiet ${BACKUP_PATH} -e "ssh -l admin" admin@${ip}:/home/admin
   done
 
 fi
