@@ -349,24 +349,27 @@ clean_old_backups() {
 #
 remote_backup() {
   local NAME="${1}"
-  local IP="${2}"
+  local REMOTE_IP="${2}"
   local USER="${3}"
   local PATH="${4}"
   local FECHA="$(/bin/date +%G%m%d)"
 
   if [ "${REMOTE_IP}" != "" ]; then
 
-    for file in $(/usr/bin/find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
-      /usr/bin/scp ${file} ${USER}@${IP}:${PATH}
+    for ip in ${REMOTE_IP}; do
 
-      if [  ${?} -eq 0 ]; then
-          message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${IP}."
-        else
-          message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${IP}."
-      fi
+      for file in $(/usr/bin/find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
+        /usr/bin/scp ${file} ${USER}@${ip}:${PATH}
+
+        if [  ${?} -eq 0 ]; then
+            message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${ip}."
+          else
+            message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${ip}."
+        fi
+
+      done
 
     done
-
   fi
 
 }
