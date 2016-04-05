@@ -2,7 +2,7 @@
 Backup-cron es un sistema minimalista de generación de copias de resguardo basado en herramientas GNU y en la utilización del 
 planificador Cron.
 
-Backup-cron es software libre publicado bajo la (Licencia Pública General de GNU](http://www.gnu.org/licenses/gpl.txt)
+Backup-cron es software libre publicado bajo la [Licencia Pública General de GNU](http://www.gnu.org/licenses/gpl.txt)
 
 ## Características
 
