@@ -30,7 +30,7 @@ directory_mkdir "${NAME}" "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
 file_backup "${NAME}" "${BACKUP_PATH_SYS}/${BROOT_FILE}" \
-"/ --exclude=/home/* --exclude=/usr/* --exclude=/var/*" "disk"
+"--exclude='/home/*' --exclude='/usr/*' --exclude='/var/*' /" "disk"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
