@@ -1,6 +1,5 @@
 /lost+found
 /home/admin/backup/*/*/*
-/home/lost+found
 /media/*/*
 /mnt/*/*
 /proc/*
@@ -13,12 +12,10 @@
 /usr/portage/*
 /usr/tmp/*
 /var/chroot/*/var/log/*
-/var/cache/edb/*
-/var/cache/squid/*
+/var/cache/*/*
 /var/lib/libvirt/images/*
-/var/lost+found
-/var/tmp/ccache/*
-/var/tmp/genkernel/*
-/var/tmp/portage/*
+/var/tmp/*/*
+/*/lost+found
 /*/*/lost+found
+/*/*/*/lost+found
 
