@@ -278,14 +278,14 @@ file_backup() {
   case ${MODE} in
     disk )
       TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-      tar ${TAR_OPTS} ${BACKUP} ${DIRS} --exclude-from=${EXCLUDE} &>/dev/null
+      tar ${TAR_OPTS} ${BACKUP} --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
       file_perms "${NAME}" "${BACKUP}"
       gensum "${NAME}" "${BACKUP}"
       message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado."
       ;;
     tape )
       TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
-      tar ${TAR_OPTS} ${DIRS} --exclude-from=${EXCLUDE} | mbuffer ${MBUFFER_OPTS} ${BACKUP} &>/dev/null
+      tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${BACKUP} &>/dev/null
       message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}."
       ;;
     esac
