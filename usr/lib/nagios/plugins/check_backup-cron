@@ -96,6 +96,7 @@ status() {
 
 if [ "${1}" != "-t" ] && [ "${1}" != "--type" ] || [ "${#}" != "2" ]; then
   usage
+  status 8
   exit
 fi
 
