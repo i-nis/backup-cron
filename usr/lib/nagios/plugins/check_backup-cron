@@ -9,8 +9,11 @@
 
 
 
-source /etc/backup-cron/backup-cron.conf
+BACKUP_PATH="/home/admin/backup"
+FECHA="$(date +%G%m%d)"
+HOST="$(hostname)"
 TYPE="${2}"
+
 
 
 
