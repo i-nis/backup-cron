@@ -1,0 +1,169 @@
+#!/bin/bash
+#
+# check_backup-cron: script para verificar existencias de copias de seguridad.
+#
+# (C) 2012 - 2017 Ingenio Virtual
+# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+source /etc/backup-cron/backup-cron.conf
+TYPE="${2}"
+
+
+
+usage () {
+  PROGNAME=$(basename $0)
+  PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  echo "${PROGNAME}:"
+  echo "Verifica si se han realizado copias de seguridad mediante Backup-cron"
+  echo
+  echo "Uso: "
+  echo "${PROGPATH}/${PROGNAME} -t <TIPO>"
+  echo
+  echo "-t, --type      tipo de respaldo a verificar."
+  echo
+  echo "TIPO puede ser uno de los siguientes:"
+  echo "  etc          respaldos realizados por backup_etc.cron"
+  echo "  home         respaldos realizados por backup_home.cron"
+  echo "  libvirt      respaldos realizados por backup_libvirt.cron"
+  echo "  mysql        respaldos realizados por mysqldump.cron"
+  echo "  postgresql   respaldos realizados por pg_dump.cron"
+  echo "  system       respaldos realizados por backup_raiz.cron"
+}
+
+
+
+status() {
+  STATE=${1}
+
+  case ${STATE} in
+    0 )
+      STATUS="Ok"
+      echo "${STATUS}: backup ${DESC} was done without problems."
+      return 0
+      ;;
+    1 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} day ago."
+      return 1
+      ;;
+    2 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
+      return 1
+      ;;
+    3 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
+      return 1
+      ;;
+    4 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
+      return 1
+      ;;
+    5 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
+      return 1
+      ;;
+    6 )
+      STATUS="Warning"
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
+      return 1
+      ;;
+    7 )
+      STATUS="Critical"
+      echo "${STATUS}: There are no backups ${DESC} made in the last ${STATE} days."
+      return 2
+      ;;
+    * )
+      STATUS="Unknown"
+      echo "${STATUS}."
+      return 3
+      ;;
+  esac
+
+}
+
+
+
+if [ "${1}" != "-t" ] && [ "${1}" != "--type" ] || [ "${#}" != "2" ]; then
+  usage
+  exit
+fi
+
+
+
+case ${TYPE} in
+  etc )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      FILE_BACKUP="backup-${HOST}-${TYPE}"
+      EXT="tar.bz2"
+      DESC="of /etc directory (backup_etc.cron)"
+  ;;
+  home )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      FILE_BACKUP="backup-${HOST}-${TYPE}-admin"
+      EXT="tar.bz2"
+      DESC="of /home directory (backup_home.cron)"
+  ;;
+  libvirt )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      #FILE_BACKUP="$(virsh list --name | head -1)"
+      FILE_BACKUP="my1.ingeniovirtual.com.ar"
+      EXT="qcow2"
+      DESC="of virtual machines (backup_libvirt.cron)"
+  ;;
+  mysql )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      FILE_BACKUP="backup-${HOST}-${TYPE}"
+      EXT="tar.bz2"
+      DESC="of MySQL databases (mysqldump.cron)"
+  ;;
+  postgresql )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      FILE_BACKUP="backup-${HOST}-${TYPE}"
+      EXT="tar.bz2"
+      DESC="of PostgreSQL databases (pg_dump.cron)"
+  ;;
+  system )
+      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      FILE_BACKUP="backup-${HOST}-raiz"
+      EXT="tar.bz2"
+      DESC="of system (backup_raiz.cron)"
+  ;;
+  * )
+    usage
+    exit
+  ;;
+esac
+
+
+
+# Se busca el último backup realizado dentro de los últimos 7 días.
+for i in {0..7}; do
+
+  if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
+
+      if [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] || [ "${TYPE}" == "system" ]; then
+          status 0
+        else
+          status ${i}
+      fi
+
+      break
+    else
+
+      if ((${i} > 6 )); then
+        status ${i}
+      fi
+
+  fi
+
+  FECHA=$(date --date="${i} days ago" +%G%m%d)
+done
+
