@@ -113,7 +113,7 @@ case ${TYPE} in
       BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
       FILE_BACKUP="backup-${HOST}-${TYPE}-admin"
       EXT="tar.bz2"
-      DESC="of /home directory)"
+      DESC="of /home directory"
   ;;
   libvirt )
       BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
@@ -157,6 +157,7 @@ for i in {0..7}; do
           status 0
         else
           status ${i}
+          exit $?
       fi
 
       break
@@ -164,6 +165,7 @@ for i in {0..7}; do
 
       if ((${i} > 6 )); then
         status ${i}
+        exit $?
       fi
 
   fi
