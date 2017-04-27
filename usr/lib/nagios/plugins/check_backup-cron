@@ -10,7 +10,6 @@
 
 
 BACKUP_PATH="/home/admin/backup"
-FECHA="$(date +%G%m%d)"
 HOST="$(hostname)"
 TYPE="${2}"
 
@@ -150,6 +149,7 @@ esac
 
 # Se busca el último backup realizado dentro de los últimos 7 días.
 for i in {0..7}; do
+  FECHA=$(date --date="${i} days ago" +%G%m%d)
 
   if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
 
@@ -170,6 +170,5 @@ for i in {0..7}; do
 
   fi
 
-  FECHA=$(date --date="${i} days ago" +%G%m%d)
 done
 
