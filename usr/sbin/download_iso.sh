@@ -1,29 +1,62 @@
 #!/bin/bash
 #
-# download_iso.sh: script para descargar imagenes ISO.
+# download_iso.sh: script para descargar imagenes ISO de Gentoo.
 #
-# (C) 2009 Martin Andres Gomez Gimenez <mggimenez@i-nis.com.ar>
+# (C) 2012 - 2017 Ingenio Virtual
+# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
-# Revision : $Id$
 
-# URL desde donde descargar la imagen ISO. Es necesario el caracter "/" al 
-# final.
-URL="http://mirrors.kernel.org/gentoo/releases/x86/current-iso/"
+
+
+# URL desde donde descargar la imagen ISO.
+URL="http://distfiles.gentoo.org/releases"
+
+
+
+# Función de ayuda.
+usage() {
+  local PROG_NAME=$(basename $0)
+  local PROG_PATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  echo ""
+  echo "${PROG_NAME}:"
+  echo "Descarga en /var/tmp la imagen ISO de Gentoo para la arquitectura seleccionada."
+  echo
+  echo "  Uso: "
+  echo "    ${PROG_PATH}/${PROG_NAME} [-h|--help] [amd64|x86]"
+  echo ""
+  echo "    --help, -h"
+  echo "        Muestra esta ayuda."
+  echo ""
+}
+
+
+
+# Verifica el correcto pasaje de parámetros
+if [ "${1}" == "amd64" ] || [ "${1}" == "x86" ] && [ "${#}" == "1" ]; then
+    ARCH="${1}"
+    URL_ARCH="${URL}/${ARCH}/autobuilds/current-admincd-${ARCH}"
+  else
+    usage
+    exit
+fi
+
+
 
 # Archivos a descargar desde $URL
-ISO=`curl --silent "$URL" | awk -F \" /iso/'{print $2}' | grep iso$`
-DIGESTS=`curl --silent "$URL" | awk -F \" /iso/'{print $2}' | grep DIGESTS$`
-CONTENTS=`curl --silent "$URL" | awk -F \" /iso/'{print $2}' | grep CONTENTS$`
+ISO=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep iso$)
+CONTENTS=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep CONTENTS$)
+DIGESTS=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep DIGESTS$)
+
 
 
 # Función para eliminar archivos
 rm_files() {
   local FILES="$1"
-  
-  for file in $FILES; do
-    echo "Borrando archivo $file"
-    rm -f $file
+
+  for file in ${FILES}; do
+    echo "Borrando archivo ${file}"
+    rm -f ${file}
   done
 
 }
@@ -33,22 +66,22 @@ rm_files() {
 # Función para descarga de archivos desde $URL
 DESCARGA=0
 
-until (( $DESCARGA )); do
-  wget -c $URL$ISO
-  wget -c $URL$DIGESTS
-  wget -c $URL$CONTENTS
-  WARN=`sha1sum --check --quiet "$DIGESTS" | awk -F \: /iso/'{print $1}'`
+cd /var/tmp
 
-  if [ "$WARN" == "" ]; then
+until (( ${DESCARGA} )); do
+  wget -c ${URL_ARCH}/${ISO}
+  wget -c ${URL_ARCH}/${CONTENTS}
+  wget -c ${URL_ARCH}/${DIGESTS}
+  wget -c ${URL_ARCH}/${DIGESTS}.asc
+  WARN=$(sha512sum --check "${DIGESTS}" | head -1)
+
+  if [ "${WARN}" == "${ISO}: La suma coincide" ]; then
       DESCARGA=1
+      echo "Descarga finalizada."
     else
-      rm_files $WARN
+      echo "Falló la descarga."
+      rm_files ${WARN}
   fi
 
 done
-
-
-
-
-
 
