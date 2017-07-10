@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2012 - 2015 Ingenio Virtual
+# (C) 2012 - 2017 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -20,7 +20,7 @@ message_syslog () {
   local MESSAGE="${2}"
   local HOST=$(/bin/hostname -s)
 
-  /usr/bin/logger --id ${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
+  /usr/bin/logger --id=${NAME} ${MESSAGE} --stderr &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -116,10 +116,14 @@ dump_pg() {
 
   export PGPASSWORD=${BDB_PG_PASSWD}
 
-  DATABASES=$(/usr/bin/psql -t -l --username=${BDB_PG_USER} | awk -F \| /^.*/'{print $1}')
+  if [ "${BDB_PG_HOST}" == "" ]; then
+    BDB_PG_HOST="$(hostname --long)"
+  fi
+
+  DATABASES=$(/usr/bin/psql -t -l --username=${BDB_PG_USER} --host=${BDB_PG_HOST} | awk -F \| /^.*/'{print $1}')
 
   for database in ${DATABASES}; do
-    /usr/bin/pg_dump --username=${BDB_PG_USER} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
+    /usr/bin/pg_dump --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
     file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
     message_syslog "${NAME}" "La base de datos ${database} fue extraida."
   done
