@@ -3,7 +3,7 @@
 # pg_dump.cron: script para hacer copias de seguridad de bases de
 # datos PostgreSQL
 #
-# (C) 2012 - 2014 Ingenio Virtual
+# (C) 2012 - 2017 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -41,23 +41,23 @@ if [ -e ${BACKUP_PATH} ]; then
     # archivos *.sql.
     cd ${BDB_PG_BACKUP_PATH}
 
-    if [ "$(ls -1 *.sql | wc --lines)" > "0" ]; then
-        file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
-        rm -f *.sql
+    if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" > "0" ]; then
+      file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
+      rm -f *.sql
 
-        # Borrado de copias de seguridad antiguas con tmpwatch
-        clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
+      # Borrado de copias de seguridad antiguas con tmpwatch
+      clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
 
-        # Copia de archivo de respaldo a servidor remoto.
-        remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+      # Copia de archivo de respaldo a servidor remoto.
+      remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
 
-        message_syslog "${NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
+      message_syslog "${NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
 
-        # Envío de correo informando sobre el respaldo
-        send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
-      else
-        message_syslog "${NAME}" "Bases de datos PostgreSQL no respaldadas: $(date)."
-    fi
+      # Envío de correo informando sobre el respaldo
+      send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
+    else
+      message_syslog "${NAME}" "Bases de datos PostgreSQL no respaldadas: $(date)."
+  fi
 
   fi
   
