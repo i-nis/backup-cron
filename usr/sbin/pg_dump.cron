@@ -41,7 +41,7 @@ if [ -e ${BACKUP_PATH} ]; then
     # archivos *.sql.
     cd ${BDB_PG_BACKUP_PATH}
 
-    if [ "$(ls -1 *.sql | wc --lines)" > "0" ]; then
+    if [ "$(ls -1 *.sql | wc --lines)" != "0" ]; then
         file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
         rm -f *.sql
 
@@ -60,6 +60,5 @@ if [ -e ${BACKUP_PATH} ]; then
     fi
 
   fi
-  
-fi
 
+fi
