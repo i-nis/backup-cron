@@ -58,9 +58,5 @@ if [ -x ${MYSQLDUMP} ]; then
     else
       message_syslog "${NAME}" "Bases de datos MySQL no respaldadas: $(date)."
   fi
-<<<<<<< HEAD
-=======
-fi
->>>>>>> a49ae35f88e4d55f0e4669e75d8a76320b35d449
 
 fi
