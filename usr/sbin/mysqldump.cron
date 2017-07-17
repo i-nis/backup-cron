@@ -41,7 +41,7 @@ if [ -x ${MYSQLDUMP} ]; then
   # archivos *.sql.
   cd ${BDB_BACKUP_PATH}
 
-  if [ "$(ls -1 *.sql | wc --lines)" != "0" ]; then
+  if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
       file_backup "${NAME}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql" "disk"
       rm -f *.sql
 
@@ -58,5 +58,9 @@ if [ -x ${MYSQLDUMP} ]; then
     else
       message_syslog "${NAME}" "Bases de datos MySQL no respaldadas: $(date)."
   fi
+<<<<<<< HEAD
+=======
+fi
+>>>>>>> a49ae35f88e4d55f0e4669e75d8a76320b35d449
 
 fi
