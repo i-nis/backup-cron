@@ -50,7 +50,7 @@ status() {
     1 )
       STATUS="Warning"
       echo "${STATUS}: last backup ${DESC} was performed ${STATE} day ago."
-      return 1
+      return 0
       ;;
     2 )
       STATUS="Warning"
