@@ -93,8 +93,14 @@ dump_mysql() {
 
     for database in $(/usr/bin/find * -maxdepth 0 -type d); do
       /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
-      file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
-      message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+
+      if [ "$(wc -c < ${BACKUP_PATH}/${database}.sql)" == "0" ]; then
+         rm -f ${BACKUP_PATH}/${database}.sql
+        else
+          file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
+          message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+      fi
+
     done
 
   fi
