@@ -3,7 +3,7 @@
 # backup_libvirt.cron: script para hacer copias de seguridad de las imágenes de
 # las maquinas virtuales gestionadas por Libvirt.
 #
-# (C) 2012 - 2014 Ingenio Virtual
+# (C) 2012 - 2017 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
