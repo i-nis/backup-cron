@@ -34,8 +34,8 @@ file_backup "${NAME}" "${BACKUP_PATH_SYS}/${BUSR_FILE}" "/usr" "disk"
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
 
-# Copia de archivo de respaldo a servidor remoto.
-remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}"
+# Copia respaldo a servidores remotos en como proceso de fondo (background).
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}" &
 
 message_syslog "${NAME}" "Respaldo del directorio /usr finalizado: $(date)."
 

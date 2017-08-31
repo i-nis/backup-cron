@@ -34,8 +34,8 @@ clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"
 # Respaldo de imagenes qcow2.
 libvirt_backup "${NAME}" "${BLIBVIRT_BACKUP_PATH}"
 
-# Copia de archivo de respaldo a servidor remoto.
-remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}"
+# Copia respaldos a servidores remotos en como proceso de fondo (background).
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BLIBVIRT_BACKUP_PATH}" &
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BLIBVIRT_BACKUP_PATH}"

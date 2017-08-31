@@ -369,7 +369,7 @@ remote_backup() {
     for ip in ${REMOTE_IP}; do
 
       for file in $(/usr/bin/find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
-        /usr/bin/scp ${file} ${USER}@${ip}:${PATH}
+        /usr/bin/scp ${file} ${USER}@${ip}:${PATH} &>/dev/null
 
         if [  ${?} -eq 0 ]; then
             message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${ip}."
