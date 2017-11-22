@@ -213,7 +213,7 @@ qcow2_backup() {
   local IMAGE="${2}"
   local BACKUP_FILE="${3}"
 
-  /usr/bin/qemu-img convert -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
+  /usr/bin/qemu-img convert --force-share -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
   message_syslog "${NAME}" "El archivo de respaldo ${BACKUP_FILE} fue creado."
 }
 
