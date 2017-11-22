@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# backup_home.cron: script para hacer copias de seguridad de los directorios 
+# backup_home.cron: script para hacer copias de seguridad de los directorios
 # contenidos en /home.
 #
 # (C) 2012 - 2017 Ingenio Virtual
@@ -37,8 +37,8 @@ for directory in $(find * -maxdepth 0 -type d); do
   file_backup "${NAME}" "${DIRECTORY_BACKUP}" "/home/${directory}" "disk"
 done
 
-# Copia de archivo de respaldo a servidor remoto.
-remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}"
+# Copia respaldos a servidores remotos en como proceso de fondo (background).
+remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}" &
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BHOME_BACKUP_PATH}"
