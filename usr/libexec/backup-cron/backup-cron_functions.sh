@@ -91,14 +91,26 @@ dump_mysql() {
   if [ -d ${MYSQL_PATH} ]; then
     cd ${MYSQL_PATH}
 
-    for database in $(/usr/bin/find * -maxdepth 0 -type d); do
-      /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql
+    for database in $(/usr/bin/find * -maxdepth 0 -type d |egrep -v 'lost\+found|performance_schema'); do
+      /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql \
+      2>${BACKUP_PATH}/${database}_error.txt 
 
-      if [ "$(wc -c < ${BACKUP_PATH}/${database}.sql)" == "0" ]; then
-         rm -f ${BACKUP_PATH}/${database}.sql
+      # Comprueba si el respaldo fue correctamente realizado
+      if [ "$?" -eq 0 ]; then
+
+          if [ "$(wc -c < ${BACKUP_PATH}/${database}.sql)" == "0" ]; then
+             rm -f ${BACKUP_PATH}/${database}.sql
+            else
+              file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
+              message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+          fi
+
+          if [ "$(wc -c < ${BACKUP_PATH}/${database}_error.txt)" == "0" ]; then
+             rm -f ${BACKUP_PATH}/${database}_error.txt
+          fi
+
         else
-          file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
-          message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
       fi
 
     done

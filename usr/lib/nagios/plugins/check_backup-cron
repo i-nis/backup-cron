@@ -2,7 +2,7 @@
 #
 # check_backup-cron: script para verificar existencias de copias de seguridad.
 #
-# (C) 2012 - 2017 Ingenio Virtual
+# (C) 2012 - 2019 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -79,7 +79,12 @@ status() {
       ;;
     7 )
       STATUS="Critical"
-      echo "${STATUS}: There are no backups ${DESC} made in the last ${STATE} days."
+      echo "${STATUS}: there are no backups ${DESC} made in the last ${STATE} days."
+      return 2
+      ;;
+    8 )
+      STATUS="Critical"
+      echo "${STATUS}: there are errors on backups ${DESC}."
       return 2
       ;;
     * )
@@ -153,6 +158,24 @@ for i in {0..7}; do
 
   if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
 
+      # Se verifica que los respaldos realizados se correspondan con el número 
+      # de bases de datos exitentes.
+      if [ "${TYPE}" == "mysql" ]; then
+        cd /var/lib/mysql
+        DB_NUM=$(/usr/bin/find * -maxdepth 0 -type d | egrep -v 'lost\+found|performance_schema' | wc -l)
+        FILE_BACKUP_DB_NUM=$(tar -tf ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} | wc -l)
+
+        if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
+            status ${i}
+            exit $?
+          else
+            status 8
+            exit $?
+        fi
+
+        break
+      fi
+
       if [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] || [ "${TYPE}" == "system" ]; then
           status 0
         else
@@ -171,3 +194,4 @@ for i in {0..7}; do
   fi
 
 done
+
