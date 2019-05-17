@@ -31,7 +31,7 @@ directory_mkdir "${NAME}" "${BHOME_BACKUP_PATH}"
 # Respaldo de directorios /home en archivos comprimidos según la fecha del día.
 cd /home
 
-for directory in $(find * -maxdepth 0 -type d); do
+for directory in $(find * -maxdepth 0 -type d | grep --invert-match lost+found); do
   DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
 
   file_backup "${NAME}" "${DIRECTORY_BACKUP}" "/home/${directory}" "disk"
