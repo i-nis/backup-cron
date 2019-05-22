@@ -42,8 +42,8 @@ if [ -e ${BACKUP_PATH} ]; then
     cd ${BDB_PG_BACKUP_PATH}
 
     if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
-        file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql" "disk"
-        rm -f *.sql
+        file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql *.txt" "disk"
+        rm -f *.sql *.txt
 
         # Borrado de copias de seguridad antiguas con tmpwatch
         clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"

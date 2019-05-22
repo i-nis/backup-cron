@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2012 - 2017 Ingenio Virtual
+# (C) 2012 - 2019 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -91,9 +91,9 @@ dump_mysql() {
   if [ -d ${MYSQL_PATH} ]; then
     cd ${MYSQL_PATH}
 
-    for database in $(/usr/bin/find * -maxdepth 0 -type d |egrep -v 'lost\+found|performance_schema'); do
+    for database in $(/usr/bin/find * -maxdepth 0 -type d | egrep -v 'lost\+found|performance_schema' ); do
       /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql \
-      2>${BACKUP_PATH}/${database}_error.txt 
+      2>${BACKUP_PATH}/${database}_error.txt
 
       # Comprueba si el respaldo fue correctamente realizado
       if [ "$?" -eq 0 ]; then
@@ -101,8 +101,8 @@ dump_mysql() {
           if [ "$(wc -c < ${BACKUP_PATH}/${database}.sql)" == "0" ]; then
              rm -f ${BACKUP_PATH}/${database}.sql
             else
-              file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
-              message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+             file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
+             message_syslog "${NAME}" "La base de datos ${database} fue extraida."
           fi
 
           if [ "$(wc -c < ${BACKUP_PATH}/${database}_error.txt)" == "0" ]; then
@@ -131,6 +131,7 @@ dump_pg() {
   local BDB_PG_USER="${2}"
   local BDB_PG_PASSWD="${3}"
   local BDB_PG_BACKUP_PATH="${4}"
+  local BDB_PG_PSQL="/usr/bin/psql -t -l --username=${BDB_PG_USER} --host=${BDB_PG_HOST}"
 
   export PGPASSWORD=${BDB_PG_PASSWD}
 
@@ -138,12 +139,31 @@ dump_pg() {
     BDB_PG_HOST="$(hostname --long)"
   fi
 
-  DATABASES=$(/usr/bin/psql -t -l --username=${BDB_PG_USER} --host=${BDB_PG_HOST} | awk -F \| /^.*/'{print $1}')
+  DATABASES=$(${BDB_PG_PSQL} | awk -F \| /^.*/'{print $1}' \
+              | egrep -v 'template0|template1' | tr -d ' ' | sed '/^$/d' | sed '/^$/d')
 
   for database in ${DATABASES}; do
-    /usr/bin/pg_dump --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} > ${BDB_PG_BACKUP_PATH}/${database}.sql
-    file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
-    message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+    /usr/bin/pg_dump --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} \
+    > ${BDB_PG_BACKUP_PATH}/${database}.sql 2>${BDB_PG_BACKUP_PATH}/${database}_error.txt
+
+      # Comprueba si el respaldo fue correctamente realizado
+      if [ "$?" -eq 0 ]; then
+
+          if [ "$(wc -c < ${BDB_PG_BACKUP_PATH}/${database}.sql)" == "0" ]; then
+             rm -f ${BDB_PG_BACKUP_PATH}/${database}.sql
+            else
+             file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
+             message_syslog "${NAME}" "La base de datos ${database} fue extraida."
+          fi
+
+          if [ "$(wc -c < ${BDB_PG_BACKUP_PATH}/${database}_error.txt)" == "0" ]; then
+             rm -f ${BDB_PG_BACKUP_PATH}/${database}_error.txt
+          fi
+
+        else
+          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
+      fi
+
   done
 
 }

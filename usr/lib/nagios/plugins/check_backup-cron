@@ -8,7 +8,7 @@
 #
 
 
-
+BACKUP_CONFIG="/etc/backup-cron/backup-cron.conf"
 BACKUP_PATH="/home/admin/backup"
 HOST="$(hostname)"
 TYPE="${2}"
@@ -134,6 +134,9 @@ case ${TYPE} in
   ;;
   postgresql )
       BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+      BDB_PG_HOST=$(awk -F \" /^BDB_PG_HOST/'{print $2}' ${BACKUP_CONFIG})
+      BDB_PG_PASSWD=$(awk -F \" /^BDB_PG_PASSWD/'{print $2}' ${BACKUP_CONFIG})
+      BDB_PG_USER=$(awk -F \" /^BDB_PG_USER/'{print $2}' ${BACKUP_CONFIG})
       FILE_BACKUP="backup-${HOST}-${TYPE}"
       EXT="tar.bz2"
       DESC="of PostgreSQL databases"
@@ -158,14 +161,34 @@ for i in {0..7}; do
 
   if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
 
-      # Se verifica que los respaldos realizados se correspondan con el número 
-      # de bases de datos exitentes.
+      # Se verifica que los respaldos realizados se correspondan con el número
+      # de bases de datos MySQL exitentes.
       if [ "${TYPE}" == "mysql" ]; then
         cd /var/lib/mysql
         DB_NUM=$(/usr/bin/find * -maxdepth 0 -type d | egrep -v 'lost\+found|performance_schema' | wc -l)
         FILE_BACKUP_DB_NUM=$(tar -tf ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} | wc -l)
 
         if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
+            status ${i}
+            exit $?
+          else
+            status 8
+            exit $?
+        fi
+
+        break
+      fi
+
+      # Se verifica que los respaldos realizados se correspondan con el número
+      # de bases de datos PostgreSQL exitentes.
+      if [ "${TYPE}" == "postgresql" ]; then
+        export PGPASSWORD=${BDB_PG_PASSWD}
+        BDB_PG_PSQL="/usr/bin/psql -t -l --username=${BDB_PG_USER} --host=${BDB_PG_HOST}"
+        DB_PG_NUM=$(${BDB_PG_PSQL} | awk -F \| /^.*/'{print $1}' \
+                    | egrep -v 'template0|template1' | tr -d ' ' | sed '/^$/d' | wc -l)
+        FILE_BACKUP_PG_NUM=$(tar -tf ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} | wc -l)
+
+        if [ ${DB_PG_NUM} -eq ${FILE_BACKUP_PG_NUM} ]; then
             status ${i}
             exit $?
           else
