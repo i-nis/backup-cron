@@ -98,6 +98,9 @@ show_databases_mysql() {
 
 
 # Función para listar las bases de datos PostgreSQL a respaldar.
+# USER: usuario con privilegios de administrador para el motor PosgreSQL.
+# PASSWD: contraseña del usuario administrador.
+# HOST: servidor o dirección de IP del motor de bases de datos.
 show_databases_pg() {
   local USER="${1}"
   local PASSWD="${2}"
