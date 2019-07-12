@@ -3,7 +3,7 @@
 # mysqldump.cron: script para hacer copias de seguridad de bases de
 # datos MySQL
 #
-# (C) 2012 - 2017 Ingenio Virtual
+# (C) 2012 - 2019 Ingenio Virtual
 # (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -35,14 +35,26 @@ if [ -x ${MYSQLDUMP} ]; then
   directory_mkdir "${NAME}" "${BDB_BACKUP_PATH}"
 
   # Volcado de bases de datos en SQL
-  dump_mysql "${NAME}" "${BDB_OPTIONS}" "${BDB_BACKUP_PATH}"
+  for database in $(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST}); do
+    /usr/bin/mysqldump ${BDB_OPTIONS} ${database} > ${BDB_BACKUP_PATH}/${database}.sql \
+    2>${BDB_BACKUP_PATH}/${database}.sql.error
+
+    # Comprueba si el respaldo fue correctamente realizado
+    if [ "$?" -eq 0 ]; then
+        message_syslog "${NAME}" "La base de datos ${database} fue extraída."
+        database_verify "${NAME}" "${BDB_BACKUP_PATH}/${database}.sql"
+      else
+        message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
+    fi
+
+  done
 
   # Creación de archivo comprimido según la fecha del día y borrado de los
   # archivos *.sql.
   cd ${BDB_BACKUP_PATH}
 
   if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
-      file_backup "${NAME}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.txt" "disk"
+      file_backup "${NAME}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.error" "disk"
       rm -f *.sql *.txt
 
       # Borrado de copias de seguridad antiguas con tmpwatch
@@ -60,3 +72,4 @@ if [ -x ${MYSQLDUMP} ]; then
   fi
 
 fi
+

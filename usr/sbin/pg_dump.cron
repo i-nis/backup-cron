@@ -3,8 +3,8 @@
 # pg_dump.cron: script para hacer copias de seguridad de bases de
 # datos PostgreSQL
 #
-# (C) 2012 - 2017 Ingenio Virtual
-# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# (C) 2012 - 2019 Ingenio Virtual
+# (C) 2006 - 2012 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 
@@ -15,8 +15,9 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-# Variables para mysqldump
+# Variables para pg_dump
 PG_DUMP="/usr/bin/pg_dump"
+export PGPASSWORD=${BDB_PG_PASSWD}
 
 NAME="pg_dump.cron"
 
@@ -35,7 +36,19 @@ if [ -e ${BACKUP_PATH} ]; then
     directory_mkdir "${NAME}" "${BDB_PG_BACKUP_PATH}"
 
     # Volcado de bases de datos en SQL
-    dump_pg "${NAME}" "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_BACKUP_PATH}"
+    for database in $(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST}); do
+      ${PG_DUMP} --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} \
+      > ${BDB_PG_BACKUP_PATH}/${database}.sql 2>${BDB_PG_BACKUP_PATH}/${database}.sql.error
+
+      # Comprueba si el respaldo fue correctamente realizado
+      if [ "$?" -eq 0 ]; then
+          message_syslog "${NAME}" "La base de datos ${database} fue extraída."
+          database_verify "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
+        else
+          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
+      fi
+
+    done
 
     # Creación de archivo comprimido según la fecha del día y borrado de los
     # archivos *.sql.
@@ -43,7 +56,7 @@ if [ -e ${BACKUP_PATH} ]; then
 
     if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
         file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql *.txt" "disk"
-        rm -f *.sql *.txt
+        rm -f *.sql *.error
 
         # Borrado de copias de seguridad antiguas con tmpwatch
         clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
@@ -62,3 +75,4 @@ if [ -e ${BACKUP_PATH} ]; then
   fi
 
 fi
+

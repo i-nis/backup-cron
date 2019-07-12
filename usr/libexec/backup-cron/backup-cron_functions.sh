@@ -77,94 +77,66 @@ file_perms() {
 
 
 
-# Función para el volcado de bases de datos en SQL en disco.
-# NAME: nombre del programa que invoca.
-# OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
-# BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
-#
-dump_mysql() {
-  local NAME="${1}"
-  local OPTIONS="${2}"
-  local BACKUP_PATH="${3}"
-  local MYSQL_PATH="/var/lib/mysql"
+# Función para listar las bases de datos MySQL a respaldar.
+# USER: usuario con privilegios de administrador para el motor MySQL.
+# PASSWD: contraseña del usuario administrador.
+# HOST: servidor o dirección de IP del motor de bases de datos.
+show_databases_mysql() {
+  local USER="${1}"
+  local PASSWD="${2}"
+  local HOST="${3}"
+  local EXCLUDE="lost\+found|performance_schema|information_schema"
+  local OPTIONS="--batch --skip-pager --skip-column-names --raw"
+  local DATABASES=""
 
-  if [ -d ${MYSQL_PATH} ]; then
-    cd ${MYSQL_PATH}
+  DATABASES=$(mysql ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
+  --password=${PASSWD} --host=${HOST} | egrep -v ${EXCLUDE})
 
-    for database in $(/usr/bin/find * -maxdepth 0 -type d | egrep -v 'lost\+found|performance_schema' ); do
-      /usr/bin/mysqldump ${OPTIONS} ${database} > ${BACKUP_PATH}/${database}.sql \
-      2>${BACKUP_PATH}/${database}_error.txt
-
-      # Comprueba si el respaldo fue correctamente realizado
-      if [ "$?" -eq 0 ]; then
-
-          if [ "$(wc -c < ${BACKUP_PATH}/${database}.sql)" == "0" ]; then
-             rm -f ${BACKUP_PATH}/${database}.sql
-            else
-             file_perms "${NAME}" "${BACKUP_PATH}/${database}.sql"
-             message_syslog "${NAME}" "La base de datos ${database} fue extraida."
-          fi
-
-          if [ "$(wc -c < ${BACKUP_PATH}/${database}_error.txt)" == "0" ]; then
-             rm -f ${BACKUP_PATH}/${database}_error.txt
-          fi
-
-        else
-          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
-      fi
-
-    done
-
-  fi
-
+  echo "${DATABASES}"
 }
 
 
 
-# Función para el volcado de bases de datos en SQL en disco o en cinta DAT.
+# Función para listar las bases de datos PostgreSQL a respaldar.
+show_databases_pg() {
+  local USER="${1}"
+  local PASSWD="${2}"
+  local HOST="${3}"
+  local EXCLUDE="template0|template1"
+  local OPTIONS="--tuples-only --list"
+  local DATABASES=""
+
+  export PGPASSWORD=${PASSWD}
+
+  DATABASES=$(psql ${OPTIONS} --username=${USER} --host=${HOST} \
+  | awk -F \| /^.*/'{print $1}' | egrep -v ${EXCLUDE} | tr -d ' ' \
+  | sed '/^$/d' | sed '/^$/d')
+
+  echo "${DATABASES}"
+}
+
+
+
+# Función para verificar la realización de respaldos de bases de datos.
 # NAME: nombre del programa que invoca.
-# OPTIONS: opciones para mysqldump, para mas detalles vea "man mysqldump".
-# BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
+# DATABASE: ruta completa a la base de datos a verificar.
 #
-dump_pg() {
+database_verify() {
   local NAME="${1}"
-  local BDB_PG_USER="${2}"
-  local BDB_PG_PASSWD="${3}"
-  local BDB_PG_BACKUP_PATH="${4}"
-  local BDB_PG_PSQL="/usr/bin/psql -t -l --username=${BDB_PG_USER} --host=${BDB_PG_HOST}"
+  local DATABASE="${2}"
 
-  export PGPASSWORD=${BDB_PG_PASSWD}
-
-  if [ "${BDB_PG_HOST}" == "" ]; then
-    BDB_PG_HOST="$(hostname --long)"
+  if [ "$(wc -c < ${DATABASE})" == "0" ]; then
+      rm -f ${DATABASE}
+      message_syslog "${NAME}" "El archivo ${DATABASE} estaba vacío."
+    else
+      file_perms "${NAME}" "${DATABASE}"
+      message_syslog "${NAME}" "Se ha creado correctamente ${DATABASE}."
   fi
 
-  DATABASES=$(${BDB_PG_PSQL} | awk -F \| /^.*/'{print $1}' \
-              | egrep -v 'template0|template1' | tr -d ' ' | sed '/^$/d' | sed '/^$/d')
-
-  for database in ${DATABASES}; do
-    /usr/bin/pg_dump --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} \
-    > ${BDB_PG_BACKUP_PATH}/${database}.sql 2>${BDB_PG_BACKUP_PATH}/${database}_error.txt
-
-      # Comprueba si el respaldo fue correctamente realizado
-      if [ "$?" -eq 0 ]; then
-
-          if [ "$(wc -c < ${BDB_PG_BACKUP_PATH}/${database}.sql)" == "0" ]; then
-             rm -f ${BDB_PG_BACKUP_PATH}/${database}.sql
-            else
-             file_perms "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
-             message_syslog "${NAME}" "La base de datos ${database} fue extraida."
-          fi
-
-          if [ "$(wc -c < ${BDB_PG_BACKUP_PATH}/${database}_error.txt)" == "0" ]; then
-             rm -f ${BDB_PG_BACKUP_PATH}/${database}_error.txt
-          fi
-
-        else
-          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
-      fi
-
-  done
+  if [ "$(wc -c < ${DATABASE}.error)" == "0" ]; then
+    rm -f ${DATABASE}.error
+    message_syslog "${NAME}" "No se detectaron errores en ${DATABASE}."
+  fi
 
 }
 
