@@ -16,7 +16,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Variables para mysqldump
-BDB_OPTIONS="--opt --user=${BDB_USER} --password=${BDB_PASSWD}"
+BDB_OPTIONS="--opt --flush-logs --master-data=2 --user=${BDB_USER} --password=${BDB_PASSWD}"
 MYSQL_PATH="/var/lib/mysql"
 MYSQLDUMP="/usr/bin/mysqldump"
 
