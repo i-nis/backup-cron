@@ -55,7 +55,7 @@ if [ -x ${MYSQLDUMP} ]; then
 
   if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
       file_backup "${NAME}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.error" "disk"
-      rm -f *.sql *.txt
+      rm -f *.sql *.error
 
       # Borrado de copias de seguridad antiguas con tmpwatch
       clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_BACKUP_PATH}"
