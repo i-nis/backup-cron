@@ -54,6 +54,7 @@ if [ -x ${MYSQLDUMP} ]; then
   cd ${BDB_BACKUP_PATH}
 
   if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
+      ls -1 | grep --invert-match backup-${HOST}-mysql > ${BDB_BACKUP_PATH}/${BDB_FILE}.list
       file_backup "${NAME}" "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.error" "disk"
       rm -f *.sql *.error
 

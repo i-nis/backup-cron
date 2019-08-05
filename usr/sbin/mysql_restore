@@ -1,0 +1,175 @@
+#!/bin/bash
+#
+# mysql_restore: script para restaurar bases de datos desde copia de respaldo.
+#
+# (C) 2012 - 2019 Ingenio Virtual
+# Autor: Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+BDB_FILE="${1}"
+
+
+
+# Funcion para mostrar advertencias
+warning ()
+{
+  WARNING="\033[40m\033[1;33m${1}\033[0m"
+  ADVERTENCE="\033[1;37m${2}\033[0m"
+  echo
+  echo -e "\a" "${WARNING}"
+  echo -e " ${ADVERTENCE}"
+  echo
+}
+
+
+
+# Función de ayuda del programa.
+usage() {
+  local PROG_NAME=$(basename ${0})
+  local PROG_PATH=$(echo ${0} | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  echo ""
+  echo "${PROG_NAME}:"
+  echo "Restaura bases de datos desde un archivo de copia de respaldo dado."
+  echo ""
+  echo "  Uso: "
+  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help] [-l|--local] DBD_FILE.tar.bz2"
+  echo ""
+  echo "       --help, -h"
+  echo "           Muestra esta ayuda."
+  echo ""
+  echo "       --local, -l"
+  echo "           Utiliza la configuración de bakup-cron almacenada en el archivo"
+  echo "           de configuración /etc/backup-cron/backup-cron.conf."
+  echo ""
+  echo "       DBD_FILE.tar.bz2"
+  echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
+  echo ""
+}
+
+
+
+# Pregunta al usuario acerca de los datos de conexión al motor de bases de datos:
+# Usuario, Contraseña y host.
+set_mysql_credentials() {
+  echo "Ingrese los siguientes datos para necesarios."
+  read -p "Ingrese el usuario [root]: " BDB_USER
+
+  if [ "${BDB_USER}" == "" ]; then
+    BDB_USER="root"
+  fi
+
+  read -p "Ingrese la contraseña para el usuario ${BDB_USER}: " BDB_PASSWD
+  read -p "Ingrese el nombre o la IP del servidor bases de datos [localhost]: " BDB_HOST
+
+  if [ "${BDB_HOST}" == "" ]; then
+    BDB_HOST="localhost"
+  fi
+
+  verify_mysql_connect "${BDB_USER}" "${BDB_PASSWD}" "${BDB_HOST}"
+}
+
+
+
+# Verifica los datos de conexión al servidor de bases de datos.
+verify_mysql_connect() {
+  local USER="${1}"
+  local PASSWD="${2}"
+  local HOST="${3}"
+
+  # Verifica la contraseña.
+  until mysql --user=${USER} --password=${PASSWD} --host=${HOST} --execute=';' ; do
+    warning "ERROR" "No se pudo conectarse al motor de bases de datos."
+    set_mysql_credentials
+  done
+}
+
+
+
+# Función para seleccionar al azar un algoritmo de suma para comprobación.
+ramdom_select_sum() {
+  local NUM="$((1 + RANDOM % 3))"
+
+  case ${NUM} in
+    1 )
+      SUM="md5sum"
+      DIGEST="MD5"
+      EXT="md5"
+      ;;
+    2 )
+      SUM="sha1sum"
+      DIGEST="SHA1"
+      EXT="sha1"
+      ;;
+    3 )
+      SUM="sha256sum"
+      DIGEST="SHA256"
+      EXT="sha256"
+      ;;
+  esac
+
+}
+
+
+
+# Verifica el correcto pasaje de parámetros:
+# Si el primer parámetro es "--local" o "-l" usa la configuración de backup-cron.
+# Si solo se le pasa el archivo de respaldo, pregunta por usuario, contraseña y 
+# servidor de base de datos.
+if [ "${1}" == "--local" ] || [ "${1}" == "-l" ] && [ "${#}" == "2" ]; then
+    source /etc/backup-cron/backup-cron.conf
+  elif [ "${1}" == "--help" ] || [ "${1}" == "-h" ] && [ "${#}" != "0" ]; then
+    usage
+    exit
+  else
+
+    if [ ! -e "${1}" ] || [ "${#}" != "1" ]; then
+        usage
+        exit
+      else
+        set_mysql_credentials
+    fi
+
+fi
+
+# Seleccionar al azar un algoritmo de suma.
+ramdom_select_sum
+
+warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BDB_FILE}."
+
+if ${SUM} --check --status ${BDB_FILE}.${EXT}; then
+  echo "La suma ${DIGEST} para el archivo ${BDB_FILE} es correcta."
+
+  warning "PASO 2 de 3:" "Descomprimiento archivo ${BDB_FILE}."
+  tar --bzip2 --extract --verbose --preserve-permissions --file ${BDB_FILE}
+
+  DATABASES="$(ls -1 *.sql | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
+  MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
+else
+  warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${BDB_FILE}."
+  exit
+fi
+
+warning "PASO 3 de 3:" "Restauración de bases de datos." 
+
+for database in ${DATABASES}; do
+  warning "RESTAURANDO..." "Importando base de datos ${database} en el servidor ${BDB_HOST}."
+  mysql ${MYSQL_OPTIONS} --execute="DROP DATABASE IF EXISTS ${database};"
+  mysql ${MYSQL_OPTIONS} --execute="CREATE DATABASE IF NOT EXISTS ${database};"
+
+  if [ -x /usr/bin/pv ]; then
+      pv ${database}.sql | mysql ${MYSQL_OPTIONS} --database=${database}
+    else
+      mysql ${MYSQL_OPTIONS} --database=${database} < ${database}.sql
+  fi
+
+  echo "La base de datos ${database} fue restaurada."
+  rm ${database}.sql
+done
+
+rm -f mysql.sql
+
+warning "IMPORTANTE:" "Todas las bases de datos fueron restauradas."
+
