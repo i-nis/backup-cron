@@ -162,7 +162,7 @@ for i in {0..7}; do
       # de bases de datos MySQL exitentes.
       if [ "${TYPE}" == "mysql" ]; then
         DB_NUM=$(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST} | wc -l)
-        FILE_BACKUP_DB_NUM=$(tar -tf ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} | wc -l)
+        FILE_BACKUP_DB_NUM=$(cat ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.list | wc -l)
 
         if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
             status ${i}
@@ -180,7 +180,7 @@ for i in {0..7}; do
       if [ "${TYPE}" == "postgresql" ]; then
         export PGPASSWORD=${BDB_PG_PASSWD}
         DB_PG_NUM=$(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST} | wc -l)
-        FILE_BACKUP_PG_NUM=$(tar -tf ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} | wc -l)
+        FILE_BACKUP_PG_NUM=$(cat ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.list | wc -l)
 
         if [ ${DB_PG_NUM} -eq ${FILE_BACKUP_PG_NUM} ]; then
             status ${i}
