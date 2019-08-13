@@ -9,10 +9,6 @@
 
 
 
-BDB_FILE="${1}"
-
-
-
 # Funcion para mostrar advertencias
 warning ()
 {
@@ -120,6 +116,7 @@ ramdom_select_sum() {
 # servidor de base de datos.
 if [ "${1}" == "--local" ] || [ "${1}" == "-l" ] && [ "${#}" == "2" ]; then
     source /etc/backup-cron/backup-cron.conf
+    BDB_FILE="${2}"
   elif [ "${1}" == "--help" ] || [ "${1}" == "-h" ] && [ "${#}" != "0" ]; then
     usage
     exit
@@ -130,6 +127,7 @@ if [ "${1}" == "--local" ] || [ "${1}" == "-l" ] && [ "${#}" == "2" ]; then
         exit
       else
         set_mysql_credentials
+        BDB_FILE="${1}"
     fi
 
 fi
