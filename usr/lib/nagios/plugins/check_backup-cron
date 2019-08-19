@@ -161,7 +161,7 @@ for i in {0..7}; do
       # Se verifica que los respaldos realizados se correspondan con el número
       # de bases de datos MySQL exitentes.
       if [ "${TYPE}" == "mysql" ]; then
-        DB_NUM=$(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST} | wc -l)
+        DB_NUM=$(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST} 2>&1 | grep -v "Warning: Using a password" | wc -l)
         FILE_BACKUP_DB_NUM=$(cat ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.list | wc -l)
 
         if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
