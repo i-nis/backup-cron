@@ -45,7 +45,7 @@ Para extender su portage con los ebuilds desarrollados por este proyecto, debe c
 
 <pre>
 [backup-cron]
-location = /usr/local/portage/odoo
+location = /usr/local/portage/backup-cron
 sync-type = git
 sync-uri = https://github.com/i-nis/backup-cron.git
 auto-sync = yes
