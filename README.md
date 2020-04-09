@@ -47,6 +47,6 @@ Para extender su portage con los ebuilds desarrollados por este proyecto, debe c
 [backup-cron]
 location = /usr/local/portage/backup-cron
 sync-type = git
-sync-uri = https://github.com/i-nis/backup-cron.git
+sync-uri = https://github.com/i-nis/gentoo-portage-backup-cron.git
 auto-sync = yes
 </pre>
