@@ -2,8 +2,8 @@
 #
 # mysql_restore: script para restaurar bases de datos desde copia de respaldo.
 #
-# (C) 2012 - 2019 Ingenio Virtual
-# Autor: Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# (C) 2006 - 2020 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 
@@ -22,6 +22,15 @@ warning ()
 
 
 
+no_file() {
+  warning "ERROR" "No se especificó ningun archivo .tar.bz2. Vea:."
+  echo " $(basename ${0}) --help"
+  echo ""
+  exit 1
+}
+
+
+
 # Función de ayuda del programa.
 usage() {
   local PROG_NAME=$(basename ${0})
@@ -31,16 +40,24 @@ usage() {
   echo "Restaura bases de datos desde un archivo de copia de respaldo dado."
   echo ""
   echo "  Uso: "
-  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help] [-l|--local] DBD_FILE.tar.bz2"
+  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help] [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
+  echo ""
+  echo "       --database, -d"
+  echo "           Base de datos a restaurar (opcional). Si se omite este parámetro,"
+  echo "           se restaurarán todas las bases de datos."
+  echo ""
+  echo "       DATABASE"
+  echo "           Nombre de la base de datos a restaurar (solo si se pasa la"
+  echo "           opción -d ó --database)."
   echo ""
   echo "       --local, -l"
   echo "           Utiliza la configuración de bakup-cron almacenada en el archivo"
   echo "           de configuración /etc/backup-cron/backup-cron.conf."
   echo ""
-  echo "       DBD_FILE.tar.bz2"
+  echo "       FILE.tar.bz2"
   echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
   echo ""
 }
@@ -110,26 +127,111 @@ ramdom_select_sum() {
 
 
 
-# Verifica el correcto pasaje de parámetros:
-# Si el primer parámetro es "--local" o "-l" usa la configuración de backup-cron.
-# Si solo se le pasa el archivo de respaldo, pregunta por usuario, contraseña y 
-# servidor de base de datos.
-if [ "${1}" == "--local" ] || [ "${1}" == "-l" ] && [ "${#}" == "2" ]; then
-    source /etc/backup-cron/backup-cron.conf
-    BDB_FILE="${2}"
-  elif [ "${1}" == "--help" ] || [ "${1}" == "-h" ] && [ "${#}" != "0" ]; then
-    usage
-    exit
-  else
+# Verifica que exista el nombre del archivo de respaldo FILE.tar.bz2.
+backup_file() {
+  local FILE="${1}"
 
-    if [ ! -e "${1}" ] || [ "${#}" != "1" ]; then
+  if [ ! -e "${FILE}" ] || [ "${FILE}" == "" ]; then
+      warning "ERROR" "No se encontró el archivo ${FILE}."
+      exit
+    else
+      set_mysql_credentials
+
+      if [ "${DATABASE_TO_RESTORE}" == "" ]; then
+          BDB_FILE="${FILE}"
+        else
+          BDB_FILE="${FILE} ${DATABASE_TO_RESTORE}.sql"
+      fi
+
+  fi
+
+}
+
+
+
+# Verifica si el argumento es un archivo .tbz2
+tbz2_verify() {
+  local TEST="${1}"
+
+  if [[ "${TEST}" == *".tar.bz2" ]]; then
+        backup_file "${TEST}"
+    elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
+      parameters "${TEST}"
+    else
+      no_file
+      exit 1
+  fi
+}
+
+
+
+# Verifica el correcto pasaje de parámetros.
+function parameters() {
+  local OPT=$(getopt \
+              --options d:hl \
+              --longoptions database:,help,local \
+              --name 'mysql_restore' \
+              -- "${@}")
+
+  if [ $? -ne 0 ]; then
+    echo 'Error en parámetros...' >&2
+    exit 1
+  fi
+
+echo " opciones ${OPT}"
+  eval set -- "${OPT}"
+
+  while true; do
+
+    case "$1" in
+      -d | --database )
+        DATABASE_TO_RESTORE="${2}"
+        shift 2
+        continue
+        ;;
+
+      -h | --help )
         usage
         exit
-      else
-        set_mysql_credentials
-        BDB_FILE="${1}"
-    fi
+        ;;
 
+      -l | --local )
+        source /etc/backup-cron/backup-cron.conf
+        shift
+        continue
+        ;;
+
+      -- )
+        shift
+        break
+        ;;
+
+      * )
+        warning "ERROR" "Error en parámetros. Vea:"
+        echo " $(basename ${0}) --help"
+        echo ""
+        exit 1
+        ;;
+    esac
+
+  shift
+  done
+
+}
+
+
+
+# Inicio del programa.
+DATABASE_TO_RESTORE=""
+BDB_FILE=""
+
+if [ "${#}" == "0" ]; then
+    no_file
+  elif [ "${#}" == "1" ]; then
+    tbz2_verify "${1}"
+  else
+    parameters "${@}"
+    tbz2_verify "${@: -1}"
 fi
 
 # Seleccionar al azar un algoritmo de suma.
