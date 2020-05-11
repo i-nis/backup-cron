@@ -2,8 +2,8 @@
 #
 # clean_backup_libvirt.cron: script para borrar copias de seguridad obsoletas.
 #
-# (C) 2012 - 2014 Ingenio Virtual
-# (C) 2006 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# (C) 2006 - 2020 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 

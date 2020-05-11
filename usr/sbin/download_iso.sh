@@ -2,8 +2,8 @@
 #
 # download_iso.sh: script para descargar imagenes ISO de Gentoo.
 #
-# (C) 2012 - 2017 Ingenio Virtual
-# (C) 2009 - 2011 Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+# (C) 2006 - 2020 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
 
