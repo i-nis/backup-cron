@@ -9,6 +9,10 @@
 
 
 
+TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
+
+
+
 # Funcion para mostrar advertencias
 warning ()
 {
@@ -40,7 +44,8 @@ usage() {
   echo "Restaura bases de datos desde un archivo de copia de respaldo dado."
   echo ""
   echo "  Uso: "
-  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help] [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
+  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
+  echo "       ${PROG_PATH}/${PROG_NAME} [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
@@ -126,9 +131,22 @@ ramdom_select_sum() {
 }
 
 
+# Verifica la existencia de una base de datos pasada por parámetros.
+database_exists() {
+  local MY_DB_P="${1}"
+  local MY_DB_FIND="$(grep ^${MY_DB_P}.sql$ ${BDB_FILE}.list)"
+
+  if [ "${MY_DB_P}" != "" ] && [ "${MY_DB_P}.sql" != "${MY_DB_FIND}" ]; then
+    warning "ERROR" "No existe en ${BDB_FILE}.list la base de datos seleccionada ${MY_DB_P}."
+    exit
+  fi
+
+}
+
+
 
 # Verifica que exista el nombre del archivo de respaldo FILE.tar.bz2.
-backup_file() {
+backup_file_exists() {
   local FILE="${1}"
 
   if [ ! -e "${FILE}" ] || [ "${FILE}" == "" ]; then
@@ -136,11 +154,14 @@ backup_file() {
       exit
     else
       set_mysql_credentials
+      MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
+      BDB_FILE="${FILE}"
 
       if [ "${DATABASE_TO_RESTORE}" == "" ]; then
-          BDB_FILE="${FILE}"
+          BDB_FILE_X="${FILE}"
         else
-          BDB_FILE="${FILE} ${DATABASE_TO_RESTORE}.sql"
+          database_exists "${DATABASE_TO_RESTORE}"
+          BDB_FILE_X="${FILE} ${DATABASE_TO_RESTORE}.sql"
       fi
 
   fi
@@ -154,12 +175,11 @@ tbz2_verify() {
   local TEST="${1}"
 
   if [[ "${TEST}" == *".tar.bz2" ]]; then
-        backup_file "${TEST}"
+        backup_file_exists "${TEST}"
     elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
       parameters "${TEST}"
     else
       no_file
-      exit 1
   fi
 }
 
@@ -178,7 +198,6 @@ function parameters() {
     exit 1
   fi
 
-echo " opciones ${OPT}"
   eval set -- "${OPT}"
 
   while true; do
@@ -221,9 +240,34 @@ echo " opciones ${OPT}"
 
 
 
+# Función para restaurar una base de datos.
+restore_database() {
+  local MY_OPT="${1}"
+  local MY_DB="${2}"
+
+  if [ -e ${MY_DB}.sql ]; then
+    warning "RESTAURANDO..." "Borrando, creando e importando base de datos ${MY_DB} en el servidor ${BDB_HOST}."
+    mysql ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
+    mysql ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
+
+    if [ -x /usr/bin/pv ]; then
+        pv ${MY_DB} | mysql ${MY_OPT} --database=${MY_DB}
+      else
+        mysql ${MY_OPT} --database=${MY_DB} < ${MY_DB}
+    fi
+
+    echo "La base de datos ${MY_DB} fue restaurada."
+    rm ${MY_DB}.sql
+  fi
+
+}
+
+
+
 # Inicio del programa.
-DATABASE_TO_RESTORE=""
 BDB_FILE=""
+BDB_FILE_X=""
+DATABASE_TO_RESTORE="ALL"
 
 if [ "${#}" == "0" ]; then
     no_file
@@ -241,35 +285,31 @@ warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BDB_FILE}."
 
 if ${SUM} --check --status ${BDB_FILE}.${EXT}; then
   echo "La suma ${DIGEST} para el archivo ${BDB_FILE} es correcta."
-
   warning "PASO 2 de 3:" "Descomprimiento archivo ${BDB_FILE}."
-  tar --bzip2 --extract --verbose --preserve-permissions --file ${BDB_FILE}
-
-  DATABASES="$(ls -1 *.sql | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
-  MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
+  tar ${TAR_OPTIONS} --file ${BDB_FILE_X}
 else
   warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${BDB_FILE}."
   exit
 fi
 
-warning "PASO 3 de 3:" "Restauración de bases de datos." 
+# Restauración de bases de datos
+warning "PASO 3 de 3:" "Restauración de bases de datos."
 
-for database in ${DATABASES}; do
-  warning "RESTAURANDO..." "Importando base de datos ${database} en el servidor ${BDB_HOST}."
-  mysql ${MYSQL_OPTIONS} --execute="DROP DATABASE IF EXISTS ${database};"
-  mysql ${MYSQL_OPTIONS} --execute="CREATE DATABASE IF NOT EXISTS ${database};"
+if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
+   # Se genera el listado de bases de datos restante a restaurar.
+    DATABASES="$(ls -1 *.sql | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
 
-  if [ -x /usr/bin/pv ]; then
-      pv ${database}.sql | mysql ${MYSQL_OPTIONS} --database=${database}
-    else
-      mysql ${MYSQL_OPTIONS} --database=${database} < ${database}.sql
-  fi
+    for database in ${DATABASES}; do
+      restore_database "${MYSQL_OPTIONS}" "${database}"
+    done
 
-  echo "La base de datos ${database} fue restaurada."
-  rm ${database}.sql
-done
+  else
+    restore_database "${MYSQL_OPTIONS}" "${DATABASE_TO_RESTORE}"
+fi
 
-rm -f mysql.sql
+if [ -e sigehos.sql ]; then
+  rm -f mysql.sql
+fi
 
 warning "IMPORTANTE:" "Todas las bases de datos fueron restauradas."
 
