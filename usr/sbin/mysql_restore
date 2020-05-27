@@ -9,6 +9,7 @@
 
 
 
+BACKUP_SET="list md5 sha1 sha256"
 TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
 
 
@@ -145,6 +146,23 @@ database_exists() {
 
 
 
+# Verifica que exista el conjunto completo de respaldo.
+verify_set() {
+  local B_FILE="${1}"
+  local set=""
+
+  for set in ${BACKUP_SET}; do
+
+    if [ ! -e "${B_FILE}.${set}" ]; then
+      warning "ERROR" "No se encontró el archivo ${B_FILE}.${set}."
+      exit
+    fi
+
+  done
+}
+
+
+
 # Verifica que exista el nombre del archivo de respaldo FILE.tar.bz2.
 backup_file_exists() {
   local FILE="${1}"
@@ -153,6 +171,7 @@ backup_file_exists() {
       warning "ERROR" "No se encontró el archivo ${FILE}."
       exit
     else
+      verify_set "${FILE}"
       set_mysql_credentials
       MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
       BDB_FILE="${FILE}"
