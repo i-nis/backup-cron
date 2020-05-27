@@ -251,9 +251,9 @@ restore_database() {
     mysql ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
 
     if [ -x /usr/bin/pv ]; then
-        pv ${MY_DB} | mysql ${MY_OPT} --database=${MY_DB}
+        pv ${MY_DB}.sql | mysql ${MY_OPT} --database=${MY_DB}
       else
-        mysql ${MY_OPT} --database=${MY_DB} < ${MY_DB}
+        mysql ${MY_OPT} --database=${MY_DB} < ${MY_DB}.sql
     fi
 
     echo "La base de datos ${MY_DB} fue restaurada."
