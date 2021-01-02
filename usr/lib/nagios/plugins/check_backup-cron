@@ -154,7 +154,7 @@ esac
 
 # Se busca el último backup realizado dentro de los últimos 7 días.
 for i in {0..7}; do
-  FECHA=$(date --date="${i} days ago" +%G%m%d)
+  FECHA=$(date --date="${i} days ago" +%Y%m%d)
 
   if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
 
