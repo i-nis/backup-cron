@@ -176,7 +176,7 @@ backup_file_exists() {
       MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
       BDB_FILE="${FILE}"
 
-      if [ "${DATABASE_TO_RESTORE}" == "" ]; then
+      if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
           BDB_FILE_X="${FILE}"
         else
           database_exists "${DATABASE_TO_RESTORE}"
@@ -326,7 +326,7 @@ if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
     restore_database "${MYSQL_OPTIONS}" "${DATABASE_TO_RESTORE}"
 fi
 
-if [ -e sigehos.sql ]; then
+if [ -e mysql.sql ]; then
   rm -f mysql.sql
 fi
 
