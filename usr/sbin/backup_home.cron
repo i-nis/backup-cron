@@ -16,8 +16,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 NAME="backup_home.cron"
-HOST="$(/bin/hostname -s)"
-FECHA="$(/bin/date +%G%m%d)"
+FECHA="$(/bin/date +%Y%m%d)"
 FILE="backup-$HOST-home"
 
 # Ubicación de la copia de seguridad.
