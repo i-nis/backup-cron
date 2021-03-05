@@ -2,7 +2,7 @@
 #
 # clean_backup_etc.cron: script para borrar copias de seguridad obsoletas.
 #
-# (C) 2006 - 2020 NIS
+# (C) 2006 - 2021 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -30,4 +30,6 @@ for host in ${HOSTS}; do
   directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/etc"
   clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/etc"
 done
+
+# TODO: borrar archivo temporar en /tmp.
 

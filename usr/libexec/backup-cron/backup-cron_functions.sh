@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2006 - 2020 NIS
+# (C) 2006 - 2021 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -18,9 +18,9 @@
 message_syslog () {
   local NAME="${1}"
   local MESSAGE="${2}"
-  local HOST=$(/bin/hostname -s)
+  local HOST=$(/bin/hostname --fqdn)
 
-  /usr/bin/logger --id=$$ "${NAME}: ${MESSAGE}" --stderr &>> /tmp/${NAME}-${HOST}.txt
+  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -34,9 +34,11 @@ send_mail () {
   local NAME="${1}"
   local SUBJECT="${2}"
   local RECIPIENTS="${3}"
-  local HOST="$(/bin/hostname -s)"
+  local HOST="$(/bin/hostname --fqdn)"
 
-  cat /tmp/${NAME}-${HOST}.txt | mail -s "${SUBJECT}" "${RECIPIENTS}"
+  cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
+  mail --subject="${SUBJECT}" "${RECIPIENTS}"
+
   rm -f /tmp/${NAME}-${HOST}.txt
 }
 
@@ -235,7 +237,7 @@ libvirt_backup() {
   local NAME="${1}"
   local BLIBVIRT_BACKUP_PATH="${2}"
   local DOMAINS=$(virsh list --name)
-  local FECHA=$(/bin/date +%G%m%d)
+  local FECHA=$(/bin/date +%Y%m%d)
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
@@ -343,6 +345,8 @@ gensum() {
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
 # PATH: ruta al direcotorio donde se encuentran los archivos antigüos a borrar.
 #
+# TODO: find . -name "" -mtime + | xargs echo
+#
 clean_old_backups() {
   local NAME="${1}"
   local TMPCLEAN="${2}"
@@ -369,7 +373,7 @@ remote_backup() {
   local REMOTE_IP="${2}"
   local USER="${3}"
   local PATH="${4}"
-  local FECHA="$(/bin/date +%G%m%d)"
+  local FECHA="$(/bin/date +%Y%m%d)"
 
   if [ "${REMOTE_IP}" != "" ]; then
 
