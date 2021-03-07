@@ -10,17 +10,20 @@
 
 
 
+source /etc/backup-cron/backup-cron.conf
+
+
+
 # Función para enviar mensajes vía syslog. Utiliza la interfaz de comando
 # denominada logger. Para más detalles vea: man logger.
 # NAME: nombre del programa que invoca.
 # MESSAGE: mensaje a enviar vía syslog.
 #
 message_syslog () {
-  local NAME="${1}"
-  local MESSAGE="${2}"
-  local HOST=$(/bin/hostname --fqdn)
+  local MESSAGE="${1}"
+  local NAME=$(basename $0)
 
-  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/${NAME}-${HOST}.txt
+  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE} ${NAME}" &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -31,10 +34,8 @@ message_syslog () {
 # RECIPIENTS: destinatarios de correo electrónico.
 #
 send_mail () {
-  local NAME="${1}"
-  local SUBJECT="${2}"
-  local RECIPIENTS="${3}"
-  local HOST="$(/bin/hostname --fqdn)"
+  local SUBJECT="${1}"
+  local NAME=$(basename $0)
 
   cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
   mail --subject="${SUBJECT}" "${RECIPIENTS}"
@@ -44,20 +45,19 @@ send_mail () {
 
 
 
-
 # Función para verificar la existencia de un directorio. Si este no existe es
 # creado.
 # NAME: nombre del programa que invoca.
 # DIRECTORY: ruta del directorio a verificar.
 #
 directory_mkdir() {
-  local NAME="${1}"
-  local DIRECTORY="${2}"
+  local DIRECTORY="${1}"
+  local NAME=$(basename $0)
 
   if [ ! -e ${DIRECTORY} ]; then
     mkdir --parents --mode=755 ${DIRECTORY}
     chown admin:admin ${DIRECTORY}
-    message_syslog "${NAME}" "El directorio ${DIRECTORY} fue creado."
+    message_syslog "El directorio ${DIRECTORY} fue creado."
   fi
 
 }
@@ -69,12 +69,12 @@ directory_mkdir() {
 # FILE: ruta al archivo al cual deben cambiarse los permisos.
 #
 file_perms() {
-  local NAME="${1}"
-  local FILE="${2}"
+  local FILE="${1}"
+  local NAME=$(basename $0)
 
   chown admin:admin ${FILE}
   chmod 640 ${FILE}
-  message_syslog "${NAME}" "Modificado dueño y permisos para ${FILE}."
+  message_syslog "Modificado dueño y permisos para ${FILE}."
 }
 
 
@@ -127,20 +127,20 @@ show_databases_pg() {
 # DATABASE: ruta completa a la base de datos a verificar.
 #
 database_verify() {
-  local NAME="${1}"
-  local DATABASE="${2}"
+  local DATABASE="${1}"
+  local NAME=$(basename $0)
 
   if [ "$(wc -c < ${DATABASE})" == "0" ]; then
       rm -f ${DATABASE}
-      message_syslog "${NAME}" "El archivo ${DATABASE} estaba vacío."
+      message_syslog "El archivo ${DATABASE} estaba vacío."
     else
       file_perms "${NAME}" "${DATABASE}"
-      message_syslog "${NAME}" "Se ha creado correctamente ${DATABASE}."
+      message_syslog "Se ha creado correctamente ${DATABASE}."
   fi
 
   if [ "$(wc -c < ${DATABASE}.error)" == "0" ]; then
     rm -f ${DATABASE}.error
-    message_syslog "${NAME}" "No se detectaron errores en ${DATABASE}."
+    message_syslog "No se detectaron errores en ${DATABASE}."
   fi
 
 }
@@ -192,7 +192,7 @@ snapshot() {
     create )
       # Se crea la instantánea como archivo separado y este pasa a ser la imagen.
       /usr/bin/virsh snapshot-create-as ${DOMAIN} ${SNAPSHOT} --disk-only --atomic --quiesce
-      message_syslog "${NAME}" "Se ha creado la instantánea ${SNAPSHOT}."
+      message_syslog "Se ha creado la instantánea ${SNAPSHOT}."
       ;;
     delete )
       IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
@@ -203,7 +203,7 @@ snapshot() {
       # Se elimina el archivo creado por la instantánea.
       SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep ${SNAPSHOT})
       rm -f ${SNAPSHOT_FILE}
-      message_syslog "${NAME}" "Se ha eliminado la instantánea ${SNAPSHOT_FILE}."
+      message_syslog "Se ha eliminado la instantánea ${SNAPSHOT_FILE}."
       ;;
   esac
 
@@ -218,12 +218,12 @@ snapshot() {
 # BACKUP_FILE: archivo de respaldo a crear.
 #
 qcow2_backup() {
-  local NAME="${1}"
-  local IMAGE="${2}"
-  local BACKUP_FILE="${3}"
+  local IMAGE="${1}"
+  local BACKUP_FILE="${2}"
+  local NAME=$(basename $0)
 
   /usr/bin/qemu-img convert --force-share -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
-  message_syslog "${NAME}" "El archivo de respaldo ${BACKUP_FILE} fue creado."
+  message_syslog "El archivo de respaldo ${BACKUP_FILE} fue creado."
 }
 
 
@@ -234,15 +234,14 @@ qcow2_backup() {
 # BLIBVIRT_BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 #
 libvirt_backup() {
-  local NAME="${1}"
-  local BLIBVIRT_BACKUP_PATH="${2}"
+  local BLIBVIRT_BACKUP_PATH="${1}"
   local DOMAINS=$(virsh list --name)
-  local FECHA=$(/bin/date +%Y%m%d)
+  local NAME=$(basename $0)
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
     IMAGES=$(/usr/bin/virsh domblklist ${domain} | awk -F \  /^[sv]d*/'{print $2}')
-    message_syslog "${NAME}" "Comenzando el respaldo para el dominio ${domain}."
+    message_syslog "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
     SNAPSHOT_TIME=$(/bin/date +%G%m%d%H%M%S)
@@ -286,10 +285,10 @@ libvirt_backup() {
 # MODE: modo de respaldo: [disk | tape]
 #
 file_backup() {
-  local NAME="${1}"
-  local BACKUP="${2}"
-  local DIRS="${3}"
-  local MODE="${4}"
+  local BACKUP="${1}"
+  local DIRS="${2}"
+  local MODE="${3}"
+  local NAME=$(basename $0)
   local TAR_OPTS=""
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
@@ -300,12 +299,12 @@ file_backup() {
       tar ${TAR_OPTS} ${BACKUP} --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
       file_perms "${NAME}" "${BACKUP}"
       gensum "${NAME}" "${BACKUP}"
-      message_syslog "${NAME}" "El archivo de respaldo ${BACKUP} fue creado."
+      message_syslog "El archivo de respaldo ${BACKUP} fue creado."
       ;;
     tape )
       TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
       tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${BACKUP} &>/dev/null
-      message_syslog "${NAME}" "El directorio ${DIRS} fue respaldado en ${BACKUP}."
+      message_syslog "El directorio ${DIRS} fue respaldado en ${BACKUP}."
       ;;
     esac
 
@@ -320,10 +319,10 @@ file_backup() {
 # HASHES: algoritmos para verificar sumas.
 #
 gensum() {
-  local NAME="${1}"
-  local FILE=$(echo "${2}" | awk -F \/ //'{print $(NF)}')
-  local DIRECTORY=$(echo "${2}" | awk -F \/${FILE} //'{print $1}')
+  local FILE=$(echo "${1}" | awk -F \/ //'{print $(NF)}')
+  local DIRECTORY=$(echo "${1}" | awk -F \/${FILE} //'{print $1}')
   local HASHES="md5 sha1 sha256"
+  local NAME=$(basename $0)
 
   cd ${DIRECTORY}
 
@@ -332,7 +331,7 @@ gensum() {
     CHECKSUM=$(${PROGRAM} ${FILE})
     echo "${CHECKSUM}" > ${FILE}.${hash}
     file_perms "${NAME}" "${FILE}.${hash}"
-    message_syslog "${NAME}" "La suma ${hash} fue creada: ${CHECKSUM}."
+    message_syslog "La suma ${hash} fue creada: ${CHECKSUM}."
   done
 
 }
@@ -348,14 +347,14 @@ gensum() {
 # TODO: find . -name "" -mtime + | xargs echo
 #
 clean_old_backups() {
-  local NAME="${1}"
-  local TMPCLEAN="${2}"
-  local TIME="${3}"
-  local PATH="${4}"
+  local TMPCLEAN="${1}"
+  local TIME="${2}"
+  local PATH="${3}"
+  local NAME=$(basename $0)
 
   if [[ -d ${PATH} ]]; then
     ${TMPCLEAN} --mtime ${TIME} ${PATH}
-    message_syslog "${NAME}" "Las copias con antigüedad mayor a ${TIME} hs fueron borradas."
+    message_syslog "Las copias con antigüedad mayor a ${TIME} hs en ${PATH} fueron borradas."
   fi
 
 }
@@ -369,11 +368,10 @@ clean_old_backups() {
 # PATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
 #
 remote_backup() {
-  local NAME="${1}"
-  local REMOTE_IP="${2}"
-  local USER="${3}"
-  local PATH="${4}"
-  local FECHA="$(/bin/date +%Y%m%d)"
+  local REMOTE_IP="${1}"
+  local USER="${2}"
+  local PATH="${3}"
+  local NAME=$(basename $0)
 
   if [ "${REMOTE_IP}" != "" ]; then
 
@@ -383,9 +381,9 @@ remote_backup() {
         /usr/bin/scp ${file} ${USER}@${ip}:${PATH} &>/dev/null
 
         if [  ${?} -eq 0 ]; then
-            message_syslog "${NAME}" "El archivo ${file} fue copiado al servidor ${ip}."
+            message_syslog "El archivo ${file} fue copiado al servidor ${ip}."
           else
-            message_syslog "${NAME}" "El archivo ${file} no pudo ser copiado al servidor ${ip}."
+            message_syslog "El archivo ${file} no pudo ser copiado al servidor ${ip}."
         fi
 
       done
@@ -394,4 +392,14 @@ remote_backup() {
   fi
 
 }
+
+
+# TODO:
+#DAYOFMONTH=$(date +%d)
+#
+#if [ ${DAYOFMONTH} == "01" ]; then
+#    echo "Verdadero"
+#  else
+#    echo "false"
+#fi
 

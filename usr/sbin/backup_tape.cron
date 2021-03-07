@@ -15,8 +15,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME="backup_tape.cron"
-
 # Función para controlar la unidad de cintas. Para mas detalles vea man (1) mt.
 tape_control() {
   local OP="${1}"
@@ -26,14 +24,14 @@ tape_control() {
 
   case ${?} in
     0 )
-      message_syslog "${NAME}" "La operación \"${OP}\" tuvo éxito."
+      message_syslog "La operación \"${OP}\" tuvo éxito."
       ;;
     1 )
-      message_syslog "${NAME}" "Operación \"${OP}\" o dispositivo \"${TAPE}\" inválidos."
+      message_syslog "Operación \"${OP}\" o dispositivo \"${TAPE}\" inválidos."
       exit
       ;;
     2 )
-      message_syslog "${NAME}" "La operación \"${OP}\" falló."
+      message_syslog "La operación \"${OP}\" falló."
       exit
       ;;
   esac
@@ -46,20 +44,20 @@ tape_control() {
 tapebackup () {
   tape_control "defcompression 1"
   tape_control "compression 1"
-  file_backup "${NAME}" "${TAPE}" "${DIRSTOBACK}" "tape"
+  file_backup "${TAPE}" "${DIRSTOBACK}" "tape"
   tape_control "offline"
 }
 
 
 
 if [ -c ${TAPE} ]; then
-  message_syslog "${NAME}" "Iniciando el respaldo en cinta."
+  message_syslog "Iniciando el respaldo en cinta."
 
   tapebackup
 
-  message_syslog "${NAME}" "Respaldo en cinta finalizado."
+  message_syslog "Respaldo en cinta finalizado."
 
   # Envío de correo informando sobre el respaldo
-  send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
+  send_mail "${GENERIC_SUBJECT}"
 fi
 

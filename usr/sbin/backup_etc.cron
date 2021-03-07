@@ -15,30 +15,28 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME="backup_etc.cron"
-
 # Ubicación de la copia de seguridad.
 BETC_BACKUP_PATH="${BACKUP_PATH}/${HOST}/etc"
 
 # Nombre del archivo de respaldo.
 BETC_FILE="backup-${HOST}-etc-${FECHA}.tar.bz2"
 
-message_syslog "${NAME}" "Iniciando el respaldo del directorio /etc."
+message_syslog "Iniciando el respaldo del directorio /etc."
 
 # Verificación de existencia para ${BETC_BACKUP_PATH}
-directory_mkdir "${NAME}" "${BETC_BACKUP_PATH}"
+directory_mkdir "${BETC_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${NAME}" "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
+file_backup "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
 
 # Borrado de copias de seguridad antiguas con tmpwatch.
-clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
+clean_old_backups "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
 
 # Copia de archivo de respaldo a servidor remoto.
-remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}" &
+remote_backup "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}" &
 
-message_syslog "${NAME}" "Respaldo del directorio /etc finalizado."
+message_syslog "Respaldo del directorio /etc finalizado."
 
 # Envío de correo informando sobre el respaldo
-send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
+send_mail "${GENERIC_SUBJECT}"
 

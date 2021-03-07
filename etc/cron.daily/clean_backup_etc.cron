@@ -14,7 +14,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME="clean_backup_etc.cron"
+NAME=$(basename $0)
 
 MMTIME=$((${SEMANAS}*${MTIME}))
 

@@ -19,8 +19,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 PG_DUMP="/usr/bin/pg_dump"
 export PGPASSWORD=${BDB_PG_PASSWD}
 
-NAME="pg_dump.cron"
-
 # Ubicación de la copia de seguridad.
 BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
 
@@ -30,10 +28,10 @@ BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.tar.bz2"
 if [ -e ${BACKUP_PATH} ]; then
 
   if [ -x ${PG_DUMP} ]; then
-    message_syslog "${NAME}" "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
+    message_syslog "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
 
     # Verificación de existencia para ${BACKUP_PATH}
-    directory_mkdir "${NAME}" "${BDB_PG_BACKUP_PATH}"
+    directory_mkdir "${BDB_PG_BACKUP_PATH}"
 
     # Volcado de bases de datos en SQL
     for database in $(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST}); do
@@ -42,10 +40,10 @@ if [ -e ${BACKUP_PATH} ]; then
 
       # Comprueba si el respaldo fue correctamente realizado
       if [ "$?" -eq 0 ]; then
-          message_syslog "${NAME}" "La base de datos ${database} fue extraída."
-          database_verify "${NAME}" "${BDB_PG_BACKUP_PATH}/${database}.sql"
+          message_syslog "La base de datos ${database} fue extraída."
+          database_verify "${BDB_PG_BACKUP_PATH}/${database}.sql"
         else
-          message_syslog "${NAME}" "Hubo un error al extraer la base de datos ${database}."
+          message_syslog "Hubo un error al extraer la base de datos ${database}."
       fi
 
     done
@@ -56,21 +54,22 @@ if [ -e ${BACKUP_PATH} ]; then
 
     if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
         ls -1 | grep --invert-match backup-${HOST}-postgresql > ${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list
-        file_backup "${NAME}" "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql *.error" "disk"
+        file_backup "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "*.sql *.error" "disk"
         rm -f *.sql *.error
 
         # Borrado de copias de seguridad antiguas con tmpwatch
-        clean_old_backups "${NAME}" "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
+        clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"
 
         # Copia de archivo de respaldo a servidor remoto.
-        remote_backup "${NAME}" "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
+        remote_backup "${REMOTE_IP}" "${REMOTE_USER}" "${BDB_PG_BACKUP_PATH}"
 
-        message_syslog "${NAME}" "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
+        message_syslog "Respaldo de bases de datos PostgreSQL finalizado: $(date)."
 
         # Envío de correo informando sobre el respaldo
-        send_mail "${NAME}" "${GENERIC_SUBJECT} ${NAME}" "${RECIPIENTS}"
+        send_mail "${GENERIC_SUBJECT}"
       else
-        message_syslog "${NAME}" "Bases de datos PostgreSQL no respaldadas: $(date)."
+        message_syslog "Bases de datos PostgreSQL no respaldadas: $(date)."
+        send_mail "ALERTA: problema al respaldar las bases de datos mediante"
     fi
 
   fi
