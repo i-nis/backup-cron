@@ -53,7 +53,7 @@ if [ -x ${MYSQLDUMP} ]; then
 
   if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
       ls -1 | grep --invert-match backup-${HOST}-mysql > ${BDB_BACKUP_PATH}/${BDB_FILE}.list
-      file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.error" "disk"
+      file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "*.sql *.error"
       rm -f *.sql *.error
 
       # Borrado de copias de seguridad antiguas con tmpwatch

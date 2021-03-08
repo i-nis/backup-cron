@@ -44,7 +44,7 @@ tape_control() {
 tapebackup () {
   tape_control "defcompression 1"
   tape_control "compression 1"
-  file_backup "${TAPE}" "${DIRSTOBACK}" "tape"
+  tape_backup "${DIRSTOBACK}"
   tape_control "offline"
 }
 

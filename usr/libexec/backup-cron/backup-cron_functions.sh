@@ -38,7 +38,7 @@ send_mail () {
   local NAME=$(basename $0)
 
   cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
-  mail --subject="${SUBJECT}" "${RECIPIENTS}"
+  mail --subject="${SUBJECT} ${NAME}" "${RECIPIENTS}"
 
   rm -f /tmp/${NAME}-${HOST}.txt
 }
@@ -278,7 +278,7 @@ libvirt_backup() {
 
 
 
-# Función para respaldar otros directorios.
+# Función para realizar respaldos en disco mediante GNU Tar.
 # NAME: nombre del programa que invoca.
 # BACKUP: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
@@ -287,27 +287,32 @@ libvirt_backup() {
 file_backup() {
   local BACKUP="${1}"
   local DIRS="${2}"
-  local MODE="${3}"
   local NAME=$(basename $0)
-  local TAR_OPTS=""
+  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
+  local EXCLUDE="/etc/backup-cron/exclude.txt"
+
+ tar ${TAR_OPTS} ${BACKUP} --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
+ file_perms "${NAME}" "${BACKUP}"
+ gensum "${NAME}" "${BACKUP}"
+ message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+}
+
+
+
+# Función para rerealizar respaldos en cinta.
+# DIRS: directorios o archivos a respaldar.
+# NAME: nombre del programa que invoca.
+# TAPE: dispositivo de cintas a utilizar definido en /etc/backup-cron/backup-cron.conf.
+#
+tape_backup() {
+  local DIRS="${1}"
+  local NAME=$(basename $0)
+  local TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
-  case ${MODE} in
-    disk )
-      TAR_OPTS="--create --bzip2 --preserve-permissions --file"
-      tar ${TAR_OPTS} ${BACKUP} --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
-      file_perms "${NAME}" "${BACKUP}"
-      gensum "${NAME}" "${BACKUP}"
-      message_syslog "El archivo de respaldo ${BACKUP} fue creado."
-      ;;
-    tape )
-      TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
-      tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${BACKUP} &>/dev/null
-      message_syslog "El directorio ${DIRS} fue respaldado en ${BACKUP}."
-      ;;
-    esac
-
+  tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${TAPE} &>/dev/null
+  message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
 }
 
 
@@ -342,7 +347,7 @@ gensum() {
 # NAME: nombre del programa que invoca.
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
-# PATH: ruta al direcotorio donde se encuentran los archivos antigüos a borrar.
+# PATH: ruta al directorio donde se encuentran los archivos antigüos a borrar.
 #
 # TODO: find . -name "" -mtime + | xargs echo
 #

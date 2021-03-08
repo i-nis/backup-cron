@@ -27,7 +27,7 @@ message_syslog "Iniciando el respaldo del directorio /var."
 directory_mkdir "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${BACKUP_PATH_SYS}/${BVAR_FILE}" "/var" "disk"
+file_backup "${BACKUP_PATH_SYS}/${BVAR_FILE}" "/var"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
 clean_old_backups "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"

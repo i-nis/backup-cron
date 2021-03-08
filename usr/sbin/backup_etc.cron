@@ -27,7 +27,7 @@ message_syslog "Iniciando el respaldo del directorio /etc."
 directory_mkdir "${BETC_BACKUP_PATH}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc" "disk"
+file_backup "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc"
 
 # Borrado de copias de seguridad antiguas con tmpwatch.
 clean_old_backups "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
