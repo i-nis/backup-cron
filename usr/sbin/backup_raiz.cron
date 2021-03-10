@@ -19,7 +19,7 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 BACKUP_PATH_SYS="${BACKUP_PATH}/${HOST}/system"
 
 # Nombre del archivo de respaldo.
-BROOT_FILE="backup-${HOST}-raiz-${FECHA}.tar.bz2"
+BROOT_FILE="backup-${HOST}-raiz"
 
 message_syslog "Iniciando el respaldo del directorio /."
 
@@ -27,7 +27,7 @@ message_syslog "Iniciando el respaldo del directorio /."
 directory_mkdir "${BACKUP_PATH_SYS}"
 
 # Creación de archivo comprimido según la fecha del día
-file_backup "${BACKUP_PATH_SYS}/${BROOT_FILE}" \
+file_backup_incremental "${BACKUP_PATH_SYS}/${BROOT_FILE}" \
 "--exclude=/home/* --exclude=/usr/* --exclude=/var/* /"
 
 # Borrado de copias de seguridad antiguas con tmpwatch

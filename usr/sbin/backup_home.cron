@@ -29,9 +29,9 @@ directory_mkdir "${BHOME_BACKUP_PATH}"
 cd /home
 
 for directory in $(find * -maxdepth 0 -type d | grep --invert-match lost+found); do
-  DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}-${FECHA}.tar.bz2"
+  DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}"
 
-  file_backup "${DIRECTORY_BACKUP}" "/home/${directory}"
+  file_backup_incremental "${DIRECTORY_BACKUP}" "/home/${directory}"
 done
 
 # Copia respaldos a servidores remotos en como proceso de fondo (background).

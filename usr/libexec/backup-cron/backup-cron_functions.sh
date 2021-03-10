@@ -282,19 +282,52 @@ libvirt_backup() {
 # NAME: nombre del programa que invoca.
 # BACKUP: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
-# MODE: modo de respaldo: [disk | tape]
 #
 file_backup() {
   local BACKUP="${1}"
-  local DIRS="${2}"
-  local NAME=$(basename $0)
-  local TAR_OPTS="--create --bzip2 --preserve-permissions --file"
+  local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
+  local NAME=$(basename $0)
 
- tar ${TAR_OPTS} ${BACKUP} --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
- file_perms "${NAME}" "${BACKUP}"
- gensum "${NAME}" "${BACKUP}"
- message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+  tar --create --bzip2 --preserve-permissions --file ${BACKUP}-${FECHA}.tar.bz2 \
+  --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
+  
+  file_perms "${NAME}" "${BACKUP}"
+  # TODO: encriptado de backup. 
+  gensum "${NAME}" "${BACKUP}-${FECHA}.tar.bz2"
+  message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+}
+
+
+
+# Función para realizar respaldos incrementales en disco mediante GNU Tar.
+# NAME: nombre del programa que invoca.
+# BACKUP: archivo de respaldo a crear.
+# DIRS: directorios o archivos a respaldar.
+#
+file_backup_incremental() {
+  local BACKUP="${1}"
+  local DIRS="${2}"
+  local DAYOFMONTH=$(date +%d)
+  local EXCLUDE="/etc/backup-cron/exclude.txt"
+  local LEVEL=""
+  local NAME=$(basename $0)
+
+  if [ "${DAYOFMONTH}" -eq 01 ]; then
+      LEVEL="0"
+      BACKUP="${BACKUP}-full"
+    else
+      LEVEL="1"
+  fi
+
+  tar --create --bzip2 --preserve-permissions --file ${BACKUP}-${FECHA}.tar.bz2 \
+  --listed-incremental=${BACKUP}.snar --level=${LEVEL} \
+  --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
+  
+  file_perms "${NAME}" "${BACKUP}"
+  # TODO: encriptado de backup. 
+  gensum "${NAME}" "${BACKUP}"
+  message_syslog "El archivo de respaldo ${BACKUP} fue creado."
 }
 
 
@@ -397,14 +430,4 @@ remote_backup() {
   fi
 
 }
-
-
-# TODO:
-#DAYOFMONTH=$(date +%d)
-#
-#if [ ${DAYOFMONTH} == "01" ]; then
-#    echo "Verdadero"
-#  else
-#    echo "false"
-#fi
 
