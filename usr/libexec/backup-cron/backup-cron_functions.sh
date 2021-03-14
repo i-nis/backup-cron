@@ -277,33 +277,40 @@ libvirt_backup() {
 }
 
 
-
 # Función para realizar respaldos en disco mediante GNU Tar.
-# NAME: nombre del programa que invoca.
 # BACKUP: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
+# EXCLUDE: ruta al archivo que especifica los patrones a excluir por GNU Tar.
+# NAME: nombre del programa que invoca.
 #
 file_backup() {
   local BACKUP="${1}"
   local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local NAME=$(basename $0)
-
-  tar --create --bzip2 --preserve-permissions --file ${BACKUP}-${FECHA}.tar.bz2 \
-  --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
   
-  file_perms "${NAME}" "${BACKUP}"
-  # TODO: encriptado de backup. 
-  gensum "${NAME}" "${BACKUP}-${FECHA}.tar.bz2"
-  message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+  tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
+  --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
+
+  # Se verifica que GNU Tar se haya ejecutado correctamente.
+  if [ $? -eq 0 ]; then
+      # TODO: verificar que el tar no esté vacío.
+      file_encrypt "${BACKUP}"
+    else
+      message_syslog "Error al crear el respaldo ${BACKUP}."
+      exit 1
+  fi
+
 }
 
 
 
 # Función para realizar respaldos incrementales en disco mediante GNU Tar.
-# NAME: nombre del programa que invoca.
 # BACKUP: archivo de respaldo a crear.
-# DIRS: directorios o archivos a respaldar.
+# DIRS: directorios a respaldar.
+# EXCLUDE: ruta al archivo que especifica los patrones a excluir por GNU Tar.
+# NAME: nombre del programa que invoca.
+# SNAR: archivo de control para cambios incrementales.
 #
 file_backup_incremental() {
   local BACKUP="${1}"
@@ -312,22 +319,29 @@ file_backup_incremental() {
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local LEVEL=""
   local NAME=$(basename $0)
+  local SNAR="${BACKUP}.snar"
 
   if [ "${DAYOFMONTH}" -eq 01 ]; then
       LEVEL="0"
-      BACKUP="${BACKUP}-full"
+      BACKUP="${BACKUP}-full-${FECHA}.tar.bz2"
     else
       LEVEL="1"
+      BACKUP="${BACKUP}-${FECHA}.tar.bz2"
   fi
 
-  tar --create --bzip2 --preserve-permissions --file ${BACKUP}-${FECHA}.tar.bz2 \
-  --listed-incremental=${BACKUP}.snar --level=${LEVEL} \
+  tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
+  --listed-incremental=${SNAR} --level=${LEVEL} \
   --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
-  
-  file_perms "${NAME}" "${BACKUP}"
-  # TODO: encriptado de backup. 
-  gensum "${NAME}" "${BACKUP}"
-  message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+
+  # Se verifica que GNU Tar se haya ejecutado correctamente.
+  if [ $? -eq 0 ]; then
+      # TODO: verificar que el tar no esté vacío.
+      file_encrypt "${BACKUP}"
+    else
+      message_syslog "Error al crear el respaldo ${BACKUP}."
+      exit 1
+  fi
+
 }
 
 
@@ -373,6 +387,54 @@ gensum() {
   done
 
 }
+
+
+
+# Función para desencriptar archivos mediante GNUPG. Devuelve la ruta al archivo
+# desencriptado.
+# FILE: archivo a desencritpar.
+# DECRIPT_FILE: archivo desencriptado.
+#
+file_decrypt() {
+  local FILE="${1}"
+  local DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
+
+  gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
+  echo "${DECRIPT_FILE}"
+}
+
+
+
+# Función para encriptar archivos mediante GNUPG.
+# FILE: archivo a encriptar mediante GNUPG.
+#
+file_encrypt() {
+  local FILE="${1}"
+
+  if [ "${PGP_ID}" != "" ]; then
+      gpg --encrypt --recipient ${PGP_ID} --compress-algo none --output ${FILE}.gpg ${FILE}
+
+      # Se verifica que GNUPG haya encriptado correctamente.
+      if [ $? -eq 0 ]; then
+          file_perms "${BACKUP}.gpg"
+          gensum "${BACKUP}.gpg"
+          message_syslog "El archivo de respaldo ${BACKUP}.gpg fue creado."
+        else
+          message_syslog "Error al encriptar mediante GNUPG el respaldo ${BACKUP}."
+          exit 1
+      fi
+
+    else
+      file_perms "${BACKUP}"
+      gensum "${BACKUP}"
+      message_syslog "El archivo de respaldo ${BACKUP} fue creado."
+  fi
+
+}
+
+
+
+# TODO: restore incremental: tar --listed-incremental=/dev/null -xvf backup.tar.bz2
 
 
 
