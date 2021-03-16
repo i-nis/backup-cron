@@ -400,7 +400,13 @@ file_decrypt() {
   local DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
 
   gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
-  echo "${DECRIPT_FILE}"
+
+  if [ $? -eq 0 ]; then
+      echo "${DECRIPT_FILE}"
+    else
+      warning "ERROR:" "No se pudo desencriptar el archivo ${FILE}."
+      exit 1
+  fi
 }
 
 
@@ -491,5 +497,112 @@ remote_backup() {
     done
   fi
 
+}
+
+
+
+#-------------------------------------------------------------------------------
+# Funciones para restaurar datos
+#-------------------------------------------------------------------------------
+
+
+
+# Dada una ruta a un respaldo, verifica que exista en el sistema de archivo.
+# Devuelve verdadero en caso de existir
+# FILE: nombre del archivo a verificar.
+#
+backup_file_exists() {
+  local FILE="${1}"
+
+  if [ -e "${FILE}" ] && ([ "${FILE}" == *".tar.bz2" ] || [ "${FILE}" == *".tar.bz2.gpg" ]); then
+      true
+    else
+      false
+  fi
+
+}
+
+
+
+# Función para alertar al usuario que el archivo pasado como parámetro no existe.
+# Ejemplo al invocar el scrit /usr/sbin/mysql_restore.
+# FILE: archivo evaluado
+#
+file_no_exist() {
+  local FILE="${1}"
+
+  warning "ERROR" "El archivo ${FILE} no existe."
+  echo ""
+  exit 1
+}
+
+
+
+# Función para alertar en el pasaje de parámetro la ruta al archivo de respaldo.
+# Ejemplo al invocar el scrit /usr/sbin/mysql_restore.
+#
+no_file() {
+  warning "ERROR" "No se especificó ningun archivo .tar.bz2 o .tar.bz2.gpg. Vea:."
+  echo " $(basename ${0}) --help"
+  echo ""
+  exit 1
+}
+
+
+
+# Función para seleccionar al azar un algoritmo de suma para comprobación.
+#
+ramdom_select_sum() {
+  local NUM="$((1 + RANDOM % 3))"
+
+  case ${NUM} in
+    1 )
+      SUM="md5sum"
+      DIGEST="MD5"
+      EXT="md5"
+      ;;
+    2 )
+      SUM="sha1sum"
+      DIGEST="SHA1"
+      EXT="sha1"
+      ;;
+    3 )
+      SUM="sha256sum"
+      DIGEST="SHA256"
+      EXT="sha256"
+      ;;
+  esac
+
+}
+
+
+
+# Verifica que exista el conjunto completo de respaldo, incluyendo todos los 
+# archivos de suma
+#
+verify_set() {
+  local FILE="${1}"
+  local set=""
+
+  for set in ${BACKUP_SET}; do
+
+    if [ ! -e "${FILE}.${set}" ]; then
+      file_no_exist "${FILE}.${set}."
+    fi
+
+  done
+}
+
+
+
+# Funcion para mostrar advertencias
+warning ()
+{
+  WARNING="\033[40m\033[1;33m${1}\033[0m"
+  ADVERTENCE="\033[1;37m${2}\033[0m"
+  echo
+  echo -e "\a" "${WARNING}"
+  echo -e " ${ADVERTENCE}"
+  echo
 }
 
