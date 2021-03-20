@@ -372,9 +372,11 @@ tar_not_empty() {
   local TEST=$(tar --list --file ${FILE} | head -n 1 | wc -l)
 
   if [ "${TEST}" == "0" ]; then
-    message_syslog "Archivo de respaldo ${FILE} sin datos, se procede a eliminarlo."
-    rm -f ${FILE}
-    exit 1
+      message_syslog "Archivo de respaldo ${FILE} sin datos, se procede a eliminarlo."
+      rm -f ${FILE}
+      exit 1
+    else
+      message_syslog "Se ha creado el archivo de respaldo ${FILE}."
   fi 
 
 }
@@ -439,18 +441,19 @@ file_encrypt() {
 
       # Se verifica que GNUPG haya encriptado correctamente.
       if [ $? -eq 0 ]; then
+          rm -f ${FILE}
+          message_syslog "Se ha encriptado el archivo de respaldo ${BACKUP} como ${BACKUP}.gpg."
           file_perms "${BACKUP}.gpg"
           gensum "${BACKUP}.gpg"
-          message_syslog "El archivo de respaldo ${BACKUP}.gpg fue creado."
         else
           message_syslog "Error al encriptar mediante GNUPG el respaldo ${BACKUP}."
           exit 1
       fi
 
     else
+      message_syslog "Se ha creado archivo de respaldo ${BACKUP}."
       file_perms "${BACKUP}"
       gensum "${BACKUP}"
-      message_syslog "El archivo de respaldo ${BACKUP} fue creado."
   fi
 
 }
