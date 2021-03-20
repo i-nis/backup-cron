@@ -294,7 +294,7 @@ file_backup() {
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
   if [ $? -eq 0 ]; then
-      # TODO: verificar que el tar no esté vacío.
+      tar_not_empty "${BACKUP}"
       file_encrypt "${BACKUP}"
     else
       message_syslog "Error al crear el respaldo ${BACKUP}."
@@ -321,12 +321,12 @@ file_backup_incremental() {
   local NAME=$(basename $0)
   local SNAR="${BACKUP}.snar"
 
-  if [ "${DAYOFMONTH}" -eq 01 ]; then
+  if [ "${DAYOFMONTH}" -eq 01 ] || [ ! -e "${SNAR}" ]; then
       LEVEL="0"
       BACKUP="${BACKUP}-full-${FECHA}.tar.bz2"
     else
       LEVEL="1"
-      BACKUP="${BACKUP}-${FECHA}.tar.bz2"
+      BACKUP="${BACKUP}-incremental-${FECHA}.tar.bz2"
   fi
 
   tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
@@ -334,8 +334,8 @@ file_backup_incremental() {
   --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
-  if [ $? -eq 0 ]; then
-      # TODO: verificar que el tar no esté vacío.
+  if [ $? -eq 0 ] ; then
+      tar_not_empty "${BACKUP}"
       file_encrypt "${BACKUP}"
     else
       message_syslog "Error al crear el respaldo ${BACKUP}."
@@ -360,6 +360,23 @@ tape_backup() {
 
   tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${TAPE} &>/dev/null
   message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
+}
+
+
+
+# Función para determinar si un archivo de respaldo contiene archivos.
+# En caso de estar vacío, es eliminado y aborta la ejecución del programa.
+#
+tar_not_empty() {
+  local FILE="${1}"
+  local TEST=$(tar --list --file ${FILE} | head -n 1 | wc -l)
+
+  if [ "${TEST}" == "0" ]; then
+    message_syslog "Archivo de respaldo ${FILE} sin datos, se procede a eliminarlo."
+    rm -f ${FILE}
+    exit 1
+  fi 
+
 }
 
 
@@ -437,10 +454,6 @@ file_encrypt() {
   fi
 
 }
-
-
-
-# TODO: restore incremental: tar --listed-incremental=/dev/null -xvf backup.tar.bz2
 
 
 
