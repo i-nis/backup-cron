@@ -29,8 +29,8 @@ directory_mkdir "${BETC_BACKUP_PATH}"
 # Creación de archivo comprimido según la fecha del día
 file_backup_incremental "${BETC_BACKUP_PATH}/${BETC_FILE}" "/etc"
 
-# Borrado de copias de seguridad antiguas con tmpwatch.
-clean_old_backups "${TMPWATCH}" "${MTIME}" "${BETC_BACKUP_PATH}"
+# Borrado de copias de seguridad incrementales antiguas.
+remove_incremental_backup "${BETC_BACKUP_PATH}"
 
 # Copia de archivo de respaldo a servidor remoto.
 remote_backup "${REMOTE_IP}" "${REMOTE_USER}" "${BETC_BACKUP_PATH}" &

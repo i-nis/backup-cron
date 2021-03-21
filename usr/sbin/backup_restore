@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# backup_restore: script para restaurar respaldos totales e incrementales.
+#
+# (C) 2006 - 2021 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+source /etc/backup-cron/backup-cron.conf
+source /usr/libexec/backup-cron/backup-cron_functions.sh
+
+
+
+BACKUP_SET="md5 sha1 sha256"
+TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
+
+
+
+# Función de ayuda del programa.
+usage() {
+  local PROG_NAME=$(basename ${0})
+  local PROG_PATH=$(echo ${0} | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  echo ""
+  echo "${PROG_NAME}:"
+  echo "Restaura copias de respaldo desde un conjunto de respaldo dado."
+  echo ""
+  echo "  Uso: "
+  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
+  echo "       ${PROG_PATH}/${PROG_NAME} [-l|--local] FILE.tar.bz2"
+  echo ""
+  echo "       --help, -h"
+  echo "           Muestra esta ayuda."
+  echo ""
+  echo "       --local, -l"
+  echo "           Utiliza la configuración de bakup-cron almacenada en el archivo"
+  echo "           de configuración /etc/backup-cron/backup-cron.conf."
+  echo ""
+  echo "       FILE.tar.bz2"
+  echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
+  echo ""
+}
+
+
+
+# Dado un argumento verifica si se trata de un archivo .tar.bz2 o .tar.bz2.gpg.
+# TEST: argumento a verificar.
+#
+tbz2_verify() {
+  local TEST="${1}"
+
+  if backup_file_exists "${TEST}"; then
+        verify_set "${TEST}"
+    elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
+      parameters "${TEST}"
+    else
+      file_no_exist "${TEST}"
+  fi
+}
+
+
+
+# Verifica el correcto pasaje de parámetros.
+function parameters() {
+  local OPT=$(getopt \
+              --options hl \
+              --longoptions help,local \
+              --name 'backup_restore' \
+              -- "${@}")
+
+  if [ $? -ne 0 ]; then
+    echo 'Error en parámetros...' >&2
+    exit 1
+  fi
+
+  eval set -- "${OPT}"
+
+  while true; do
+
+    case "$1" in
+      -h | --help )
+        usage
+        exit
+        ;;
+
+      -l | --local )
+        source /etc/backup-cron/backup-cron.conf
+        shift
+        continue
+        ;;
+
+      -- )
+        shift
+        break
+        ;;
+
+      * )
+        warning "ERROR" "Error en parámetros. Vea:"
+        echo " $(basename ${0}) --help"
+        echo ""
+        exit 1
+        ;;
+    esac
+
+  shift
+  done
+
+}
+
+
+
+# Inicio del programa.
+BACKUP_FILE=""
+DIGEST=""
+EXT=""
+SUM=""
+
+if [ "${#}" == "0" ]; then
+    no_file
+  elif [ "${#}" == "1" ]; then
+    tbz2_verify "${1}"
+  else
+    parameters "${@}"
+    tbz2_verify "${@: -1}"
+fi
+
+# Seleccionar al azar un algoritmo de suma.
+ramdom_select_sum
+
+warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BACKUP_FILE}."
+
+if ${SUM} --check --status ${BACKUP_FILE}.${EXT}; then
+  BACKUP=$(file_decrypt)
+  echo "La suma ${DIGEST} para el archivo ${BACKUP_FILE} es correcta."
+  warning "PASO 2 de 3:" "Descomprimiento archivo ${BACKUP_FILE}."
+  tar ${TAR_OPTIONS} --listed-incremental=/dev/null --file ${BACKUP_FILE}
+else
+  warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${BDB_FILE}."
+  exit
+fi
+

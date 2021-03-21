@@ -16,8 +16,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 NAME=$(basename $0)
 
-MMTIME=$((${SEMANAS}*${MTIME}))
-
 # Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
 # caso de no haberlos búsca en ${BACKUP_PATH}.
 if [ "${HOSTS}" == "" ]; then
@@ -28,8 +26,9 @@ fi
 # con tmpwatch.
 for host in ${HOSTS}; do
   directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/etc"
-  clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/etc"
+  remove_incremental_backup "${BACKUP_PATH}/${host}/etc"
 done
 
-# TODO: borrar archivo temporar en /tmp.
+# Envío de correo informando sobre el respaldo
+send_mail "${GENERIC_SUBJECT}"
 

@@ -30,7 +30,7 @@ directory_mkdir "${BACKUP_PATH_SYS}"
 file_backup_incremental "${BACKUP_PATH_SYS}/${BUSR_FILE}" "/usr"
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "${TMPWATCH}" "${MTIME}" "${BACKUP_PATH_SYS}"
+remove_incremental_backup "${BACKUP_PATH_SYS}"
 
 # Copia respaldo a servidores remotos en como proceso de fondo (background).
 remote_backup "${REMOTE_IP}" "${REMOTE_USER}" "${BACKUP_PATH_SYS}" &

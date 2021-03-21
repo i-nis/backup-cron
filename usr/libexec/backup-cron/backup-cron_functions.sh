@@ -460,6 +460,31 @@ file_encrypt() {
 
 
 
+# Función para remover respaldos incrementales obsoletos.
+# DIRECTORY: ruta al directorio donde deben removerse los respaldos obsoletos.
+# ERASE_DATE: cálculo del año y mes de los archivos que deben ser eliminados
+# basados en la constante KEEP_INCREMENTAL definida en /etc/backup/backup-cron.conf.
+# NAME: nombre del programa que invoca.
+# ERASE_FILES: listado obtenido de archivos a eliminar
+#
+remove_incremental_backup() {
+  local DIRECTORY="${1}"
+  local ERASE_DATE=$(date --date="${KEEP_INCREMENTAL} month ago" +%Y%m)
+  local NAME=$(basename $0)
+  local ERASE_FILES=""
+
+  cd ${DIRECTORY}
+  ERASE_FILES=$(ls -1 *${ERASE_DATE}*.tar.bz2*)
+
+  for file in ${ERASE_FILES}; do
+    rm -f ${file} &>/dev/null
+    message_syslog "${NAME}" "Se eliminó el archivo obsoleto ${file}."
+  done
+
+}
+
+
+
 # Función para borrar copias de respaldo antigüas.
 # NAME: nombre del programa que invoca.
 # TIME: tiempo de modificación utilizado para borrar archivos.

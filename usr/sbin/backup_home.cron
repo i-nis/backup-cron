@@ -38,7 +38,7 @@ done
 remote_backup "${REMOTE_IP}" "${REMOTE_USER}" "${BHOME_BACKUP_PATH}" &
 
 # Borrado de copias de seguridad antiguas con tmpwatch
-clean_old_backups "${TMPWATCH}" "${MTIME}" "${BHOME_BACKUP_PATH}"
+remove_incremental_backup "${BHOME_BACKUP_PATH}"
 
 message_syslog "Respaldo de los directorios contenidos en /home finalizado."
 
