@@ -409,27 +409,6 @@ gensum() {
 
 
 
-# Función para desencriptar archivos mediante GNUPG. Devuelve la ruta al archivo
-# desencriptado.
-# FILE: archivo a desencritpar.
-# DECRIPT_FILE: archivo desencriptado.
-#
-file_decrypt() {
-  local FILE="${1}"
-  local DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
-
-  gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
-
-  if [ $? -eq 0 ]; then
-      echo "${DECRIPT_FILE}"
-    else
-      warning "ERROR:" "No se pudo desencriptar el archivo ${FILE}."
-      exit 1
-  fi
-}
-
-
-
 # Función para encriptar archivos mediante GNUPG.
 # FILE: archivo a encriptar mediante GNUPG.
 #
@@ -632,6 +611,52 @@ verify_set() {
     fi
 
   done
+}
+
+
+
+# Función para desencriptar archivos mediante GNUPG. Devuelve la ruta al archivo
+# desencriptado.
+# FILE: archivo a desencritpar.
+# DECRIPT_FILE: archivo desencriptado.
+#
+file_decrypt() {
+  local FILE="${1}"
+  local DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
+
+  gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
+
+  if [ $? -eq 0 ]; then
+      echo "${DECRIPT_FILE}"
+    else
+      warning "ERROR:" "No se pudo desencriptar el archivo ${FILE}."
+      exit 1
+  fi
+}
+
+
+
+# Función para desencriptar y desempaquetar respaldos.
+# FILE: archivo a desencritpar.
+# DECRIPT_FILE: archivo desencriptado.
+function unpack() {
+  local FILE="${1}"
+  local DECRIPT_FILE=""
+
+  if [ "${PGP_ID}" != "" ]; then
+      DECRIPT_FILE=$(file_decrypt "${FILE}")
+    else
+      DECRIPT_FILE="${FILE}"
+  fi
+
+  tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
+  --file ${DECRIPT_FILE}
+
+  if [ ! $? -eq 0 ]; then
+    warning "ERROR:" "Error al descomprimir y desempaquetar el archivo ${DECRIPT_FILE}."
+    exit 1
+  fi
+
 }
 
 
