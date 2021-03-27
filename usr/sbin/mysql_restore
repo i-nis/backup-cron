@@ -13,11 +13,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-BACKUP_SET="list md5 sha1 sha256"
-TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
-
-
-
 # Función de ayuda del programa.
 usage() {
   local PROG_NAME=$(basename ${0})
@@ -95,7 +90,7 @@ database_exists() {
 
   if [ "${MY_DB_P}" != "" ] && [ "${MY_DB_P}.sql" != "${MY_DB_FIND}" ]; then
     warning "ERROR" "No existe en ${BDB_FILE}.list la base de datos seleccionada ${MY_DB_P}."
-    exit
+    exit 1
   fi
 
 }
@@ -110,13 +105,9 @@ tbz2_verify() {
       verify_set "${TEST}"
       set_mysql_credentials
       MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
-      BDB_FILE="${FILE}"
 
-      if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
-          BDB_FILE_X="${FILE}"
-        else
-          database_exists "${DATABASE_TO_RESTORE}"
-          BDB_FILE_X="${FILE} ${DATABASE_TO_RESTORE}.sql"
+      if [ "${DATABASE_TO_RESTORE}" != "ALL" ]; then
+        database_exists "${DATABASE_TO_RESTORE}"
       fi
 
     elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
@@ -211,6 +202,7 @@ restore_database() {
 BDB_FILE=""
 BDB_FILE_X=""
 DATABASE_TO_RESTORE="ALL"
+DECRIPT_FILE=""
 DIGEST=""
 EXT=""
 SUM=""
@@ -231,9 +223,16 @@ warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BDB_FILE}."
 
 if ${SUM} --check --status ${BDB_FILE}.${EXT}; then
   echo "La suma ${DIGEST} para el archivo ${BDB_FILE} es correcta."
-  # TODO: desencriptar respaldo
-  warning "PASO 2 de 3:" "Descomprimiento archivo ${BDB_FILE}."
-  tar ${TAR_OPTIONS} --file ${BDB_FILE_X}
+
+  # Desencriptar respaldo
+  if [ "${PGP_ID}" != "" ]; then
+      DECRIPT_FILE=$(file_decrypt "${BDB_FILE}")
+    else
+      DECRIPT_FILE="${BDB_FILE}"
+  fi
+  
+  warning "PASO 2 de 3:" "Descomprimiento archivo ${DECRIPT_FILE}."
+  tar ${TAR_OPTIONS} --file ${DECRIPT_FILE} ${DATABASE_TO_RESTORE}.sql
 else
   warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${BDB_FILE}."
   exit
