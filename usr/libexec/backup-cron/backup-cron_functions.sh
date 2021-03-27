@@ -636,6 +636,19 @@ file_decrypt() {
 
 
 
+# Función para mostrar secuencia 1..9
+nine_seconds ()
+{
+   for i in 1 2 3 4 5 6 7 8 9; do
+     echo -en "\a${i} "
+     sleep 1s
+   done
+
+   echo
+}
+
+
+
 # Función para desencriptar y desempaquetar respaldos.
 # FILE: archivo a desencritpar.
 # DECRIPT_FILE: archivo desencriptado.
