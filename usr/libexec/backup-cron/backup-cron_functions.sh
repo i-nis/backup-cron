@@ -47,12 +47,10 @@ send_mail () {
 
 # Función para verificar la existencia de un directorio. Si este no existe es
 # creado.
-# NAME: nombre del programa que invoca.
 # DIRECTORY: ruta del directorio a verificar.
 #
 directory_mkdir() {
   local DIRECTORY="${1}"
-  local NAME=$(basename $0)
 
   if [ ! -e ${DIRECTORY} ]; then
     mkdir --parents --mode=755 ${DIRECTORY}
@@ -65,12 +63,10 @@ directory_mkdir() {
 
 
 # Función para cambiar los permisos de un archivo.
-# NAME: nombre del programa que invoca.
 # FILE: ruta al archivo al cual deben cambiarse los permisos.
 #
 file_perms() {
   local FILE="${1}"
-  local NAME=$(basename $0)
 
   chown admin:admin ${FILE}
   chmod 640 ${FILE}
@@ -123,18 +119,16 @@ show_databases_pg() {
 
 
 # Función para verificar la realización de respaldos de bases de datos.
-# NAME: nombre del programa que invoca.
 # DATABASE: ruta completa a la base de datos a verificar.
 #
 database_verify() {
   local DATABASE="${1}"
-  local NAME=$(basename $0)
 
   if [ "$(wc -c < ${DATABASE})" == "0" ]; then
       rm -f ${DATABASE}
       message_syslog "El archivo ${DATABASE} estaba vacío."
     else
-      file_perms "${NAME}" "${DATABASE}"
+      file_perms "${DATABASE}"
       message_syslog "Se ha creado correctamente ${DATABASE}."
   fi
 
@@ -186,7 +180,6 @@ snapshot() {
   local DOMAIN="${2}"
   local DISK="${3}"
   local SNAPSHOT="${4}"
-  local NAME="backup_libvirt.cron"
 
   case ${ACTION} in
     create )
@@ -213,14 +206,12 @@ snapshot() {
 
 # Función para crear un respaldo en formato qcow2 comprimido de una imágen de 
 # disco en cualquiera de los siguientes formatos: raw,bochs,qcow,qcow2,qed,vmdk.
-# NAME: nombre del programa que invoca.
 # DOMAIN: nombre de la maquina virtual.
 # BACKUP_FILE: archivo de respaldo a crear.
 #
 qcow2_backup() {
   local IMAGE="${1}"
   local BACKUP_FILE="${2}"
-  local NAME=$(basename $0)
 
   /usr/bin/qemu-img convert --force-share -c -O qcow2 ${IMAGE} ${BACKUP_FILE}
   message_syslog "El archivo de respaldo ${BACKUP_FILE} fue creado."
@@ -230,13 +221,11 @@ qcow2_backup() {
 
 # Función para buscar y respaldar las imágenes de disco de las máquinas virtuales.
 # administradas con app-emulation/libvirt.
-# NAME: nombre del programa que invoca.
 # BLIBVIRT_BACKUP_PATH: ruta a la ubicación de la copia de respaldo.
 #
 libvirt_backup() {
   local BLIBVIRT_BACKUP_PATH="${1}"
   local DOMAINS=$(virsh list --name)
-  local NAME=$(basename $0)
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
@@ -258,16 +247,16 @@ libvirt_backup() {
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
 
       # Creación del respaldo de la imagen de disco.
-      qcow2_backup "${NAME}" "${image}" "${BACKUP_FILE}"
+      qcow2_backup "${image}" "${BACKUP_FILE}"
 
       # Borrado de la instantánea correspondiente al disco actual.
       snapshot "delete" "${domain}" "${DISK}" "${SNAPSHOT}"
 
       # Cambio de permisos para el respaldo.
-      file_perms "${NAME}" "${BACKUP_FILE}"
+      file_perms "${BACKUP_FILE}"
 
       # Generación de sumas MD5, SHA1, SHA256, etc.
-      gensum "${NAME}" "${BACKUP_FILE}"
+      gensum "${BACKUP_FILE}"
     done
 
     # Se eliminan los metadatos de la instantánea.
@@ -281,13 +270,11 @@ libvirt_backup() {
 # BACKUP: archivo de respaldo a crear.
 # DIRS: directorios o archivos a respaldar.
 # EXCLUDE: ruta al archivo que especifica los patrones a excluir por GNU Tar.
-# NAME: nombre del programa que invoca.
 #
 file_backup() {
   local BACKUP="${1}"
   local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
-  local NAME=$(basename $0)
   
   tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
   --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
@@ -309,7 +296,6 @@ file_backup() {
 # BACKUP: archivo de respaldo a crear.
 # DIRS: directorios a respaldar.
 # EXCLUDE: ruta al archivo que especifica los patrones a excluir por GNU Tar.
-# NAME: nombre del programa que invoca.
 # SNAR: archivo de control para cambios incrementales.
 #
 file_backup_incremental() {
@@ -318,7 +304,6 @@ file_backup_incremental() {
   local DAYOFMONTH=$(date +%d)
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local LEVEL=""
-  local NAME=$(basename $0)
   local SNAR="${BACKUP}.snar"
 
   if [ "${DAYOFMONTH}" -eq 01 ] || [ ! -e "${SNAR}" ]; then
@@ -348,12 +333,10 @@ file_backup_incremental() {
 
 # Función para rerealizar respaldos en cinta.
 # DIRS: directorios o archivos a respaldar.
-# NAME: nombre del programa que invoca.
 # TAPE: dispositivo de cintas a utilizar definido en /etc/backup-cron/backup-cron.conf.
 #
 tape_backup() {
   local DIRS="${1}"
-  local NAME=$(basename $0)
   local TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
@@ -384,7 +367,6 @@ tar_not_empty() {
 
 
 # Función para generar sumas MD5, SHA1, SHA256, etc.
-# NAME: nombre del programa que invoca.
 # FILE: archivo desde el cual se creará la suma.
 # DIRECTORY: directorio en el que se encuentran los respaldos.
 # HASHES: algoritmos para verificar sumas.
@@ -393,7 +375,6 @@ gensum() {
   local FILE=$(echo "${1}" | awk -F \/ //'{print $(NF)}')
   local DIRECTORY=$(echo "${1}" | awk -F \/${FILE} //'{print $1}')
   local HASHES="md5 sha1 sha256"
-  local NAME=$(basename $0)
 
   cd ${DIRECTORY}
 
@@ -401,7 +382,7 @@ gensum() {
     PROGRAM="${hash}sum"
     CHECKSUM=$(${PROGRAM} ${FILE})
     echo "${CHECKSUM}" > ${FILE}.${hash}
-    file_perms "${NAME}" "${FILE}.${hash}"
+    file_perms "${FILE}.${hash}"
     message_syslog "La suma ${hash} fue creada: ${CHECKSUM}."
   done
 
@@ -443,13 +424,11 @@ file_encrypt() {
 # DIRECTORY: ruta al directorio donde deben removerse los respaldos obsoletos.
 # ERASE_DATE: cálculo del año y mes de los archivos que deben ser eliminados
 # basados en la constante KEEP_INCREMENTAL definida en /etc/backup/backup-cron.conf.
-# NAME: nombre del programa que invoca.
 # ERASE_FILES: listado obtenido de archivos a eliminar
 #
 remove_incremental_backup() {
   local DIRECTORY="${1}"
   local ERASE_DATE=$(date --date="${KEEP_INCREMENTAL} month ago" +%Y%m)
-  local NAME=$(basename $0)
   local ERASE_FILES=""
 
   cd ${DIRECTORY}
@@ -457,7 +436,7 @@ remove_incremental_backup() {
 
   for file in ${ERASE_FILES}; do
     rm -f ${file} &>/dev/null
-    message_syslog "${NAME}" "Se eliminó el archivo obsoleto ${file}."
+    message_syslog "Se eliminó el archivo obsoleto ${file}."
   done
 
 }
@@ -465,7 +444,6 @@ remove_incremental_backup() {
 
 
 # Función para borrar copias de respaldo antigüas.
-# NAME: nombre del programa que invoca.
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
 # PATH: ruta al directorio donde se encuentran los archivos antigüos a borrar.
@@ -476,7 +454,6 @@ clean_old_backups() {
   local TMPCLEAN="${1}"
   local TIME="${2}"
   local PATH="${3}"
-  local NAME=$(basename $0)
 
   if [[ -d ${PATH} ]]; then
     ${TMPCLEAN} --mtime ${TIME} ${PATH}
@@ -488,7 +465,6 @@ clean_old_backups() {
 
 
 # Función para copiar archivos de respaldo en servidores remotos.
-# NAME: nombre del programa que invoca.
 # IP: URL o dirección IP del servidor remoto.
 # USER: usuario para conectarse con el servidor remoto.
 # PATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
@@ -497,7 +473,6 @@ remote_backup() {
   local REMOTE_IP="${1}"
   local USER="${2}"
   local PATH="${3}"
-  local NAME=$(basename $0)
 
   if [ "${REMOTE_IP}" != "" ]; then
 
