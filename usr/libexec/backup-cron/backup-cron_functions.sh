@@ -432,7 +432,7 @@ remove_incremental_backup() {
   local ERASE_FILES=""
 
   cd ${DIRECTORY}
-  ERASE_FILES=$(ls -1 *${ERASE_DATE}*.tar.bz2*)
+  ERASE_FILES=$(ls -1 *${ERASE_DATE}*.tar.bz2* 2>/dev/null)
 
   for file in ${ERASE_FILES}; do
     rm -f ${file} &>/dev/null
