@@ -136,7 +136,7 @@ function recursive_unpack() {
     warning "ATENCIÓN:" "Verificando suma ${DIGEST} para el archivo ${FILE_NAME}${date}${FILE_EXT}."
     nine_seconds
 
-    if ${SUM} --check --status ${FILE_NAME}${date}${FILE_EXT}; then
+    if ${SUM} --check --status ${FILE_NAME}${date}${FILE_EXT}.${EXT}; then
         echo "La suma ${DIGEST} para el archivo ${FILE_NAME}${date}${FILE_EXT} es correcta."
         warning "ATENCIÓN:" "Comenzando a desempaquetar el respaldo ${FILE_NAME}${date}${FILE_EXT}."
         nine_seconds
