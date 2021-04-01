@@ -577,6 +577,7 @@ ramdom_select_sum() {
 #
 verify_set() {
   local FILE="${1}"
+  local BACKUP_SET="md5 sha1 sha256"
   local set=""
 
   for set in ${BACKUP_SET}; do
