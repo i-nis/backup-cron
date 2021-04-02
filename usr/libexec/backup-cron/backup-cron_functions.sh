@@ -23,7 +23,7 @@ message_syslog () {
   local MESSAGE="${1}"
   local NAME=$(basename $0)
 
-  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE} ${NAME}" &>> /tmp/${NAME}-${HOST}.txt
+  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/${NAME}-${HOST}.txt
 }
 
 
