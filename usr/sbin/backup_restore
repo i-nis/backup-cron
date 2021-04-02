@@ -128,7 +128,8 @@ function recursive_unpack() {
   local date=""
 
   if [ "${DATE_END}" == "" ]; then
-    DATE_END=$(ls -1 *${DATE_START}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
+    DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
+    DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
   fi
 
   for ((date=${DATE_START}; date<=${DATE_END}; date++)); do
