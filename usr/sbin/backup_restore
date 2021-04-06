@@ -67,8 +67,8 @@ tbz2_verify() {
 # Verifica el correcto pasaje de parámetros.
 function parameters() {
   local OPT=$(getopt \
-              --options hi:: \
-              --longoptions help,incremental:: \
+              --options hi \
+              --longoptions help,incremental \
               --name 'backup_restore' \
               -- "${@}")
 
