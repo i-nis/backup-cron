@@ -82,6 +82,7 @@ function parameters() {
         ;;
 
       -i | --incremental )
+        INCREMENTAL=true
         shift
         continue
         ;;
@@ -110,29 +111,40 @@ function parameters() {
 # desde la fecha del archivo completo hasta la fecha dada mediante --incremental FECHA.
 # Si no se especifica --incremental FECHA, solo restaura el respaldo completo.
 # FILE: archivo de respaldo completo (full).
+# DATE_END: Fecha del último respaldo incremental a restaurar.
 #
 function recursive_unpack() {
   local FILE="${1}"
+  local INCREMENTAL="${2}"
   local DATE_START=$(echo "${FILE}" | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
-  local DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
-  local DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
-  local FILE_NAME=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(1)}')
   local FILE_EXT=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(2)}')
   local date=""
 
+  if ${INCREMENTAL}; then
+      DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
+      DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
+    else
+      DATE_END="${DATE_START}"
+  fi
+
   for ((date=${DATE_START}; date<=${DATE_END}; date++)); do
     ramdom_select_sum
-    warning "ATENCIÓN:" "Verificando suma ${DIGEST} para el archivo ${FILE_NAME}${date}${FILE_EXT}."
-    nine_seconds
+    FILE_NAME=$(ls -1 *${date}${FILE_EXT} 2>/dev/null)
 
-    if ${SUM} --check --status ${FILE_NAME}${date}${FILE_EXT}.${EXT}; then
-        echo "La suma ${DIGEST} para el archivo ${FILE_NAME}${date}${FILE_EXT} es correcta."
-        warning "ATENCIÓN:" "Comenzando a desempaquetar el respaldo ${FILE_NAME}${date}${FILE_EXT}."
-        nine_seconds
-        unpack "${FILE_NAME}${date}${FILE_EXT}"
-      else
-        warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${FILE_NAME}${date}${FILE_EXT}."
-        exit 1
+    if [ "${FILE_NAME}" != "" ]; then
+      warning "ATENCIÓN:" "Verificando suma ${DIGEST} para el archivo ${FILE_NAME}."
+      nine_seconds
+
+      if ${SUM} --check --status ${FILE_NAME}.${EXT}; then
+          echo "La suma ${DIGEST} para el archivo ${FILE_NAME} es correcta."
+          warning "ATENCIÓN:" "Comenzando a desempaquetar el respaldo ${FILE_NAME}."
+          nine_seconds
+          unpack "${FILE_NAME}"
+        else
+         warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${FILE_NAME}."
+          exit 1
+      fi
+
     fi
 
   done
@@ -143,8 +155,10 @@ function recursive_unpack() {
 
 # Inicio del programa.
 BACKUP_FILE=""
+DATE_TO_RESTORE=""
 DIGEST=""
 EXT=""
+INCREMENTAL=false
 SUM=""
 
 if [ "${#}" == "0" ]; then
@@ -156,5 +170,5 @@ if [ "${#}" == "0" ]; then
     tbz2_verify "${@: -1}"
 fi
 
-recursive_unpack "${BACKUP_FILE}"
+recursive_unpack "${BACKUP_FILE}" "${INCREMENTAL}"
 
