@@ -275,7 +275,7 @@ file_backup() {
   local BACKUP="${1}"
   local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
-  
+
   tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
   --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
 
@@ -360,7 +360,7 @@ tar_not_empty() {
       exit 1
     else
       message_syslog "Se ha creado el archivo de respaldo ${FILE}."
-  fi 
+  fi
 
 }
 
@@ -509,7 +509,7 @@ remote_backup() {
 backup_file_exists() {
   local FILE="${1}"
 
-  if [ -e "${FILE}" ] && ([ "${FILE}" == *".tar.bz2" ] || [ "${FILE}" == *".tar.bz2.gpg" ]); then
+  if [ -e "${FILE}" ]; then
       true
     else
       false
