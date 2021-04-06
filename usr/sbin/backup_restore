@@ -25,19 +25,13 @@ usage() {
   echo "  Uso: "
   echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
   echo "       ${PROG_PATH}/${PROG_NAME} FILE.tar.bz2"
-  echo "       ${PROG_PATH}/${PROG_NAME} [-i|--incremental] FECHA FILE-full.tar.bz2"
-  echo ""
-  echo "       FECHA"
-  echo "           Fecha del último respaldo incremental a restaurar en formato"
-  echo "           AAAAMMDD."
+  echo "       ${PROG_PATH}/${PROG_NAME} [-i|--incremental] FILE-full.tar.bz2"
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
   echo ""
   echo "       --incremental, -i"
-  echo "           Dado un respaldo full, respalda también los incrementales hasta"
-  echo "           una fecha dada por FECHA. Si no se especifica FECHA, respalda"
-  echo "           todos los incrementales que existan."
+  echo "           Dado un respaldo full, respalda todos los incrementales que existan."
   echo ""
   echo "       FILE.tar.bz2"
   echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
@@ -88,7 +82,6 @@ function parameters() {
         ;;
 
       -i | --incremental )
-        DATE_TO_RESTORE="${2}"
         shift
         continue
         ;;
@@ -117,20 +110,15 @@ function parameters() {
 # desde la fecha del archivo completo hasta la fecha dada mediante --incremental FECHA.
 # Si no se especifica --incremental FECHA, solo restaura el respaldo completo.
 # FILE: archivo de respaldo completo (full).
-# DATE_END: Fecha del último respaldo incremental a restaurar.
 #
 function recursive_unpack() {
   local FILE="${1}"
-  local DATE_END="${2}"
   local DATE_START=$(echo "${FILE}" | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
+  local DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
+  local DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
   local FILE_NAME=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(1)}')
   local FILE_EXT=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(2)}')
   local date=""
-
-  if [ "${DATE_END}" == "" ]; then
-    DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
-    DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
-  fi
 
   for ((date=${DATE_START}; date<=${DATE_END}; date++)); do
     ramdom_select_sum
@@ -155,7 +143,6 @@ function recursive_unpack() {
 
 # Inicio del programa.
 BACKUP_FILE=""
-DATE_TO_RESTORE=""
 DIGEST=""
 EXT=""
 SUM=""
@@ -169,5 +156,5 @@ if [ "${#}" == "0" ]; then
     tbz2_verify "${@: -1}"
 fi
 
-recursive_unpack "${BACKUP_FILE}" "${DATE_TO_RESTORE}"
+recursive_unpack "${BACKUP_FILE}"
 
