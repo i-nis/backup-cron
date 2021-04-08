@@ -16,8 +16,7 @@ TYPE="${2}"
 
 
 
-
-usage () {
+function usage() {
   PROGNAME=$(basename $0)
   PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
   echo "${PROGNAME}:"
@@ -39,8 +38,8 @@ usage () {
 
 
 
-status() {
-  STATE=${1}
+function status() {
+  local STATE=${1}
 
   case ${STATE} in
     0 )
@@ -48,42 +47,17 @@ status() {
       echo "${STATUS}: backup ${DESC} was done without problems."
       return 0
       ;;
-    1 )
+    [1-29] )
       STATUS="Warning"
       echo "${STATUS}: last backup ${DESC} was performed ${STATE} day ago."
       return 0
       ;;
-    2 )
-      STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
-      return 1
-      ;;
-    3 )
-      STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
-      return 1
-      ;;
-    4 )
-      STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
-      return 1
-      ;;
-    5 )
-      STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
-      return 1
-      ;;
-    6 )
-      STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} days ago."
-      return 1
-      ;;
-    7 )
+    30 )
       STATUS="Critical"
       echo "${STATUS}: there are no backups ${DESC} made in the last ${STATE} days."
       return 2
       ;;
-    8 )
+    99 )
       STATUS="Critical"
       echo "${STATUS}: there are errors on backups ${DESC}."
       return 2
@@ -101,7 +75,7 @@ status() {
 
 if [ "${1}" != "-t" ] && [ "${1}" != "--type" ] || [ "${#}" != "2" ]; then
   usage
-  status 8
+  status 99
   exit
 fi
 
@@ -150,25 +124,33 @@ case ${TYPE} in
   ;;
 esac
 
-
-
-# Se busca el último backup realizado dentro de los últimos 7 días.
-for i in {0..7}; do
+# Se busca el último backup realizado dentro de los últimos 30 días.
+for i in {0..30}; do
   FECHA=$(date --date="${i} days ago" +%Y%m%d)
 
-  if [ -f ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT} ]; then
+  if [ "${PGP_ID}" != "" ]; then
+      BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.gpg"
+      FULL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-full-${FECHA}.${EXT}.gpg"
+      INCREMENTAL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-incremental-${FECHA}.${EXT}.gpg"
+    else
+      BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}"
+      FULL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-full-${FECHA}.${EXT}"
+      INCREMENTAL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-incremental-${FECHA}.${EXT}"
+  fi
+
+  if [ -f ${BACKUP} ] || [ -f ${FULL_BACKUP} ] || [ -f ${INCREMENTAL_BACKUP} ]; then
 
       # Se verifica que los respaldos realizados se correspondan con el número
       # de bases de datos MySQL exitentes.
       if [ "${TYPE}" == "mysql" ]; then
         DB_NUM=$(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST} 2>&1 | grep -v "Warning: Using a password" | wc -l)
-        FILE_BACKUP_DB_NUM=$(cat ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.list | wc -l)
+        FILE_BACKUP_DB_NUM=$(cat ${BACKUP}.list | wc -l)
 
         if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
             status ${i}
             exit $?
           else
-            status 8
+            status 99
             exit $?
         fi
 
@@ -180,20 +162,21 @@ for i in {0..7}; do
       if [ "${TYPE}" == "postgresql" ]; then
         export PGPASSWORD=${BDB_PG_PASSWD}
         DB_PG_NUM=$(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST} | wc -l)
-        FILE_BACKUP_PG_NUM=$(cat ${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.list | wc -l)
+        FILE_BACKUP_PG_NUM=$(cat ${BACKUP}.list | wc -l)
 
         if [ ${DB_PG_NUM} -eq ${FILE_BACKUP_PG_NUM} ]; then
             status ${i}
             exit $?
           else
-            status 8
+            status 99
             exit $?
         fi
 
         break
       fi
 
-      if [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] || [ "${TYPE}" == "system" ]; then
+      if [ "${TYPE}" == "etc" ] || [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] \
+         || [ "${TYPE}" == "system" ]; then
           status 0
         else
           status ${i}
@@ -203,7 +186,7 @@ for i in {0..7}; do
       break
     else
 
-      if ((${i} > 6 )); then
+      if (( ${i} == 30 )); then
         status ${i}
         exit $?
       fi
