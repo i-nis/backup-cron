@@ -25,13 +25,19 @@ usage() {
   echo "  Uso: "
   echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
   echo "       ${PROG_PATH}/${PROG_NAME} FILE.tar.bz2"
-  echo "       ${PROG_PATH}/${PROG_NAME} [-i|--incremental] FILE-full.tar.bz2"
+  echo "       ${PROG_PATH}/${PROG_NAME} [-d|--directory] DIRECTORY [-i|--incremental] FILE-full.tar.bz2"
+  echo ""
+  echo "       --directory, -d"
+  echo "           Indica el directorio donde se desempaquetará el respaldo."
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
   echo ""
   echo "       --incremental, -i"
-  echo "           Dado un respaldo full, respalda todos los incrementales que existan."
+  echo "           Dado un respaldo full, respalda todos los incrementales que existan." 
+  echo ""
+  echo "       DIRECTORY"
+  echo "           Directorio donde desempaquetar el respaldo."
   echo ""
   echo "       FILE.tar.bz2"
   echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
@@ -61,8 +67,8 @@ tbz2_verify() {
 # Verifica el correcto pasaje de parámetros.
 function parameters() {
   local OPT=$(getopt \
-              --options hi \
-              --longoptions help,incremental \
+              --options hd:i \
+              --longoptions help,directory:,incremental \
               --name 'backup_restore' \
               -- "${@}")
 
@@ -79,6 +85,12 @@ function parameters() {
       -h | --help )
         usage
         exit
+        ;;
+
+      -d | --directory )
+        DIRECTORY="${2}"
+        shift 2
+        continue
         ;;
 
       -i | --incremental )
@@ -111,11 +123,13 @@ function parameters() {
 # desde la fecha del archivo completo hasta la fecha dada mediante --incremental FECHA.
 # Si no se especifica --incremental FECHA, solo restaura el respaldo completo.
 # FILE: archivo de respaldo completo (full).
-# DATE_END: Fecha del último respaldo incremental a restaurar.
+# INCREMENTAL: indica si el respaldo a restaurar es incremental. Booleano.
+# DIRECTORY: directorio donde desempaquetar.
 #
 function recursive_unpack() {
   local FILE="${1}"
   local INCREMENTAL="${2}"
+  local DIRECTORY="${DIRECTORY}"
   local DATE_START=$(echo "${FILE}" | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
   local FILE_EXT=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(2)}')
   local date=""
@@ -139,7 +153,7 @@ function recursive_unpack() {
           echo "La suma ${DIGEST} para el archivo ${FILE_NAME} es correcta."
           warning "ATENCIÓN:" "Comenzando a desempaquetar el respaldo ${FILE_NAME}."
           nine_seconds
-          unpack "${FILE_NAME}"
+          unpack "${FILE_NAME}" "${DIRECTORY}"
         else
          warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${FILE_NAME}."
           exit 1
@@ -157,6 +171,7 @@ function recursive_unpack() {
 BACKUP_FILE=""
 DATE_TO_RESTORE=""
 DIGEST=""
+DIRECTORY=""
 EXT=""
 INCREMENTAL=false
 SUM=""
@@ -170,5 +185,9 @@ if [ "${#}" == "0" ]; then
     tbz2_verify "${@: -1}"
 fi
 
-recursive_unpack "${BACKUP_FILE}" "${INCREMENTAL}"
+if [ "${DIRECTORY}" == "" ]; then
+  DIRECTORY=$(pwd)
+fi
+
+recursive_unpack "${BACKUP_FILE}" "${INCREMENTAL}" "${DIRECTORY}"
 

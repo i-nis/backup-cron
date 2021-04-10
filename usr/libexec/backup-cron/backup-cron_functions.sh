@@ -630,6 +630,7 @@ nine_seconds ()
 # DECRIPT_FILE: archivo desencriptado.
 function unpack() {
   local FILE="${1}"
+  local DIRECTORY="${2}"
   local DECRIPT_FILE=""
 
   if [ "${PGP_ID}" != "" ]; then
@@ -639,7 +640,7 @@ function unpack() {
   fi
 
   tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
-  --file ${DECRIPT_FILE}
+  --file ${DECRIPT_FILE} --directory=${DIRECTORY}
 
   if [ ! $? -eq 0 ]; then
     warning "ERROR:" "Error al descomprimir y desempaquetar el archivo ${DECRIPT_FILE}."
