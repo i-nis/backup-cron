@@ -276,8 +276,8 @@ file_backup() {
   local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
 
-  tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
-  --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
+  tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
+  --file ${BACKUP} --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
   if [ $? -eq 0 ]; then
@@ -314,9 +314,9 @@ file_backup_incremental() {
       BACKUP="${BACKUP}-incremental-${FECHA}.tar.bz2"
   fi
 
-  tar --create --bzip2 --preserve-permissions --file ${BACKUP} \
-  --listed-incremental=${SNAR} --level=${LEVEL} \
-  --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
+  tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
+  --file ${BACKUP} --listed-incremental=${SNAR} --level=${LEVEL} \
+  --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
   if [ $? -eq 0 ] ; then
@@ -337,11 +337,12 @@ file_backup_incremental() {
 #
 tape_backup() {
   local DIRS="${1}"
-  local TAR_OPTS="--create --blocking-factor=64 --preserve-permissions"
+  local TAR_OPTS="--create --blocking-factor=64 --preserve-permissions --xattrs --xattrs-include=*.*"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
-  tar ${TAR_OPTS} --exclude-from=${EXCLUDE} ${DIRS} | mbuffer ${MBUFFER_OPTS} ${TAPE} &>/dev/null
+  tar ${TAR_OPTS} --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} \
+  | mbuffer ${MBUFFER_OPTS} ${TAPE} &>/dev/null
   message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
 }
 
@@ -640,7 +641,7 @@ function unpack() {
   fi
 
   tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
-  --file ${DECRIPT_FILE} --directory=${DIRECTORY}
+  --xattrs --xattrs-include=*.* --file ${DECRIPT_FILE} --directory=${DIRECTORY}
 
   if [ ! $? -eq 0 ]; then
     warning "ERROR:" "Error al descomprimir y desempaquetar el archivo ${DECRIPT_FILE}."
