@@ -205,6 +205,7 @@ DATABASE_TO_RESTORE="ALL"
 DECRIPT_FILE=""
 DIGEST=""
 EXT=""
+TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
 SUM=""
 
 if [ "${#}" == "0" ]; then
