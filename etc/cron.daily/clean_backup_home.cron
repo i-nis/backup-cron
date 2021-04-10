@@ -14,8 +14,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME=$(basename $0)
-
 # Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
 # caso de no haberlos búsca en ${BACKUP_PATH}.
 if [ "${HOSTS}" == "" ]; then
@@ -25,7 +23,7 @@ fi
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
 # con tmpwatch.
 for host in ${HOSTS}; do
-  directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/home"
+  directory_mkdir "${BACKUP_PATH}/${host}/home"
   remove_incremental_backup "${BACKUP_PATH}/${host}/home"
 done
 

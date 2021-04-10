@@ -14,8 +14,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME=$(basename $0)
-
 MMTIME=$((${SEMANAS}*${MTIME}))
 
 # Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
@@ -27,8 +25,8 @@ fi
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
 # con tmpwatch.
 for host in ${HOSTS}; do
-  directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/mysql"
-  clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/mysql"
+  directory_mkdir "${BACKUP_PATH}/${host}/mysql"
+  clean_old_backups "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/mysql"
 done
 
 # Envío de correo informando sobre el respaldo
