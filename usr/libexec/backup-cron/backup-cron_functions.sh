@@ -318,15 +318,8 @@ file_backup_incremental() {
   --ignore-failed-read --file ${BACKUP} --listed-incremental=${SNAR} --level=${LEVEL} \
   --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
 
-  # Se verifica que GNU Tar se haya ejecutado correctamente.
-  if [ $? -eq 0 ] ; then
-      tar_not_empty "${BACKUP}"
-      file_encrypt "${BACKUP}"
-    else
-      message_syslog "Error al crear el respaldo ${BACKUP}."
-      exit 1
-  fi
-
+  tar_not_empty "${BACKUP}"
+  file_encrypt "${BACKUP}"
 }
 
 
