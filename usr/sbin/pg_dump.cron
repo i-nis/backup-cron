@@ -53,8 +53,15 @@ if [ -e ${BACKUP_PATH} ]; then
     cd ${BDB_PG_BACKUP_PATH}
 
     if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
-        ls -1 | grep --invert-match backup-${HOST}-postgresql > ${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list
-        FILES=$(cat ${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list)
+
+        if [ "${PGP_ID}" != "" ]; then
+            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.gpg.list"
+          else
+            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list"
+        fi
+
+        ls -1 | grep --invert-match backup-${HOST}-postgresql > ${LIST}
+        FILES=$(cat ${LIST})
         file_backup "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "${FILES}"
         rm -f ${FILES}
 

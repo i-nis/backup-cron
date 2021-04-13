@@ -52,8 +52,15 @@ if [ -x ${MYSQLDUMP} ]; then
   cd ${BDB_BACKUP_PATH}
 
   if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
-      ls -1 | grep --invert-match backup-${HOST}-mysql > ${BDB_BACKUP_PATH}/${BDB_FILE}.list
-      FILES=$(cat ${BDB_BACKUP_PATH}/${BDB_FILE}.list)
+
+      if [ "${PGP_ID}" != "" ]; then
+          LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.gpg.list"
+        else
+          LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.list"
+      fi
+
+      ls -1 | grep --invert-match backup-${HOST}-mysql > ${LIST}
+      FILES=$(cat ${LIST})
       file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "${FILES}"
       rm -f ${FILES}
 
