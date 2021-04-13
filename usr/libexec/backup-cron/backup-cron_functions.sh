@@ -315,7 +315,7 @@ file_backup_incremental() {
   fi
 
   tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
-  --file ${BACKUP} --listed-incremental=${SNAR} --level=${LEVEL} \
+  --ignore-failed-read --file ${BACKUP} --listed-incremental=${SNAR} --level=${LEVEL} \
   --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
