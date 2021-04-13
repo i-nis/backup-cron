@@ -21,7 +21,7 @@ source /etc/backup-cron/backup-cron.conf
 #
 message_syslog () {
   local MESSAGE="${1}"
-  local NAME=$(basename $0)
+  local NAME=$(basename $0 2>/dev/null)
 
   /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/${NAME}-${HOST}.txt
 }
@@ -35,7 +35,7 @@ message_syslog () {
 #
 send_mail () {
   local SUBJECT="${1}"
-  local NAME=$(basename $0)
+  local NAME=$(basename $0 2>/dev/null)
 
   cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
   mail --subject="${SUBJECT} ${NAME}" "${RECIPIENTS}"
