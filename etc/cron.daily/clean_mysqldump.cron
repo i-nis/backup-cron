@@ -30,5 +30,5 @@ for host in ${HOSTS}; do
 done
 
 # Envío de correo informando sobre el respaldo
-send_mail "${GENERIC_SUBJECT}
+send_mail "${GENERIC_SUBJECT}"
 
