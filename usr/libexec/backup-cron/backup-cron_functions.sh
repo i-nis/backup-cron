@@ -229,11 +229,11 @@ libvirt_backup() {
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
-    IMAGES=$(/usr/bin/virsh domblklist ${domain} | awk -F \  /^[sv]d*/'{print $2}')
+    IMAGES=$(/usr/bin/virsh domblklist ${domain} | awk -F \  /^\ [sv]d*/'{print $2}')
     message_syslog "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
-    SNAPSHOT_TIME=$(/bin/date +%G%m%d%H%M%S)
+    SNAPSHOT_TIME=$(/bin/date +%Y%m%d%H%M%S)
     SNAPSHOT="snapshot-${SNAPSHOT_TIME}"
     snapshot "create" "${domain}" "null" "${SNAPSHOT}"
 
