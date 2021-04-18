@@ -31,6 +31,5 @@ for host in ${HOSTS}; do
   clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/postgresql"
 done
 
-# Envío de correo informando sobre el respaldo
-send_mail "${GENERIC_SUBJECT}"
+rm -f /tmp/${NAME}-${HOST}.txt
 
