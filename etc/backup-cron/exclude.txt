@@ -13,7 +13,9 @@
 /usr/tmp/*
 /var/chroot/*/var/log/*
 /var/cache/*/*
+/var/db/repos/*
 /var/lib/libvirt/images/*
+/var/notmpfs/*
 /var/tmp/*/*
 /*/lost+found
 /*/*/lost+found
