@@ -25,7 +25,7 @@ fi
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
 # con tmpwatch.
 for host in ${HOSTS}; do
-  directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/system"
+  directory_mkdir "${BACKUP_PATH}/${host}/system"
   remove_incremental_backup "${BACKUP_PATH}/${host}/system"
 done
 

@@ -27,8 +27,8 @@ fi
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
 # con tmpwatch.
 for host in ${HOSTS}; do
-  directory_mkdir "${NAME}" "${BACKUP_PATH}/${host}/postgresql"
-  clean_old_backups "${NAME}" "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/postgresql"
+  directory_mkdir "${BACKUP_PATH}/${host}/postgresql"
+  clean_old_backups "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/postgresql"
 done
 
 rm -f /tmp/${NAME}-${HOST}.txt
