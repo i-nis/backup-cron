@@ -2,7 +2,7 @@
 #
 # download_iso.sh: script para descargar imagenes ISO de Gentoo.
 #
-# (C) 2006 - 2021 NIS
+# (C) 2006 - 2023 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -10,7 +10,7 @@
 
 
 # URL desde donde descargar la imagen ISO.
-URL="http://distfiles.gentoo.org/releases"
+URL="https://distfiles.gentoo.org/releases"
 
 
 
@@ -44,9 +44,7 @@ fi
 
 
 # Archivos a descargar desde $URL
-ISO=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep iso$)
-CONTENTS=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep CONTENTS$)
-DIGESTS=$(curl --silent "${URL_ARCH}/" | awk -F \" /iso/'{print $8}' | grep DIGESTS$)
+ISO=$(curl --silent "${URL_ARCH}/" | awk -F \" /admincd/'{print $8}' | grep iso$)
 
 
 
@@ -70,16 +68,14 @@ cd /var/tmp
 
 until (( ${DESCARGA} )); do
   wget -c ${URL_ARCH}/${ISO}
-  wget -c ${URL_ARCH}/${CONTENTS}
-  wget -c ${URL_ARCH}/${DIGESTS}
-  wget -c ${URL_ARCH}/${DIGESTS}.asc
-  WARN=$(sha512sum --check "${DIGESTS}" | head -1)
+  wget -c ${URL_ARCH}/${ISO}.sha256
+  WARN=$(sha256sum --check "${ISO}.sha256" | grep "${ISO}")
 
   if [ "${WARN}" == "${ISO}: La suma coincide" ]; then
       DESCARGA=1
-      echo "Descarga finalizada."
+      echo "Finalizado: ${ISO} se descargó correctamente."
     else
-      echo "Falló la descarga."
+      echo "Error: falló la descarga."
       rm_files ${WARN}
   fi
 

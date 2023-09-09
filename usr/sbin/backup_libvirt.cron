@@ -3,7 +3,7 @@
 # backup_libvirt.cron: script para hacer copias de seguridad de las imágenes de
 # las maquinas virtuales gestionadas por Libvirt.
 #
-# (C) 2006 - 2021 NIS
+# (C) 2006 - 2023 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #

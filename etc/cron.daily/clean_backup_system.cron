@@ -19,7 +19,7 @@ NAME=$(basename $0)
 # Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
 # caso de no haberlos búsca en ${BACKUP_PATH}.
 if [ "${HOSTS}" == "" ]; then
-  HOSTS=`ls -1 ${BACKUP_PATH}`
+  HOSTS=$(ls -1 ${BACKUP_PATH})
 fi
 
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 

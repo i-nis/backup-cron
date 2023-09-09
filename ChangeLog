@@ -1,142 +1,1215 @@
-2014-10-07    <mggimenez@ingeniovirtual.com.ar>
+2023-09-09:
+    Funcionalidad para grarantizar que backup_raiz.cron pueda realizar
+    un respaldo total mensualmente.
 
-	* backup-cron_functions.sh: Función file_perms() para cambiar los permisos 
-	  de un archivo.
+2023-09-04:
+    Módulo para configuración de la planificación mediante eselect.
+    Closes #487.
 
-2014-10-06    <mggimenez@ingeniovirtual.com.ar>
+2022-08-09:
+    Corrección por parámetro que creaba un directorio erróneamente.
 
-	* backup_libvirt.cron: Soporte para respaldo de imágenes de maquinas 
-	  virtuales en formato qcow2.
-	* clean_backup_libvirt.cron: script para borrar copias de seguridad 
-	  obsoletas de backup_libvirt-cron.
-	* backup_cron.conf: Re-estructuración quitando las variables que no deberían
-	  ser modificadas por los usuarios, en su lugar se mueven a los respectivos scripts.
-	* backup-cron_functions.sh: Modificación de la función gensum() para evitar
-	  pasar como parámetros los algoritmos de sumas.
-	* backup-cron_functions.sh: Cambios en la función file_backup() para 
-	  simplificar el archivo de configuración backup-cron.conf, quedando 
-	  predeterminadamente y sin posibilidad de cambio el modo de compresión bzip2.
-	* backup-cron_functions.sh: Cambios en las funciones message_syslog () y
-	  send_mail () para diferenciar los mensajes de los distintos servidores 
-	  en sistemas virtualizados que comparten el directorio /tmp.
-	 * backup-cron_functions.sh: Cambios en la función remote_backup(): No 
-	   es necesario indicarle el archivo a transferir, ya que se le dotó de 
-	   capacidad de búsqueda en el directorio que se le pasa como cuarto 
-	   parámetro. La validación de IP existente ahora es soportada por la función
+2022-05-19:
+    Exclusión para nuevas rutas utilizadas por el Portage.
 
-2014-09-29    <mggimenez@ingeniovirtual.com.ar>
+2021-04-18:
+    Correcciones por error al enviar correos de alerta.
 
-	* Migración de código fuente al repositorio Git.
-	* Actualización de ebuilds para soportar el repositorio Git
+2021-04-17:
+    Correcciones para el respaldo de maquinas virtuales vía
+    backup_libvirt.cron.
 
-2013-08-24    <mggimenez@ingeniovirtual.com.ar>
+2021-04-14:
+    Correcciones menores.
 
-	* Solución del error al informar copia errónea vía scp.
+2021-04-13:
+    Nuevo intento por solucionar errores al intentar leer socket del
+    sistema.
 
-2013-08-22    <mggimenez@ingeniovirtual.com.ar>
+2021-04-13:
+    Se agrega la opción --ignore-failed-read para prevenir errores al
+    intentar leer por ejemplo un socket.
 
-	* Soporte para envío de resumen vía correo electrónico en todos los scripts.
+2021-04-13:
+    Supresión de mensajes de erro debido a basename $0.
 
-2013-03-02    <mggimenez@ingeniovirtual.com.ar>
+2021-04-13:
+    Soluciona el problema de error en el reporte de estado a Icinga2.
 
-	* Actualizacion de backup_clean.cron.
+2021-04-13:
+    Solución al problema del error al crear el .tar.bz2.
 
-2013-03-01    <mggimenez@ingeniovirtual.com.ar>
+2021-04-10:
+    Mejoras para atributo de archivo y manejo de archivos a excluir.
 
-	* pg_dump.cron: Script para realizar respaldos de bases de datos Postgres. 
+2021-04-10:
+    Cambios para respaldar todo el sistema a excepción de /home.
 
-2011-09-26    <mggimenez@i-nis.com.ar>
+2021-04-10:
+    TAR_OPTIONS faltante.
 
-	*  backup_tape.cron: Se habilita compresión por hardware mediante las 
-	   sentencias tape_control "defcompression 1" y tape_control "compression"
-	*  backup_tape.cron: Se eliminan las opciones de borrado y rebobinado de 
-	   cinta por ser innecesarias.  
-	*  backup-cron_functions.sh: Utilización de compresión por hardware en 
-	   vez de Bzip2.
-	*  backup-cron_functions.sh: Utilización de "/usr/bin/mbuffer -t -m 128M 
-	   -p 90 -s 65536 -f -o /dev/tape" como buffer para el dispositivo de cintas.
+2021-04-10:
+    Capacidad para elegir donde desempaquetar el respaldo a restaurar.
 
+2021-04-09:
+    Corrección para descomprimir correctamente todos los respaldos.
 
-2010-06-24  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-09:
+    Se exceptua el pasage de ${NAME} en las funciones.
 
-	* Resolución del error al rebobinar la cinta (issue #5).
+2021-04-08:
+    Adaptación a las nuevas funcionalidades de backup-cron.
 
-2010-06-22  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-06:
+    Mejoras en la descompresión de archivos y restauración de
+    respaldos.
 
-	* backup-cron_functions.sh: Resolución de la incidencia relacionada los mensajes enviados por tar vía Syslog (issue #4).
+2021-04-06:
+    Se corrige la función recursive_unpack() para restaurar todos los
+    respaldos incrementales que existan.
 
-2010-05-26  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-06:
+    Se hace opcional el argumento que se pasa luego de --incremental.
 
-	* backup_tape.cron: solución del error al intentar borrar cinta (issue #3)
+2021-04-06:
+    Se corrige función backup_file_exists().
 
-2010-05-17  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-06:
+    Se hace opcional el argumento que se pasa luego de --incremental.
 
-	* Creación durante la instalación del usuario "admin" y del grupo "admin" (issue #1)
+2021-04-02:
+    Se corrige nombre de la aplicación que invoca para syslog.
 
-2010-05-06  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-01:
+    Cambio para cumplir con la premisa de que si no se especifica
+    FECHA, se respaldan todos los incrementales que existan.
 
-	* Ebuilds para la versión 2.
-	* backup_raiz.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
-	* backup_usr.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad..
-	* backup_var.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
-	* backup_tape.cron: utilización de la función clean_old_backups() para borrar antigüas copias de seguridad.
-	* backup-cron_functions.sh: función clean_old_backups() para borrar antigüas copias de seguridad.
+2021-04-01:
+    Corrección para verificación de sumas.
 
-2010-05-03  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-01:
+    Se agrega BACKUP_SET faltante.
 
-	* backup_tape.cron: Corrección en el manejo de errores de la función tape_control() que ocasionaba la ejecusión de la copia 
-	de respaldo aún cuando la cinta no estuviera disponible.
+2021-04-01:
+    Correcciones varias para la correcta ejecución.
 
-2010-04-13  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-01:
+    Cambio para cumplir con la premisa de que si no se especifica
+    FECHA, se respaldan todos los incrementales que existan.
 
-	* backup_tape.cron: se eliminan las llamadas a dump_mysql() y backup_home(), en favor de respaldar todo el sistema.
-	* backup-cron_functions.sh: Modificaciones en la funciones dump_mysql() y home_backup(). Se elimina el soporte para cintas DAT.
+2021-04-01:
+    Se soluciona error en parámetros.
 
-2010-04-12  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-04-01:
+    Mejora para evitar el mensaje: "No existe el fichero o el
+    directorio."
 
-	* backup_raiz.cron: utilización de la función dir_backup() para respaldar /.
-	* backup_usr.cron: utilización de la función dir_backup() para respaldar /usr.
-	* backup_var.cron: utilización de la función dir_backup() para respaldar /var.
-	* backup_tape.cron: utilización de la función dir_backup() en lugar de other_backup() para respaldar otros directorios.
-	* backup-cron_functions.sh: función dir_backup() para hacer copias de resguardo de cualquier directorio del sistema.
+2021-04-01:
+    Parametro NAME innecesario.
 
-2010-04-08  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-27:
+    Nuevo script para restaurar respaldos incrementales.
 
-	* backup_tape.cron: uso de mt para controlar las operaciones en la unidad de cinta magnética.
+2021-03-27:
+    Se agrega soporte para desencriptar via GNUPG.
 
-2010-04-06  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-27:
+    Nueva función nine_seconds() para mostrar las secuencia 1..9.
 
-	* backup_tape.cron: utilización de la función other_backup() para respaldar otros directorios. 
-	* backup-cron_functions.sh: función other_backup() para respaldar otros directorios.
-	* backup-cron_functions.sh: función home_backup() para crear respaldos de /home.
+2021-03-26:
+    Nueva función unpack() para desencriptar y desempaquetar
+    respaldos.
 
-2010-04-05  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-21:
+    Solución al problema de archivos huerfanos en /tmp.
 
-	* backup_home.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* backup_home.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
-	* backup_raiz.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* backup_raiz.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
-	* backup_usr.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* backup_usr.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
-	* backup_var.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* backup_var.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+2021-03-21:
+    Nueva función remove_incremental_backup() para remover conjuntos
+    de respaldos incrementales completos y obsoletos.
 
-2010-03-31  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-20:
+    Mejoras en mensajes del sistema para respaldos incrementales.
 
-	* backup_etc.cron: utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* backup_etc.cron: utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
-	* mysqldump.cron: utilización de la función gensum() para crear sumas.
-	* backup-cron_functions.sh: función gensum() para crear sumas.
+2021-03-19:
+    Nueva función tar_not_empty() para determinar si un archivo GNU
+    Tar contiene archivos o está vacío.
 
-2010-03-29  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-16:
+    Funciones básicas de restauración importadas desde mysql_restore.
 
-	* backup_tape.cron: Volcado de bases de datos por mysqldump
-	* mysqldump: Utilización del archivo de configuración general /etc/backup-cron/backup-cron.conf
-	* mysqldump: Utilización de las funciones compartidas en /usr/libexec/backup-cron/backup-cron_functions.sh
+2021-03-14:
+    Funcionalidad para encriptar respaldos mediante GNUPG.
 
-2010-03-23  Martin Andres Gomez Gimenez  <mggimenez@i-nis.com.ar>
+2021-03-10:
+    Nueva función para generar respaldos incrementales.
 
-	* Creación de archivo de configuración general /etc/backup-cron/backup-cron.conf.
-	* Creación de funciones compartidas desde /usr/libexec/backup-cron/backup-cron_functions.sh
+2021-03-08:
+    El respaldo en cintas ahora tiene su propia función:
+    tape_backup(). La función file_backup() solo crea respaldos en
+    disco.
 
+2021-03-06:
+    Mejoras en las notificaciones vía correo electrónico.
 
+2021-03-05:
+    Corrección al problema que impedía parcialmente generación de
+    bitácoras y envío de correo.
+
+2021-01-02:
+    Corrección en la selección de bases de datos a restaurar.
+
+2021-01-02:
+    Corrección en la identificación de fechas.
+
+2021-01-02:
+    Corrección en la identificación de fechas.
+
+2020-05-27:
+    Verificación de la existencia de todos los archivos del conjunto
+    de respaldo.
+
+2020-05-27:
+    Corrección en función restore_database().
+
+2020-05-22:
+    Correcciones y verificaciones varias.
+
+2020-05-11:
+    Actualización de los detalles de autor.
+
+2020-05-11:
+    Nueva funcionalidad para restaurar de manera opcional una base de
+    datos:
+
+2020-04-09:
+    Corrección en URL.
+
+2020-04-09:
+    Corrección en README.md.
+
+2020-04-09:
+    Actualización del archivo README.md.
+
+2020-01-23:
+    Corrección en la generación de la fecha.
+
+2019-09-10:
+    Corrección para listar correctamente las bases de datos
+    PostgreSQL.
+
+2019-09-09:
+    Corrección para listar correctamente las bases de datos
+    PostgreSQL.
+
+2019-08-19:
+    Modificación para evitar mostrar mensaje de alerta en la llamada
+    de mysql.
+
+2019-08-13:
+    Corrección de errores.
+
+2019-08-07:
+    Mejoras en la detección y control de respaldos de bases de datos.
+
+2019-08-07:
+    Se cambia para evitar errores en servidores que no tienen binlog
+    activado.
+
+2019-08-05:
+    Merge branch 'master' of
+    https://proyectos.ingeniovirtual.com.ar/backup-cron/backup
+
+2019-08-05:
+    Se agrega funcionalidad para evitar listar los archivos de
+    respaldo entre las bases de datos.
+
+2019-08-05:
+    Se agrega como dependencia el paquete sys-apps/pv.
+
+2019-08-05:
+    Mejoras para respaldar bases de datos muy grandes.
+
+2019-08-05:
+    Mejoras para extraer bases de datos grandes.
+
+2019-07-25:
+    Correcciones en el reporte de error en la generación de las bases
+    de datos.
+
+2019-07-25:
+    Parámetro DBD_HOST faltante en las opciones de mysqldump.
+
+2019-07-23:
+    Configuración para crear paquetes .deb.
+
+2019-07-18:
+    Se agregan las siguientes opciones para mysqldump: * --flush-logs
+    * --master-data=2
+
+2019-07-11:
+    Documentación: descripción faltante en función.
+
+2019-07-11:
+    Cambios para gestionar los respaldos de bases de datos MySQL y
+    PostgreSQL. Se crean las funciones:   * show_databases_my: lista
+    las bases de datos del motor MySQL.   * show_databases_pg: lista
+    las bases de datos del motor PosgreSQL.   * database_verify:
+    verifica la realización de respaldos de bases de datos. Se mejoran
+    los script mysqldump.cron y pg_dump.cron
+
+2019-07-11:
+    Se agrega BDB_HOST: para configurar el nombre o la dirección de IP
+    donde se ejecuta el servidor MySQL.
+
+2019-05-21:
+    pg_dump.cron: Funcionalidad para detectar fallas en la extracción
+    y respaldo de las bases de datos PostgreSQL. Se excluyen los
+    esquemas de bases de datos template0 y template1.
+
+2019-05-17:
+    mysqldump.cron: Funcionalidad para detectar fallas en la
+    extracción y respaldo de las bases de datos. Se excluyen los
+    directorios lost+found y performance_schema para evitar crear
+    respaldos basados en estos.
+
+2019-05-17:
+    Funcionalidad para ignorar el directorio lost+found.
+
+2018-09-22:
+    Línea adicional eliminada.
+
+2017-11-22:
+    Merge branch 'master' of
+    https://proyectos.ingeniovirtual.com.ar/backup-cron/backup
+
+2017-11-22:
+    Se agrega --force-share para prevenir el error: 'Failed to get
+    shared "write" lock'.
+
+2017-08-31:
+    Cambios para copia respaldos a servidores remotos en como proceso
+    de fondo (background).
+
+2017-07-17:
+    Cambios para evitar falsos positivos.
+
+2017-07-17:
+    Actualización de datos de autor.
+
+2017-07-17:
+    Verificación para evitar realizar archivos de respaldos sin
+    contenido.
+
+2017-07-17:
+    Correcciones para enviar mensajes vía syslog: Soluciona Tareas
+    #948.
+
+2017-07-17:
+    Correcciones debidas al merge anterior.
+
+2017-07-17:
+    Merge branch 'master' of
+    https://proyectos.ingeniovirtual.com.ar/backup-cron/backup
+
+2017-07-17:
+    Verificación para evitar realizar archivos de respaldos sin
+    contenido.
+
+2017-07-17:
+    Verificación para evitar realizar archivos de respaldos sin
+    contenido.
+
+2017-07-13:
+    Verificación para evitar realizar archivos de respaldos sin
+    contenido.
+
+2017-07-10:
+    Verificación para evitar realizar archivos de respaldos sin
+    contenido.
+
+2017-07-10:
+    Nuevo parámetro de configuración para especificar el nombre del
+    servidor o el socket unix utilizado por el motor de bases de datos
+    PostgreSQL.
+
+2017-06-15:
+    Correcciones necesarias para descargar correctamente el Admin CD
+    de Gentoo.
+
+2017-04-27:
+    Correcciones para el correcto manejo de la fecha.
+
+2017-04-26:
+    Correcciones para el correcto retorno del código de salida.
+
+2017-04-25:
+    Mejora en las descripciones.
+
+2017-04-25:
+    Se setea estado para el caso de error en monitoreo, por ejemplo
+    por parámetros faltantes.
+
+2017-04-25:
+    Correcciones para evitar el error:
+    "/etc/backup-cron/backup-cron.conf: Permiso denegado"
+
+2017-04-25:
+    Corrección de permisos.
+
+2017-04-25:
+    check_backup-cron: script para verificar existencias de copias de
+    seguridad.
+
+2016-11-21:
+    Correcciones para la correcta ejecusión de tar.
+
+2016-11-21:
+    Cambio en el órden de los parámetros para el correcto
+    funcionamiento de tar.
+
+2016-11-21:
+    Cambio en el órden de los parámetros de la función file_backup()
+    para el correcto funcionamiento de tar.
+
+2016-11-21:
+    Corrección de rutas.
+
+2016-06-29:
+    Modificación para permitir incluir en el respaldo los discos
+    virtio-scsi que típicamente son denominados como sd*. Los discos
+    virtio siguen siendo soportados.
+
+2016-05-02:
+    Se elimina el contenido de usr/portage incluído en el repositorio
+    gentoo-portage-backup-cron.
+
+2016-04-05:
+    Se agrega archivo README.md para mostrar.
+
+2016-04-05:
+    Se agrega archivo README.md para mostrar.
+
+2016-04-05:
+    GNU General Public License version 3.
+
+2015-11-02:
+    Corrección de ruta remota como /home/admin.
+
+2015-11-02:
+    Se cambia --verbose por --quiet.
+
+2015-11-02:
+    Se incorpora la posibilidad de copiar a varios servidores remotos,
+    especificando sus valores en el parámetros REMOTE_IP del archivo
+    de configuración /etc/backup-cron/backup-cron.conf.
+
+2015-11-02:
+    Script para mantener sincronizadas las copias de respaldo entre
+    servidores remotos.
+
+2015-11-02:
+    Se incorpora la posibilidad de copiar a varios servidores remotos,
+    especificando sus valores en el parámetros REMOTE_IP del archivo
+    de configuración /etc/backup-cron/backup-cron.conf.
+
+2015-09-09:
+    Seteo del atributo "Master = gentoo" para futura compatibilidad.
+
+2015-08-14:
+    Correcciones varias para la invocación de programas externos.
+
+2015-08-13:
+    Se agrega para omitir el directorio lost+found.
+
+2015-08-12:
+    Ebuilds para la versión 2.7.
+
+2015-08-12:
+    Se mueven los scripts a /usr/sbin para administrar mediante
+    enlaces dinámicos la ubicación de los scripts en /etc/cron.*.
+
+2015-08-12:
+    Reemplazo de las funciones de búsqueda image_name_ext() y
+    image_name() por comando basename. Para más detalles ver man 1
+    basemane.
+
+2015-08-12:
+    Correcciones para el correcto respaldo de la información de
+    usuario en /home.
+
+2015-04-19:
+    Corrección en mensaje de eliminación de archivo de snapshot.
+
+2015-04-14:
+    Modificaciones para generar instantáneas de varios discos
+    pertenecientes a la misma máquina virtual al mismo tiempo, luego a
+    medida que los respaldos son finalizados se realiza el pivotado
+    desde la instantánea a la imagen base. Redefinición de funciones
+    para un mejor manejo de nombres. Mejoras para manejar maquinas
+    virtuales con varios discos. Prevención de borrado de imagen base,
+    se verifica que el nombre del archivo a borrar se corresponda con
+    el de la instantánea.
+
+2015-04-11:
+    Corrección en la función image_name() para que muestre
+    correctamente el nombre de la imagen de disco sin la extensión
+    .img.
+
+2015-04-10:
+    Modificación en la función libvirt_backup() para generar el
+    respaldo de las maquinas virtuales activas, dado que en los
+    equipos anfitriones sincronizados por DRBD puede haber maquinas
+    virtuales que escriben en la imagen a respaldar, siendo que
+    localmente la misma no se encuentra activa y el resultado de esto
+    podría ser una corrupción de datos.
+
+2015-04-08:
+    Ebuilds para la versión v2.6.
+
+2015-04-08:
+    Ebuilds para la versión v2.6.
+
+2015-04-07:
+    Nueva funcionalidad para crear un respaldo en formato qcow2
+    comprimido de una imagen de disco. Se soportan los siguientes
+    formatos: raw, bochs, qcow, qcow2, qed, vmdk, etc. Se evita la
+    corrupción de datos en imagenes qcow2 por medio de la creación de
+    una instantánea en archivo externo, mediante el comando "virsh
+    snapshot-create-as --quiesce". El parámetro --quiesce requiere
+    tener instalado y funcionando QEMU Guest Agent en las maquinas
+    virtuales. Soluciona Errores #424.
+
+2015-04-01:
+    Modificación en la función gensum() para crear por cada algoritmo
+    de suma un archivo con la extensión de este, por ejemplo .md5. Se
+    incorpora una funcionalidad para evitar utilizar la ruta relativa
+    al respaldo. Soluciona lo reportado en Errores #447.
+
+2015-02-02:
+    Resuelve Tareas #412.
+
+2015-01-25:
+    Ebuilds versión 2.5.
+
+2015-01-25:
+    Se revierte el cambio 35f9c560 por no resultar efectivo, a cambio
+    debe evitarse realizar resguardos simultáneos.
+
+2015-01-22:
+    Se agrega el parámetro USE var-only.
+
+2015-01-17:
+    Versión 2.41.
+
+2015-01-17:
+    Se amplía la constante local FECHA con la opción +%G%m%d%H%M%S%N
+    en la función libvirt_backup() para tener en cuenta también hora,
+    minuto, segundo y nano segundo, evitando problemas al realizarse
+    snapshots en forma paralela.
+
+2014-12-30:
+    Se cambia la dependencia "dev-db/postgresql-server" por
+    "dev-db/postgresql".
+
+2014-10-17:
+    Simplifación de variable ${WORKDIR}/${P} por ${S}.
+
+2014-10-17:
+    Fix Gentoo important QA issues.
+
+2014-10-08:
+    Corrección del problema acerca de que no se encontró el comando
+    find.
+
+2014-10-07:
+    Actualización de cambios
+
+2014-10-07:
+    Función file_perms() para cambiar los permisos de un archivo.
+
+2014-10-07:
+    Correcciones en expresiones regulares.
+
+2014-10-06:
+    Correcciones funcionales para la versión v2.4
+
+2014-10-06:
+    Correcciones funcionales para la versión v2.4
+
+2014-10-06:
+    Resuelve Tareas #311.
+
+2014-10-06:
+    Correcciones varias.
+
+2014-10-06:
+    Cambios para adaptarse a las modificaciones en la función
+    remote_backup()
+
+2014-10-06:
+    Filtrado de mensajes para LogCheck.
+
+2014-10-06:
+    Corrección del valor de MTIME a 168 hs., que representa
+    efectivamente 1 semana.
+
+2014-10-06:
+    Exclusión del contenido del directorio /var/lib/libvirt/images/
+
+2014-10-04:
+    Cambios en la función remote_backup(): No es necesario indicarle
+    el archivo a transferir, ya que se le dotó de capacidad de
+    búsqueda en el directorio que se le pasa como cuarto parámetro. La
+    validación de IP existente ahora es soportada por la función.
+
+2014-10-03:
+    Cambios en las funciones message_syslog () y send_mail () para
+    diferenciar los mensajes de los distintos servidores en sistemas
+    virtualizados que comparten el directorio /tmp. Otros cambios
+    relacionados con el nombre de los archivos de respaldo.
+
+2014-10-03:
+    Cambios en la función file_backup() para simplificar el archivo de
+    configuración backup-cron.conf, quedando predeterminadamente y sin
+    posibilidad de cambio el modo de compresión bzip2.
+
+2014-10-03:
+    Cambios necesarios para trabajar con la función gensum().
+
+2014-10-03:
+    Modificación de la función gensum() para evitar pasar como
+    parámetros los algoritmos de sumas.
+
+2014-10-03:
+    Modificación de la función gensum() para evitar pasar como
+    parámetros los algoritmos de sumas.
+
+2014-10-03:
+    Primera versión de la función libvirt_backup() para respaldar
+    imagenes qcow2.
+
+2014-10-01:
+    Creación del script clean_backup_libvirt.cron. Re-estructuración
+    del archivo de configuración backup_cron.conf quitando las
+    variables que no deberían ser modificadas por los usuarios, en su
+    lugar se mueven a los respectivos scripts.
+
+2014-09-30:
+    clean_backup_libvirt.cron: script para borrar copias de seguridad
+    obsoletas de backup_libvirt-cron.
+
+2014-09-30:
+    Se verifica que el directorio creado pertenezca al usuario admin y
+    grupo admin con permisos octales 770.
+
+2014-09-30:
+    Agrega la funcionalidad de creación de directorio expuesta en
+    Tareas #313.
+
+2014-09-30:
+    Se verifica que el directorio creado pertenezca al usuario root y
+    grupo admin con permisos octales 770
+
+2014-09-30:
+    Resuelve el problema de los permisos reportados en Errores #312.
+
+2014-09-29:
+    Actualización de ChangeLog.
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    virtual/backup-cron-2.3-r3.ebuild. Se eliminan versiones antiguas
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    pg_dump-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    mysqldump-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    backup_tape-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    backup_tape-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-29:
+    Se añade soporte para repositorio Git en
+    backup_system-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-28:
+    Actualización de datos de autor.
+
+2014-09-28:
+    Actualización de datos de autor.
+
+2014-09-28:
+    Actualización de datos de autor.
+
+2014-09-28:
+    Se añade soporte para repositorio Git en
+    backup_clean-cron-2.3-r1.ebuild. Se eliminan versiones antiguas
+
+2014-09-28:
+    Se agrega permiso de ejecusión
+
+2014-09-28:
+    Se agregan funcionalidades faltantes de
+    app-backup/backup_clean-cron
+
+2014-09-28:
+    Se añade soporte para repositorio Git en
+    backup_etc-cron-2.3-r1.ebuild. Se eliminan versionea antiguas
+
+2014-09-28:
+    Se añade soporte para repositorio Git en
+    backup_etc-cron-2.3-r1.ebuild. Se eliminan versionea antiguas
+
+2014-09-28:
+    Re-estructuración de directorios por migración desde CVS a GIT
+
+2014-06-02:
+    Corrección en identificador.
+
+2013-08-31:
+    Se agrega el contenido del directorio /run
+
+2013-08-24:
+    Solución del Errores #145
+
+2013-08-22:
+    Soporte para envío de resumen vía correo electrónico en todos los
+    scripts.
+
+2013-08-22:
+    *** empty log message ***
+
+2013-03-07:
+    Correcciones menores.
+
+2013-03-07:
+    Se cambia BDB_NAME a BDB_PG_NAME para pg_dump.cron.
+
+2013-03-03:
+    >=virtual/backup-cron-2.2
+
+2013-03-02:
+    *** empty log message ***
+
+2013-03-02:
+    Ebuild para instalar pg_dump.cron
+
+2013-03-02:
+    Actualizacion de clean_backup-cron.
+
+2013-03-02:
+    *** empty log message ***
+
+2013-03-02:
+    Ebuild para instalar pg_dump.cron
+
+2013-03-02:
+    Se actualizaron datos de copyright.
+
+2013-03-02:
+    Soporte para pg_dump.cron.
+
+2013-03-02:
+    Importacion inicial a CVS.
+
+2011-09-27:
+    Corrección de error sintáctico.
+
+2011-09-27:
+    Corrección de error sintáctico.
+
+2011-09-27:
+    correcciones en la función file_backup().
+
+2011-09-27:
+    *** empty log message ***
+
+2011-09-27:
+    *** empty log message ***
+
+2011-09-27:
+    Modificación del parámetro TAR_OPS en la función file_backup().
+    Las opciones Tar se configuran desde el archivo de configuración
+    /etc/backup-cron/backup-cron.conf
+
+2011-09-27:
+    Modificación del parámetro TAR_OPS en la función file_backup().
+    Las opciones Tar se configuran desde el archivo de configuración
+    /etc/backup-cron/backup-cron.conf
+
+2011-09-27:
+    Corrección de error sintáctico.
+
+2011-09-26:
+    (C) 2006 - 2011
+
+2011-09-26:
+    Utilización de "/usr/bin/mbuffer -t -m 128M -p 90 -s 65536 -f -o
+    /dev/tape" como buffer para el dispositivo de cintas.
+
+2011-09-26:
+    Se agrega sys-block/mbuffer como dependencia.
+
+2011-09-26:
+    Se elimina la opción de borrado de cinta por ser innecesaria.
+
+2011-09-26:
+    *** empty log message ***
+
+2011-09-26:
+    *** empty log message ***
+
+2011-09-26:
+    Se habilita compresión por hardware mediante la sentencia
+    tape_control "compression"
+
+2011-09-26:
+    Utilización de compresión por software en vez de Bzip2.
+
+2011-09-26:
+    Se habilita compresión por hardware mediante la sentencia
+    tape_control "defcompression 1"
+
+2010-06-22:
+    Se cambia la dependencia dev-util/cvs por dev-vcs/cvs
+
+2010-06-02:
+    Se revierte cambio por error al realizar una copia de resguardo.
+
+2010-05-19:
+    Resolución de la incidencia relacionada con el error al intentar
+    borrar una cinta no rebobinada (issue #3)
+
+2010-05-18:
+    Uso de pkg_setup() en lugar de pkg_postinst()
+
+2010-05-18:
+    Solución del problema reportado por el portage:
+
+2010-05-17:
+    Creación del usuario "admin", grupo "admin" y verificación de
+    permisos para el directorio /home/admin
+
+2010-05-07:
+    DEPEND="dev-util/cvs"
+
+2010-05-07:
+    Se verifica la existencia del ejecutable definido como $MYSQLDUMP
+
+2010-05-07:
+    MYSQLDUMP="/usr/bin/mysqldump"
+
+2010-05-06:
+    Versión 2
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    SEMANAS: número de semanas a preservar las copias de respaldo en
+    servidores remotos.
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    Se deja de utilizar el archivo de configuración
+    /etc/backup-cron/backup-cron.conf
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    Corrección de argumento $HASHES referido a los algoritmos para
+    verificar sumas.
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    Uso de la función clean_old_backups() para borrar antigüas copias
+    de seguridad.
+
+2010-05-06:
+    Función clean_old_backups() para borrar antigüas copias de
+    seguridad.
+
+2010-05-06:
+    Descripción de los argumentos utilizados por las funciones.
+
+2010-05-05:
+    Se renombra la función dir_backup() por file_backup() en la
+    llamada de la función home_backup().
+
+2010-05-05:
+    Se renombra la función dir_backup() por file_backup().
+
+2010-05-05:
+    Se renombra la función dir_backup() por file_backup(). Se cambia
+    la constante BFILE por BACKUP_FILE para hacerla mas legible.
+
+2010-05-05:
+    Se renombra la función dir_backup() por file_backup().
+
+2010-05-05:
+    Se renombra la función dir_backup() por file_backup(). Se cambia
+    la constante BFILE por BACKUP_FILE para hacerla mas legible.
+
+2010-05-05:
+    Ruta de almacenamiento predeterminada para las copias de
+    resguardo, mediante el uso de: BACKUP_PATH="/home/admin/backup"
+
+2010-05-03:
+    *** empty log message ***
+
+2010-05-03:
+    Corrección en manejo de errores en la función tape_control()
+
+2010-04-21:
+    Se elimina de la lista /lost+found
+
+2010-04-16:
+    Correcciones en la función remote_backup()
+
+2010-04-14:
+    Se excluye: /var/chroot/*/var/log/*
+
+2010-04-13:
+    *** empty log message ***
+
+2010-04-13:
+    Modificaciones en la funciones dump_mysql() y home_backup(). Se
+    elimina el soporte para cintas DAT.
+
+2010-04-13:
+    Se agregaron los directorios: /home/admin/backup/*/etc/*
+    /home/admin/backup/*/home/* /home/admin/backup/*/system/*
+
+2010-04-13:
+    Modificaciones en la función dump_mysql()
+
+2010-04-13:
+    Se elimina las funciones dump_mysql() y home_backup()
+
+2010-04-12:
+    Correcciones en la función remote_backup()
+
+2010-04-12:
+    *** empty log message ***
+
+2010-04-12:
+    Uso de la función dir_backup()
+
+2010-04-12:
+    Uso de la función dir_backup()
+
+2010-04-12:
+    Nueva función dir_backup() para hacer copias de resguardo de
+    cualquier directorio del sistema tanto en archivo como en cintas
+    DAT.
+
+2010-04-12:
+    Instalación de /etc/backup-cron/exclude.txt
+
+2010-04-12:
+    Cambios en el parámetro DIRSTOBACK.
+
+2010-04-12:
+    Importación inicial a CVS.
+
+2010-04-09:
+    Corrección en la función tape_control() para los parámetros de mt.
+
+2010-04-09:
+    Depende de app-arch/mt-st
+
+2010-04-08:
+    *** empty log message ***
+
+2010-04-08:
+    *** empty log message ***
+
+2010-04-08:
+    Función tape_control() para controlar la unidad de cintas.
+
+2010-04-08:
+    Uso de mt para controlar las operaciones en la unidad de cinta
+    magnética.
+
+2010-04-08:
+    Correcciones varias.
+
+2010-04-07:
+    Se elimina --exclude=lost+found
+
+2010-04-07:
+    *** empty log message ***
+
+2010-04-07:
+    Correcciones varias en PATH a ejecutables.
+
+2010-04-07:
+    *** empty log message ***
+
+2010-04-07:
+    Correcciones en los parámetros de la función remote_backup.
+
+2010-04-07:
+    Correcciones en los parámetros de la función remote_backup.
+
+2010-04-06:
+    Importación inicial a CVS.
+
+2010-04-06:
+    *** empty log message ***
+
+2010-04-06:
+    Función other_backup() para respaldar otros directorios.
+
+2010-04-06:
+    Parámetro $DIRSTOBAK para la función other_backup()
+
+2010-04-06:
+    Función home_backup() para crear respaldos.
+
+2010-04-06:
+    Correcciones en los parámetros de la función message_syslog.
+
+2010-04-06:
+    Utilización del archivo de configuración general
+    /etc/backup-cron/backup-cron.conf
+
+2010-04-05:
+    *** empty log message ***
+
+2010-04-05:
+    Correcciones en los parámetros de la función remote_backup.
+
+2010-03-31:
+    Utilización de la función gensum() para crear sumas.
+
+2010-03-31:
+    Función gensum() para crear sumas
+
+2010-03-31:
+    Utilización del archivo de configuración general
+    /etc/backup-cron/backup-cron.conf
+
+2010-03-31:
+    Se elimina por ser  obsoleto .
+
+2010-03-29:
+    Volcado de bases de datos por mysqldump
+
+2010-03-29:
+    Importación inicial a CVS.
+
+2010-03-29:
+    Correcciones en los parámetros de la función message_syslog.
+
+2010-03-29:
+    Utilización del archivo de configuración general
+    /etc/backup-cron/backup-cron.conf
+
+2010-03-29:
+    Importación inicial a CVS.
+
+2010-03-29:
+    Importación inicial a CVS.
+
+2010-03-29:
+    Utilización del archivo de configuración general
+    /etc/backup-cron/backup-cron.conf
+
+2010-03-23:
+    importacion por perdida de datos
+
+2010-03-23:
+    Initial revision
+
+2009-12-03:
+    Se agrega el nombre del host en la variable $FILE
+
+2009-12-03:
+    Corrección de ruta a "home"
+
+2009-12-03:
+    *** empty log message ***
+
+2009-12-03:
+    *** empty log message ***
+
+2009-12-03:
+    *** empty log message ***
+
+2009-12-03:
+    Importación inicial a CVS.
+
+2009-12-03:
+    *** empty log message ***
+
+2009-12-03:
+    Importación inicial
+
+2009-07-30:
+    Importación inicial a CVS.
+
+2009-07-30:
+    Se excluye el directorio /srv
+
+2009-07-30:
+    Se cambia directorio a /etc/cron.daily/
+
+2009-07-03:
+    Capacidad para enviar copias de archivos de respaldo a servidor
+    remoto.
+
+2009-07-03:
+    Capacidad para enviar copias de archivos de respaldo a servidor
+    remoto.
+
+2009-07-03:
+    Capacidad para enviar copias de archivos de respaldo a servidor
+    remoto.
+
+2009-07-03:
+    Capacidad para enviar copias de archivos de respaldo a servidor
+    remoto.
+
+2009-07-03:
+    Capacidad para enviar copias de archivos de respaldo a servidor
+    remoto.
+
+2009-06-10:
+    Información postinstalación para recordar setear la contraseña
+    para acceder como root.
+
+2009-06-10:
+    Corrección en el mensaje pasado a la función message_syslog para
+    indicar que el archivo de resguardo fue realizado.
+
+2009-06-09:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-09:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-09:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-09:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-08:
+    Se cambia tmpwatch para borrar copias de antigüedad mayor a una
+    semana.
+
+2009-06-08:
+    Importación inicial a CVS.
+
+2009-06-08:
+    Depende de virtual/mysql
+
+2009-06-08:
+    Importación inicial a CVS.
+
+2009-06-08:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-08:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-08:
+    Se agrega verificación de firmas por SHA256
+
+2009-06-08:
+    Función para verificar la existencia de un directorio.
+
+2009-06-05:
+    Función para enviar mensajes vía syslog. Utiliza la interfaz de
+    comando denominada logger.
+
+2009-06-04:
+    se mueve a /etc/cron.daily
+
+2009-06-04:
+    Se remueve el soporte para guardado en disco ZIP.
+
+2009-05-26:
+    se excluye el contenido del directorio 
+    /var/chroot/dns/var/log/bind/*
+
+2009-05-21:
+    Uso de la viariable HOST para la ubicación de los resguardos.
+
+2009-05-21:
+    Se agrega --exclude=/root/.ccache
+
+2009-05-20:
+    *** empty log message ***
+
+2009-05-20:
+    *** empty log message ***
+
+2009-05-20:
+    Corrección de línea erronea.
+
+2009-05-20:
+    *** empty log message ***
+
+2009-05-19:
+    Verificación de sumas por MD5 y SHA1
+
+2009-05-19:
+    Verificación de sumas por MD5 y SHA1
+
+2009-05-19:
+    Verificación de sumas por MD5 y SHA1
+
+2009-05-19:
+    Cambio header por "Revision : $Id$"
+
+2009-05-19:
+    Revision : $Id$
+
+2009-05-19:
+    Se agrega $Header: $
+
+2009-05-19:
+    Utilización de  -p,  --same-permissions,  --preserve-permissions
+    extrae toda la información de protecciones o permisos.
+
+2009-05-19:
+    Utilización de  -p,  --same-permissions,  --preserve-permissions
+    extrae toda la información de protecciones o permisos.
+
+2009-04-27:
+    Se excluye el directorio /srv
+
+2009-03-24:
+    Importación inicial
+
+2009-03-24:
+    Initial revision
