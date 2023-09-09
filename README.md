@@ -13,7 +13,8 @@ El conjunto de scripts se ha desarrollado con las siguientes características:
 
 * Empaquetado mediante GNU tar.
 * Compresión utilizando Bzip2.
-* Planificación diaria o semanal vía Cron.
+* Planificación diaria, semanal o mensual vía Cron.
+* Soporte para gestionar la planificación mediante [eselect](https://wiki.gentoo.org/wiki/Eselect).
 * Posibilidad de respaldo de todo el sistema o parte de él.
 * Generación de sumas por MD5, SHA1 y SHA256.
 * Envío de mensajes vía syslog.
@@ -45,8 +46,10 @@ Para extender su portage con los ebuilds desarrollados por este proyecto, debe c
 
 <pre>
 [backup-cron]
-location = /usr/local/portage/backup-cron
+location = /var/db/repos/backup-cron
+clone-depth = 1
 sync-type = git
 sync-uri = https://github.com/i-nis/gentoo-portage-backup-cron.git
 auto-sync = yes
 </pre>
+
