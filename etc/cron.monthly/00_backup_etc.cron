@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Script para garantizar que backup_etc.cron realice un respaldo total.
+#
+# (C) 2006 - 2023 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+source /etc/backup-cron/backup-cron.conf
+
+# Ubicación de la copia de seguridad.
+BACKUP_PATH_SYS="${BACKUP_PATH}/${HOST}/etc"
+
+
+
+rm -f ${BACKUP_PATH_SYS}/backup-${HOST}-etc.snar
+

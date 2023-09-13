@@ -60,8 +60,10 @@ check_schedule() {
 check_target() {
 	local target="${1}"
 	local targets=( $(find_targets) )
-	has "${target}" ${targets} || \
-		die -q "Please choose one of the following cron schedules type: ${targets[@]}"
+
+    if [[ ! $(echo ${targets[@]} | fgrep -w ${target}) ]]; then
+		die -q "Please choose one of the following targets type: ${targets[@]}"
+    fi
 }
 
 ### Clean all symlinks ###
@@ -93,11 +95,12 @@ do_show() {
 	local i schedule targets=( $(find_targets) )
 
 	for schedule in ${SCHEDULES}; do
+		write_numbered_list_entry "${schedule}"
 
 		for (( i = 0; i < ${#targets[@]}; i++ )); do
 
 			if [[ -L ${EROOT}/etc/cron.${schedule}/${targets[i]} ]]; then
-				write_kv_list_entry "${EROOT}/etc/cron.${schedule}/${targets[i]}"
+				write_kv_list_entry "" "${targets[i]}"
 			fi
 
 		done
