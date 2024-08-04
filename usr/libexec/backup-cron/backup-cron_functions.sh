@@ -225,7 +225,7 @@ qcow2_backup() {
 #
 libvirt_backup() {
   local BLIBVIRT_BACKUP_PATH="${1}"
-  local DOMAINS=$(virsh list --name)
+  local DOMAINS=$(virsh list --name | sed '/^ *$/d')
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
