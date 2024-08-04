@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2024 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -21,7 +21,7 @@ source /etc/backup-cron/backup-cron.conf
 #
 message_syslog () {
   local MESSAGE="${1}"
-  local NAME=$(basename $0 2>/dev/null)
+  local NAME=$(/usr/bin/basename $0 2>/dev/null)
 
   /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/${NAME}-${HOST}.txt
 }
@@ -35,12 +35,12 @@ message_syslog () {
 #
 send_mail () {
   local SUBJECT="${1}"
-  local NAME=$(basename $0 2>/dev/null)
+  local NAME=$(/usr/bin/basename $0 2>/dev/null)
 
-  cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
-  mail --subject="${SUBJECT} ${NAME}" "${RECIPIENTS}"
+  /usr/bin/cut --delimiter='>' --fields=2 /tmp/${NAME}-${HOST}.txt | \
+  /usr/bin/mail --subject="${SUBJECT} ${NAME}" "${RECIPIENTS}"
 
-  rm -f /tmp/${NAME}-${HOST}.txt
+  /usr/bin/rm -f /tmp/${NAME}-${HOST}.txt
 }
 
 
@@ -53,8 +53,8 @@ directory_mkdir() {
   local DIRECTORY="${1}"
 
   if [ ! -e ${DIRECTORY} ]; then
-    mkdir --parents --mode=755 ${DIRECTORY}
-    chown admin:admin ${DIRECTORY}
+    /usr/bin/mkdir --parents --mode=755 ${DIRECTORY}
+    /usr/bin/chown admin:admin ${DIRECTORY}
     message_syslog "El directorio ${DIRECTORY} fue creado."
   fi
 
@@ -68,8 +68,8 @@ directory_mkdir() {
 file_perms() {
   local FILE="${1}"
 
-  chown admin:admin ${FILE}
-  chmod 640 ${FILE}
+  /usr/bin/chown admin:admin ${FILE}
+  /usr/bin/chmod 640 ${FILE}
   message_syslog "Modificado dueño y permisos para ${FILE}."
 }
 
@@ -87,8 +87,8 @@ show_databases_mysql() {
   local OPTIONS="--batch --skip-pager --skip-column-names --raw"
   local DATABASES=""
 
-  DATABASES=$(mysql ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
-  --password=${PASSWD} --host=${HOST} | egrep -v ${EXCLUDE})
+  DATABASES=$(/usr/bin/mysql ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
+  --password=${PASSWD} --host=${HOST} | /usr/bin/egrep -v ${EXCLUDE})
 
   echo "${DATABASES}"
 }
@@ -109,9 +109,9 @@ show_databases_pg() {
 
   export PGPASSWORD=${PASSWD}
 
-  DATABASES=$(psql ${OPTIONS} --username=${USER} --host=${HOST} \
-  | awk -F \| /^.*/'{print $1}' | egrep -v ${EXCLUDE} | tr -d ' ' \
-  | sed '/^$/d' | sed '/^$/d')
+  DATABASES=$(/usr/bin/psql ${OPTIONS} --username=${USER} --host=${HOST} \
+  | /usr/bin/awk -F \| /^.*/'{print $1}' | /usr/bin/egrep -v ${EXCLUDE} | tr -d ' ' \
+  | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
 
   echo "${DATABASES}"
 }
@@ -124,16 +124,16 @@ show_databases_pg() {
 database_verify() {
   local DATABASE="${1}"
 
-  if [ "$(wc -c < ${DATABASE})" == "0" ]; then
-      rm -f ${DATABASE}
+  if [ "$(/usr/bin/wc -c < ${DATABASE})" == "0" ]; then
+      /usr/bin/rm -f ${DATABASE}
       message_syslog "El archivo ${DATABASE} estaba vacío."
     else
       file_perms "${DATABASE}"
       message_syslog "Se ha creado correctamente ${DATABASE}."
   fi
 
-  if [ "$(wc -c < ${DATABASE}.error)" == "0" ]; then
-    rm -f ${DATABASE}.error
+  if [ "$(/usr/bin/wc -c < ${DATABASE}.error)" == "0" ]; then
+    /usr/bin/rm -f ${DATABASE}.error
     message_syslog "No se detectaron errores en ${DATABASE}."
   fi
 
@@ -149,7 +149,7 @@ image_path() {
   local DOMAIN="${1}"
   local DISK="${2}"
 
-  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | awk -F \  /${DISK}/'{print $2}')"
+  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | /usr/bin/awk -F \  /${DISK}/'{print $2}')"
 }
 
 
@@ -163,8 +163,8 @@ image_disk() {
   local DOMAIN="${1}"
   local IMAGE_PATH="${2}"
 
-  local IMAGE_NAME=$(basename ${IMAGE_PATH})
-  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | awk -F \  /${IMAGE_NAME}/'{print $1}')"
+  local IMAGE_NAME=$(/usr/bin/basename ${IMAGE_PATH})
+  echo "$(/usr/bin/virsh domblklist ${DOMAIN} | /usr/bin/awk -F \  /${IMAGE_NAME}/'{print $1}')"
 }
 
 
@@ -173,7 +173,7 @@ image_disk() {
 # ACTION: [create | delete]
 # DOMAIN: Nombre de la maquina virtual.
 # DISK: Nombre del disco correspondiente a la imagen de disco.
-# SNAPSHOT: Nombre de la instantánea a crear para la imagen a respaldar. 
+# SNAPSHOT: Nombre de la instantánea a crear para la imagen a respaldar.
 #
 snapshot() {
   local ACTION="${1}"
@@ -194,8 +194,8 @@ snapshot() {
       /usr/bin/virsh blockcommit ${DOMAIN} ${DISK} --active --pivot
 
       # Se elimina el archivo creado por la instantánea.
-      SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep ${SNAPSHOT})
-      rm -f ${SNAPSHOT_FILE}
+      SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | /usr/bin/grep ${SNAPSHOT})
+      /usr/bin/rm -f ${SNAPSHOT_FILE}
       message_syslog "Se ha eliminado la instantánea ${SNAPSHOT_FILE}."
       ;;
   esac
@@ -204,7 +204,7 @@ snapshot() {
 
 
 
-# Función para crear un respaldo en formato qcow2 comprimido de una imágen de 
+# Función para crear un respaldo en formato qcow2 comprimido de una imágen de
 # disco en cualquiera de los siguientes formatos: raw,bochs,qcow,qcow2,qed,vmdk.
 # DOMAIN: nombre de la maquina virtual.
 # BACKUP_FILE: archivo de respaldo a crear.
@@ -225,11 +225,11 @@ qcow2_backup() {
 #
 libvirt_backup() {
   local BLIBVIRT_BACKUP_PATH="${1}"
-  local DOMAINS=$(virsh list --name | sed '/^ *$/d')
+  local DOMAINS=$(/usr/bin/virsh list --name | /usr/bin/sed '/^ *$/d')
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
-    IMAGES=$(/usr/bin/virsh domblklist ${domain} | awk -F \  /^\ [sv]d*/'{print $2}')
+    IMAGES=$(/usr/bin/virsh domblklist ${domain} | /usr/bin/awk -F \  /^\ [sv]d*/'{print $2}')
     message_syslog "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
@@ -240,8 +240,8 @@ libvirt_backup() {
     for image in ${IMAGES}; do
       # Busca la extensión de imagen: .img, .qcow, .qcow2, .raw, etc. Para devolver
       # el nombre sin extensión en IMAGE_NAME.
-      local EXT=$(echo "${image}" | awk -F \. //'{print $(NF)}')
-      IMAGE_NAME=$(basename ${image} .${EXT})
+      local EXT=$(echo "${image}" | /usr/bin/awk -F \. //'{print $(NF)}')
+      IMAGE_NAME=$(/usr/bin/basename ${image} .${EXT})
 
       DISK=$(image_disk "${domain}" "${IMAGE_NAME}.${SNAPSHOT}")
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
@@ -276,7 +276,7 @@ file_backup() {
   local FILES="${2}"
   local EXCLUDE="/etc/backup-cron/exclude.txt"
 
-  tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
+  /usr/bin/tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
   --file ${BACKUP} --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${FILES} &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
@@ -314,7 +314,7 @@ file_backup_incremental() {
       BACKUP="${BACKUP}-incremental-${FECHA}.tar.bz2"
   fi
 
-  tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
+  /usr/bin/tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
   --ignore-failed-read --file ${BACKUP} --listed-incremental=${SNAR} --level=${LEVEL} \
   --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} &>/dev/null
 
@@ -334,7 +334,7 @@ tape_backup() {
   local EXCLUDE="/etc/backup-cron/exclude.txt"
   local MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
-  tar ${TAR_OPTS} --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} \
+  /usr/bin/tar ${TAR_OPTS} --exclude-backups --exclude-caches --exclude-from=${EXCLUDE} ${DIRS} \
   | mbuffer ${MBUFFER_OPTS} ${TAPE} &>/dev/null
   message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
 }
@@ -346,11 +346,11 @@ tape_backup() {
 #
 tar_not_empty() {
   local FILE="${1}"
-  local TEST=$(tar --list --file ${FILE} | head -n 1 | wc -l)
+  local TEST=$(/usr/bin/tar --list --file ${FILE} | head -n 1 | /usr/bin/wc -l)
 
   if [ "${TEST}" == "0" ]; then
       message_syslog "Archivo de respaldo ${FILE} sin datos, se procede a eliminarlo."
-      rm -f ${FILE}
+      /usr/bin/rm -f ${FILE}
       exit 1
     else
       message_syslog "Se ha creado el archivo de respaldo ${FILE}."
@@ -366,8 +366,8 @@ tar_not_empty() {
 # HASHES: algoritmos para verificar sumas.
 #
 gensum() {
-  local FILE=$(echo "${1}" | awk -F \/ //'{print $(NF)}')
-  local DIRECTORY=$(echo "${1}" | awk -F \/${FILE} //'{print $1}')
+  local FILE=$(echo "${1}" | /usr/bin/awk -F \/ //'{print $(NF)}')
+  local DIRECTORY=$(echo "${1}" | /usr/bin/awk -F \/${FILE} //'{print $1}')
   local HASHES="md5 sha1 sha256"
 
   cd ${DIRECTORY}
@@ -391,11 +391,11 @@ file_encrypt() {
   local FILE="${1}"
 
   if [ "${PGP_ID}" != "" ]; then
-      gpg --encrypt --recipient ${PGP_ID} --compress-algo none --output ${FILE}.gpg ${FILE}
+      /usr/bin/gpg --encrypt --recipient ${PGP_ID} --compress-algo none --output ${FILE}.gpg ${FILE}
 
       # Se verifica que GNUPG haya encriptado correctamente.
       if [ $? -eq 0 ]; then
-          rm -f ${FILE}
+          /usr/bin/rm -f ${FILE}
           message_syslog "Se ha encriptado el archivo de respaldo ${BACKUP} como ${BACKUP}.gpg."
           file_perms "${BACKUP}.gpg"
           gensum "${BACKUP}.gpg"
@@ -429,7 +429,7 @@ remove_incremental_backup() {
   ERASE_FILES=$(ls -1 *${ERASE_DATE}*.tar.bz2* 2>/dev/null)
 
   for file in ${ERASE_FILES}; do
-    rm -f ${file} &>/dev/null
+    /usr/bin/rm -f ${file} &>/dev/null
     message_syslog "Se eliminó el archivo obsoleto ${file}."
   done
 
@@ -473,7 +473,7 @@ remote_backup() {
     for ip in ${REMOTE_IP}; do
 
       for file in $(/usr/bin/find ${PATH}/*-${FECHA}.* -maxdepth 0 -type f); do
-        /usr/bin/scp ${file} ${USER}@${ip}:${PATH} &>/dev/null
+        /usr/bin/rsync --archive ${file} --rsh="/usr/bin/ssh -l ${USER}" ${ip}:${PATH} &>/dev/null
 
         if [  ${?} -eq 0 ]; then
             message_syslog "El archivo ${file} fue copiado al servidor ${ip}."
@@ -532,7 +532,7 @@ file_no_exist() {
 #
 no_file() {
   warning "ERROR" "No se especificó ningun archivo .tar.bz2 o .tar.bz2.gpg. Vea:."
-  echo " $(basename ${0}) --help"
+  echo " $(/usr/bin/basename ${0}) --help"
   echo ""
   exit 1
 }
@@ -592,9 +592,9 @@ verify_set() {
 #
 file_decrypt() {
   local FILE="${1}"
-  local DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
+  local DECRIPT_FILE="$(echo "${FILE}" | /usr/bin/awk -F .gpg '{print $(1)}')"
 
-  gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
+  /usr/bin/gpg --decrypt --output ${DECRIPT_FILE} ${FILE}
 
   if [ $? -eq 0 ]; then
       echo "${DECRIPT_FILE}"
@@ -633,7 +633,7 @@ function unpack() {
       DECRIPT_FILE="${FILE}"
   fi
 
-  tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
+  /usr/bin/tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
   --xattrs --xattrs-include=*.* --file ${DECRIPT_FILE} --directory=${DIRECTORY}
 
   if [ ! $? -eq 0 ]; then
