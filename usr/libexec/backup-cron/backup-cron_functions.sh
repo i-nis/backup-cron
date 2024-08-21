@@ -19,7 +19,7 @@ source /etc/backup-cron/backup-cron.conf
 # NAME: nombre del programa que invoca.
 # MESSAGE: mensaje a enviar vía syslog.
 #
-message_syslog () {
+message_syslog() {
   local MESSAGE="${1}"
   local NAME=$(/usr/bin/basename $0 2>/dev/null)
 
@@ -33,7 +33,7 @@ message_syslog () {
 # MESSAGE: mensaje a enviar.
 # RECIPIENTS: destinatarios de correo electrónico.
 #
-send_mail () {
+send_mail() {
   local SUBJECT="${1}"
   local NAME=$(/usr/bin/basename $0 2>/dev/null)
 
@@ -88,7 +88,7 @@ show_databases_mysql() {
   local DATABASES=""
 
   DATABASES=$(/usr/bin/mysql ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
-  --password=${PASSWD} --host=${HOST} | /usr/bin/egrep -v ${EXCLUDE})
+            --password=${PASSWD} --host=${HOST} | /usr/bin/egrep -v ${EXCLUDE})
 
   echo "${DATABASES}"
 }
@@ -110,8 +110,9 @@ show_databases_pg() {
   export PGPASSWORD=${PASSWD}
 
   DATABASES=$(/usr/bin/psql ${OPTIONS} --username=${USER} --host=${HOST} \
-  | /usr/bin/awk -F \| /^.*/'{print $1}' | /usr/bin/egrep -v ${EXCLUDE} | tr -d ' ' \
-  | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
+            | /usr/bin/awk -F \| /^.*/'{print $1}' \
+            | /usr/bin/egrep -v ${EXCLUDE} | tr -d ' ' \
+            | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
 
   echo "${DATABASES}"
 }
@@ -229,7 +230,8 @@ libvirt_backup() {
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
-    IMAGES=$(/usr/bin/virsh domblklist ${domain} | /usr/bin/awk -F \  /^\ [sv]d*/'{print $2}')
+    IMAGES=$(/usr/bin/virsh domblklist ${domain} | \
+           /usr/bin/awk -F \  /^\ [sv]d*/'{print $2}'| /usr/bin/sed '/- *$/d')
     message_syslog "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
