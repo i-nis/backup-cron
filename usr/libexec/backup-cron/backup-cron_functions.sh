@@ -54,7 +54,7 @@ directory_mkdir() {
 
   if [ ! -e ${DIRECTORY} ]; then
     /usr/bin/mkdir --parents --mode=755 ${DIRECTORY}
-    /usr/bin/chown admin:admin ${DIRECTORY}
+    /usr/bin/chown admin:admin ${DIRECTORY} &>/dev/null
     message_syslog "El directorio ${DIRECTORY} fue creado."
   fi
 
@@ -68,8 +68,8 @@ directory_mkdir() {
 file_perms() {
   local FILE="${1}"
 
-  /usr/bin/chown admin:admin ${FILE}
-  /usr/bin/chmod 640 ${FILE}
+  /usr/bin/chown admin:admin ${FILE} &>/dev/null
+  /usr/bin/chmod 640 ${FILE} &>/dev/null
   message_syslog "Modificado dueño y permisos para ${FILE}."
 }
 
