@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2006 - 2024 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -75,6 +75,36 @@ file_perms() {
 
 
 
+# Configura el ejecutable MySQL a utilizar. 
+set_mysql() {
+  local MYSQL=""
+
+  if [ -x /usr/bin/mariadb ]; then
+      MYSQL="/usr/bin/mariadb"
+    else
+      MYSQL="/usr/bin/mysql"
+  fi
+
+  echo "${MYSQL}"
+}
+
+
+
+# Configura el ejecutable de mysqldump a utilizar.
+set_mysqldump() {
+  local MYSQLDUMP=""
+
+  if [ -x /usr/bin/mariadb-dump ]; then
+      MYSQLDUMP="/usr/bin/mariadb-dump"
+    else
+      MYSQLDUMP="/usr/bin/mysqldump"
+  fi
+
+  echo "${MYSQLDUMP}"
+}
+
+
+
 # Función para listar las bases de datos MySQL a respaldar.
 # USER: usuario con privilegios de administrador para el motor MySQL.
 # PASSWD: contraseña del usuario administrador.
@@ -85,9 +115,10 @@ show_databases_mysql() {
   local HOST="${3}"
   local EXCLUDE="lost\+found|performance_schema|information_schema"
   local OPTIONS="--batch --skip-pager --skip-column-names --raw"
+  local MYSQL=$(set_mysql)
   local DATABASES=""
 
-  DATABASES=$(/usr/bin/mysql ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
+  DATABASES=$(${MYSQL} ${OPTIONS} --execute='SHOW DATABASES;' --user=${USER} \
             --password=${PASSWD} --host=${HOST} | /usr/bin/egrep -v ${EXCLUDE})
 
   echo "${DATABASES}"

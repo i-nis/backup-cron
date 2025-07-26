@@ -74,9 +74,10 @@ verify_mysql_connect() {
   local USER="${1}"
   local PASSWD="${2}"
   local HOST="${3}"
+  local MYSQL=$(set_mysql)
 
   # Verifica la contraseña.
-  until mysql --user=${USER} --password=${PASSWD} --host=${HOST} --execute=';' ; do
+  until ${MYSQL} --user=${USER} --password=${PASSWD} --host=${HOST} --execute=';' ; do
     warning "ERROR" "No se pudo conectarse al motor de bases de datos."
     set_mysql_credentials
   done
@@ -178,16 +179,17 @@ function parameters() {
 restore_database() {
   local MY_OPT="${1}"
   local MY_DB="${2}"
+  local MYSQL=$(set_mysql)
 
   if [ -e ${MY_DB}.sql ]; then
     warning "RESTAURANDO..." "Borrando, creando e importando base de datos ${MY_DB} en el servidor ${BDB_HOST}."
-    mysql ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
-    mysql ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
+    ${MYSQL} ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
+    ${MYSQL} ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
 
     if [ -x /usr/bin/pv ]; then
-        pv ${MY_DB}.sql | mysql ${MY_OPT} --database=${MY_DB}
+        pv ${MY_DB}.sql | ${MYSQL} ${MY_OPT} --database=${MY_DB}
       else
-        mysql ${MY_OPT} --database=${MY_DB} < ${MY_DB}.sql
+        ${MYSQL} ${MY_OPT} --database=${MY_DB} < ${MY_DB}.sql
     fi
 
     echo "La base de datos ${MY_DB} fue restaurada."
