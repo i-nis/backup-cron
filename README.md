@@ -24,7 +24,7 @@ El conjunto de scripts se ha desarrollado con las siguientes características:
 
 ## Documentación de Backup-Cron
 
-Se encuentra accesible en la [wiki de Backup-cron](https://proyectos.nis.com.ar/projects/backup-cron/wiki)
+Se encuentra accesible en la [wiki de Backup-cron](https://gitlab.nis.com.ar/proyectos/backup-cron/-/wikis/home)
 
 
 ## Portage
