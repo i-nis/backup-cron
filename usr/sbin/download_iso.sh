@@ -2,7 +2,7 @@
 #
 # download_iso.sh: script para descargar imagenes ISO de Gentoo.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -16,14 +16,14 @@ URL="https://distfiles.gentoo.org/releases"
 
 # Función de ayuda.
 usage() {
-  local PROG_NAME=$(basename $0)
-  local PROG_PATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  local PROG_NAME
+  PROG_NAME=$(basename "$0")
   echo ""
   echo "${PROG_NAME}:"
   echo "Descarga en /var/tmp la imagen ISO de Gentoo para la arquitectura seleccionada."
   echo
   echo "  Uso: "
-  echo "    ${PROG_PATH}/${PROG_NAME} [-h|--help] [amd64|x86]"
+  echo "    ${PROG_NAME} [-h|--help] [amd64|x86]"
   echo ""
   echo "    --help, -h"
   echo "        Muestra esta ayuda."
@@ -54,7 +54,7 @@ rm_files() {
 
   for file in ${FILES}; do
     echo "Borrando archivo ${file}"
-    rm -f ${file}
+    rm -f "${file}"
   done
 
 }
@@ -64,19 +64,19 @@ rm_files() {
 # Función para descarga de archivos desde $URL
 DESCARGA=0
 
-cd /var/tmp
+cd /var/tmp || exit
 
-until (( ${DESCARGA} )); do
-  wget -c ${URL_ARCH}/${ISO}
-  wget -c ${URL_ARCH}/${ISO}.sha256
-  WARN=$(sha256sum --check "${ISO}.sha256" | grep "${ISO}")
+until (( DESCARGA )); do
+  wget -c "${URL_ARCH}"/"${ISO}"
+  wget -c "${URL_ARCH}"/"${ISO}".sha256
+  WARN=$(sha256sum --check "${ISO}".sha256 | grep "${ISO}")
 
   if [ "${WARN}" == "${ISO}: La suma coincide" ]; then
       DESCARGA=1
       echo "Finalizado: ${ISO} se descargó correctamente."
     else
       echo "Error: falló la descarga."
-      rm_files ${WARN}
+      rm_files "${WARN}"
   fi
 
 done
