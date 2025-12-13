@@ -1,6 +1,7 @@
 # backup-cron
 
 [![License](http://img.shields.io/:license-gpl-green.svg)](https://www.gnu.org/licenses/gpl-3.0.txt)
+[![pipeline status](https://gitlab.nis.com.ar/proyectos/backup-cron/badges/master/pipeline.svg)](https://gitlab.nis.com.ar/proyectos/backup-cron/-/commits/master)
 
 Backup-cron es un sistema minimalista de generación de copias de resguardo basado en herramientas GNU y en la utilización del 
 planificador Cron.
