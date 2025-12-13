@@ -2,7 +2,7 @@
 #
 # check_backup-cron: script para verificar existencias de copias de seguridad.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -17,13 +17,13 @@ TYPE="${2}"
 
 
 function usage() {
-  PROGNAME=$(basename $0)
-  PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  local PROGNAME
+  PROGNAME=$(basename "$0")
   echo "${PROGNAME}:"
   echo "Verifica si se han realizado copias de seguridad mediante Backup-cron"
   echo
   echo "Uso: "
-  echo "${PROGPATH}/${PROGNAME} -t <TIPO>"
+  echo "${PROGNAME} -t <TIPO>"
   echo
   echo "-t, --type      tipo de respaldo a verificar."
   echo
@@ -138,56 +138,53 @@ for i in {0..30}; do
       INCREMENTAL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-incremental-${FECHA}.${EXT}"
   fi
 
-  if [ -f ${BACKUP} ] || [ -f ${FULL_BACKUP} ] || [ -f ${INCREMENTAL_BACKUP} ]; then
+  if [ -f "${BACKUP}" ] || [ -f "${FULL_BACKUP}" ] || [ -f "${INCREMENTAL_BACKUP}" ]; then
 
       # Se verifica que los respaldos realizados se correspondan con el número
       # de bases de datos MySQL exitentes.
       if [ "${TYPE}" == "mysql" ]; then
-        DB_NUM=$(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST} 2>&1 | grep -v "Warning: Using a password" | wc -l)
-        FILE_BACKUP_DB_NUM=$(cat ${BACKUP}.list | wc -l)
+        DB_NUM=$(show_databases_mysql "${BDB_USER}" "${BDB_PASSWD}" "${BDB_HOST}" 2>&1 | grep -c -v "Warning: Using a password")
+        FILE_BACKUP_DB_NUM=$(cat "${BACKUP}".list | wc -l)
 
-        if [ ${DB_NUM} -eq ${FILE_BACKUP_DB_NUM} ]; then
-            status ${i}
+        if [ "${DB_NUM}" -eq "${FILE_BACKUP_DB_NUM}" ]; then
+            status "${i}"
             exit $?
           else
             status 99
             exit $?
         fi
 
-        break
       fi
 
       # Se verifica que los respaldos realizados se correspondan con el número
       # de bases de datos PostgreSQL exitentes.
       if [ "${TYPE}" == "postgresql" ]; then
         export PGPASSWORD=${BDB_PG_PASSWD}
-        DB_PG_NUM=$(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST} | wc -l)
-        FILE_BACKUP_PG_NUM=$(cat ${BACKUP}.list | wc -l)
+        DB_PG_NUM=$(show_databases_pg "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_HOST}" | wc -l)
+        FILE_BACKUP_PG_NUM=$(cat "${BACKUP}".list | wc -l)
 
-        if [ ${DB_PG_NUM} -eq ${FILE_BACKUP_PG_NUM} ]; then
-            status ${i}
+        if [ "${DB_PG_NUM}" -eq "${FILE_BACKUP_PG_NUM}" ]; then
+            status "${i}"
             exit $?
           else
             status 99
             exit $?
         fi
 
-        break
       fi
 
       if [ "${TYPE}" == "etc" ] || [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] \
          || [ "${TYPE}" == "system" ]; then
           status 0
         else
-          status ${i}
+          status "${i}"
           exit $?
       fi
 
-      break
     else
 
-      if (( ${i} == 30 )); then
-        status ${i}
+      if (( i == 30 )); then
+        status "${i}"
         exit $?
       fi
 

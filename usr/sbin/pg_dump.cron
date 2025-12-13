@@ -3,7 +3,7 @@
 # pg_dump.cron: script para hacer copias de seguridad de bases de
 # datos PostgreSQL
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -25,18 +25,18 @@ BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
 # Nombre del archivo de respaldo.
 BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.tar.bz2"
 
-if [ -e ${BACKUP_PATH} ]; then
+if [ -e "${BACKUP_PATH}" ]; then
 
-  if [ -x ${PG_DUMP} ]; then
+  if [ -x "${PG_DUMP}" ]; then
     message_syslog "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
 
     # Verificación de existencia para ${BACKUP_PATH}
     directory_mkdir "${BDB_PG_BACKUP_PATH}"
 
     # Volcado de bases de datos en SQL
-    for database in $(show_databases_pg ${BDB_PG_USER} ${BDB_PG_PASSWD} ${BDB_PG_HOST}); do
-      ${PG_DUMP} --username=${BDB_PG_USER} --host=${BDB_PG_HOST} --create ${database} \
-      > ${BDB_PG_BACKUP_PATH}/${database}.sql 2>${BDB_PG_BACKUP_PATH}/${database}.sql.error
+    for database in $(show_databases_pg "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_HOST}"); do
+      ${PG_DUMP} --username="${BDB_PG_USER}" --host="${BDB_PG_HOST}" --create "${database}" \
+      > "${BDB_PG_BACKUP_PATH}"/"${database}".sql 2>"${BDB_PG_BACKUP_PATH}"/"${database}".sql.error
 
       # Comprueba si el respaldo fue correctamente realizado
       if [ "$?" -eq 0 ]; then
@@ -50,9 +50,9 @@ if [ -e ${BACKUP_PATH} ]; then
 
     # Creación de archivo comprimido según la fecha del día y borrado de los
     # archivos *.sql.
-    cd ${BDB_PG_BACKUP_PATH}
+    cd "${BDB_PG_BACKUP_PATH}" || exit
 
-    if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
+    if [ "$(find ./*.sql -maxdepth 0 -type f 2>/dev/null | wc --lines)" != "0" ]; then
 
         if [ "${PGP_ID}" != "" ]; then
             LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.gpg.list"
@@ -60,10 +60,10 @@ if [ -e ${BACKUP_PATH} ]; then
             LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list"
         fi
 
-        ls -1 | grep --invert-match backup-${HOST}-postgresql > ${LIST}
-        FILES=$(cat ${LIST})
-        file_backup "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "${FILES}"
-        rm -f ${FILES}
+        find ./* -maxdepth 0 -type f | grep --invert-match backup-"${HOST}"-postgresql > "${LIST}"
+        FILES=$(cat "${LIST}")
+        file_backup "${BDB_PG_BACKUP_PATH}"/"${BDB_PG_FILE}" "${FILES}"
+        rm -f "${FILES}"
 
         # Borrado de copias de seguridad antiguas con tmpwatch
         clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"

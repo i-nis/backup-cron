@@ -2,7 +2,7 @@
 #
 # clean_backup_libvirt.cron: script para borrar copias de seguridad obsoletas.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -14,22 +14,22 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 
-NAME=$(basename $0)
+NAME=$(basename "$0")
 
-MMTIME=$((${SEMANAS}*${MTIME}))
+MMTIME=$((SEMANAS*MTIME))
 
 # Verifica si hay hosts configurados en /etc/backup-cron/backup-cron.conf, en el
 # caso de no haberlos búsca en ${BACKUP_PATH}.
 if [ "${HOSTS}" == "" ]; then
-  HOSTS=$(ls -1 ${BACKUP_PATH})
+  HOSTS=$(ls -1 "${BACKUP_PATH}")
 fi
 
 # Creación de directorios inexistentes y borrado de copias de seguridad antiguas 
 # con tmpwatch.
 for host in ${HOSTS}; do
-  directory_mkdir "${BACKUP_PATH}/${host}/libvirt"
-  clean_old_backups "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}/${host}/libvirt"
+  directory_mkdir "${BACKUP_PATH}"/"${host}"/libvirt
+  clean_old_backups "${TMPWATCH}" "${MMTIME}" "${BACKUP_PATH}"/"${host}"/libvirt
 done
 
-rm -f /tmp/${NAME}-${HOST}.txt
+rm -f /tmp/"${NAME}"-"${HOST}".txt
 

@@ -17,7 +17,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Variables para mysqldump.cron
 BDB_OPTIONS="--opt --single-transaction --skip-lock-tables --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
-MYSQL_PATH="/var/lib/mysql"
 MYSQLDUMP=$(set_mysqldump)
 
 # Ubicación de la copia de seguridad.
@@ -26,16 +25,16 @@ BDB_BACKUP_PATH="${BACKUP_PATH}/${HOST}/mysql"
 # Nombre del archivo de respaldo.
 BDB_FILE="backup-${HOST}-mysql-${FECHA}.tar.bz2"
 
-if [ -x ${MYSQLDUMP} ]; then
+if [ -x "${MYSQLDUMP}" ]; then
   message_syslog "Iniciando el respaldo de bases de datos MySQL."
 
   # Verificación de existencia para ${BACKUP_PATH}
   directory_mkdir "${BDB_BACKUP_PATH}"
 
   # Volcado de bases de datos en SQL
-  for database in $(show_databases_mysql ${BDB_USER} ${BDB_PASSWD} ${BDB_HOST}); do
-    ${MYSQLDUMP} ${BDB_OPTIONS} ${database} > ${BDB_BACKUP_PATH}/${database}.sql \
-    2>${BDB_BACKUP_PATH}/${database}.sql.error
+  for database in $(show_databases_mysql "${BDB_USER}" "${BDB_PASSWD}" "${BDB_HOST}"); do
+    ${MYSQLDUMP} "${BDB_OPTIONS}" "${database}" > "${BDB_BACKUP_PATH}"/"${database}".sql \
+    2>"${BDB_BACKUP_PATH}"/"${database}".sql.error
 
     # Comprueba si el respaldo fue correctamente realizado
     if [ "$?" -eq 0 ]; then
@@ -49,20 +48,20 @@ if [ -x ${MYSQLDUMP} ]; then
 
   # Creación de archivo comprimido según la fecha del día y borrado de los
   # archivos *.sql.
-  cd ${BDB_BACKUP_PATH}
+  cd "${BDB_BACKUP_PATH}" || exit
 
-  if [ "$(ls -1 *.sql 2>/dev/null | wc --lines)" != "0" ]; then
+  if [ "$(find ./*.sql -maxdepth 0 -type f 2>/dev/null | wc --lines)" != "0" ]; then
 
       if [ "${PGP_ID}" != "" ]; then
           LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.gpg.list"
         else
-          LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.list"
+          LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.list"
       fi
 
-      ls -1 | grep --invert-match backup-${HOST}-mysql > ${LIST}
-      FILES=$(cat ${LIST})
-      file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "${FILES}"
-      rm -f ${FILES}
+      find ./* -maxdepth 0 -type f | grep --invert-match backup-"${HOST}"-mysql > "${LIST}"
+      FILES=$(cat "${LIST}")
+      file_backup "${BDB_BACKUP_PATH}"/"${BDB_FILE}" "${FILES}"
+      rm -f "${FILES}"
 
       # Borrado de copias de seguridad antiguas con tmpwatch
       clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_BACKUP_PATH}"

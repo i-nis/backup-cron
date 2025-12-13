@@ -2,7 +2,7 @@
 #
 # backup_restore: script para restaurar respaldos totales e incrementales.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -16,16 +16,18 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Función de ayuda del programa.
 usage() {
-  local PROG_NAME=$(basename ${0})
-  local PROG_PATH=$(echo ${0} | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  local PROG_NAME
+
+  PROG_NAME=$(basename "${0}")
+
   echo ""
   echo "${PROG_NAME}:"
   echo "Restaura copias de respaldo desde un conjunto de respaldo dado."
   echo ""
   echo "  Uso: "
-  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
-  echo "       ${PROG_PATH}/${PROG_NAME} FILE.tar.bz2"
-  echo "       ${PROG_PATH}/${PROG_NAME} [-d|--directory] DIRECTORY [-i|--incremental] FILE-full.tar.bz2"
+  echo "       ${PROG_NAME} [-h|--help]"
+  echo "       ${PROG_NAME} FILE.tar.bz2"
+  echo "       ${PROG_NAME} [-d|--directory] DIRECTORY [-i|--incremental] FILE-full.tar.bz2"
   echo ""
   echo "       --directory, -d"
   echo "           Indica el directorio donde se desempaquetará el respaldo."
@@ -50,7 +52,9 @@ usage() {
 # TEST: argumento a verificar.
 #
 tbz2_verify() {
-  local TEST="${1}"
+  local TEST
+
+  TEST="${1}"
 
   if backup_file_exists "${TEST}"; then
       verify_set "${TEST}"
@@ -66,11 +70,13 @@ tbz2_verify() {
 
 # Verifica el correcto pasaje de parámetros.
 function parameters() {
-  local OPT=$(getopt \
-              --options hd:i \
-              --longoptions help,directory:,incremental \
-              --name 'backup_restore' \
-              -- "${@}")
+  local OPT
+
+  OPT=$(getopt \
+        --options hd:i \
+        --longoptions help,directory:,incremental \
+        --name 'backup_restore' \
+        -- "${@}")
 
   if [ $? -ne 0 ]; then
     echo 'Error en parámetros...' >&2
@@ -106,7 +112,7 @@ function parameters() {
 
       * )
         warning "ERROR" "Error en parámetros. Vea:"
-        echo " $(basename ${0}) --help"
+        echo " $(basename "${0}") --help"
         echo ""
         exit 1
         ;;
@@ -127,29 +133,37 @@ function parameters() {
 # DIRECTORY: directorio donde desempaquetar.
 #
 function recursive_unpack() {
-  local FILE="${1}"
-  local INCREMENTAL="${2}"
-  local DIRECTORY="${DIRECTORY}"
-  local DATE_START=$(echo "${FILE}" | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
-  local FILE_EXT=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(2)}')
-  local date=""
+  local FILE
+  local INCREMENTAL
+  local DIRECTORY
+  local DATE_START
+  local FILE_EXT
+  local date
+
+  FILE="${1}"
+  INCREMENTAL="${2}"
+  DIRECTORY="${3}"
+  DATE_START=$(echo "${FILE}" | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
+  FILE_EXT=$(echo "${FILE}" | awk -F "${DATE_START}" '{print $(2)}')
+  date=""
 
   if ${INCREMENTAL}; then
       DATE_AAAAMM=$(echo "${DATE_START}" | cut -c 1-6)
-      DATE_END=$(ls -1 *${DATE_AAAAMM}* | tail -1 | awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
+      DATE_END=$(find ./*"${DATE_AAAAMM}"* -maxdepth 0 -type f | tail -1 | \
+                 awk -F .tar '{print $(1)}' | awk -F - '{print $(NF)}')
     else
       DATE_END="${DATE_START}"
   fi
 
-  for ((date=${DATE_START}; date<=${DATE_END}; date++)); do
+  for ((date=DATE_START; date<=DATE_END; date++)); do
     ramdom_select_sum
-    FILE_NAME=$(ls -1 *${date}${FILE_EXT} 2>/dev/null)
+    FILE_NAME=$(find ./*${date}"${FILE_EXT}" -maxdepth 0 -type f 2>/dev/null)
 
     if [ "${FILE_NAME}" != "" ]; then
       warning "ATENCIÓN:" "Verificando suma ${DIGEST} para el archivo ${FILE_NAME}."
       nine_seconds
 
-      if ${SUM} --check --status ${FILE_NAME}.${EXT}; then
+      if ${SUM} --check --status "${FILE_NAME}"."${EXT}"; then
           echo "La suma ${DIGEST} para el archivo ${FILE_NAME} es correcta."
           warning "ATENCIÓN:" "Comenzando a desempaquetar el respaldo ${FILE_NAME}."
           nine_seconds
@@ -169,7 +183,6 @@ function recursive_unpack() {
 
 # Inicio del programa.
 BACKUP_FILE=""
-DATE_TO_RESTORE=""
 DIGEST=""
 DIRECTORY=""
 EXT=""

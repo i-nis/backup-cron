@@ -1,0 +1,22 @@
+---
+stages:
+  - test
+
+shellcheck:
+  stage: test
+  tags:
+    - docker
+    - gitlab-org-docker
+  image: alpine:latest
+  before_script:
+    - apk update
+    - apk add --no-cache shellcheck
+  script:
+    - echo "Revisando scripts..."
+    - shellcheck --version
+    - shellcheck --shell=bash --severity=warning etc/cron.daily/*
+    - shellcheck --shell=bash --severity=warning etc/cron.monthly/*
+    - shellcheck --shell=bash --severity=warning usr/lib/nagios/plugins/check_backup-cron
+    - shellcheck --shell=bash --severity=warning usr/libexec/backup-cron/backup-cron_functions.sh
+    - shellcheck --shell=bash --severity=warning usr/sbin/*
+    - echo "No se encontraron problemas en scripts."

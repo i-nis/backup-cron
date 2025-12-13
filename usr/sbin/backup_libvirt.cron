@@ -3,7 +3,7 @@
 # backup_libvirt.cron: script para hacer copias de seguridad de las imágenes de
 # las maquinas virtuales gestionadas por Libvirt.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -17,9 +17,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Ubicación de la copia de seguridad.
 BLIBVIRT_BACKUP_PATH="${BACKUP_PATH}/${HOST}/libvirt"
-
-# Ubicación de las imagenes a respaldar.
-LIBVIRT_PATH="/var/lib/libvirt/images"
 
 message_syslog "Iniciando el respaldo de las imágenes qcow2."
 

@@ -2,7 +2,7 @@
 #
 # mysql_restore: script para restaurar bases de datos desde copia de respaldo.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -15,15 +15,16 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Función de ayuda del programa.
 usage() {
-  local PROG_NAME=$(basename ${0})
-  local PROG_PATH=$(echo ${0} | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+  local PROG_NAME
+  PROG_NAME=$(basename "${0}")
+
   echo ""
   echo "${PROG_NAME}:"
   echo "Restaura bases de datos desde un archivo de copia de respaldo dado."
   echo ""
   echo "  Uso: "
-  echo "       ${PROG_PATH}/${PROG_NAME} [-h|--help]"
-  echo "       ${PROG_PATH}/${PROG_NAME} [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
+  echo "       ${PROG_NAME} [-h|--help]"
+  echo "       ${PROG_NAME} [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
@@ -51,14 +52,14 @@ usage() {
 # Usuario, Contraseña y host.
 set_mysql_credentials() {
   echo "Ingrese los siguientes datos para necesarios."
-  read -p "Ingrese el usuario [root]: " BDB_USER
+  read -r -p "Ingrese el usuario [root]: " BDB_USER
 
   if [ "${BDB_USER}" == "" ]; then
     BDB_USER="root"
   fi
 
-  read -p "Ingrese la contraseña para el usuario ${BDB_USER}: " BDB_PASSWD
-  read -p "Ingrese el nombre o la IP del servidor bases de datos [localhost]: " BDB_HOST
+  read -r -s -p "Ingrese la contraseña para el usuario ${BDB_USER}: " BDB_PASSWD
+  read -r -p "Ingrese el nombre o la IP del servidor bases de datos [localhost]: " BDB_HOST
 
   if [ "${BDB_HOST}" == "" ]; then
     BDB_HOST="localhost"
@@ -71,13 +72,18 @@ set_mysql_credentials() {
 
 # Verifica los datos de conexión al servidor de bases de datos.
 verify_mysql_connect() {
-  local USER="${1}"
-  local PASSWD="${2}"
-  local HOST="${3}"
-  local MYSQL=$(set_mysql)
+  local USER
+  local PASSWD
+  local HOST
+  local MYSQL
+
+  USER="${1}"
+  PASSWD="${2}"
+  HOST="${3}"
+  MYSQL=$(set_mysql)
 
   # Verifica la contraseña.
-  until ${MYSQL} --user=${USER} --password=${PASSWD} --host=${HOST} --execute=';' ; do
+  until ${MYSQL} --user="${USER}" --password="${PASSWD}" --host="${HOST}" --execute=';' ; do
     warning "ERROR" "No se pudo conectarse al motor de bases de datos."
     set_mysql_credentials
   done
@@ -86,8 +92,11 @@ verify_mysql_connect() {
 
 # Verifica la existencia de una base de datos pasada por parámetros.
 database_exists() {
-  local MY_DB_P="${1}"
-  local MY_DB_FIND="$(grep ^${MY_DB_P}.sql$ ${BDB_FILE}.list)"
+  local MY_DB_P
+  local MY_DB_FIND
+
+  MY_DB_P="${1}"
+  MY_DB_FIND="$(grep ^"${MY_DB_P}".sql$ "${BDB_FILE}".list)"
 
   if [ "${MY_DB_P}" != "" ] && [ "${MY_DB_P}.sql" != "${MY_DB_FIND}" ]; then
     warning "ERROR" "No existe en ${BDB_FILE}.list la base de datos seleccionada ${MY_DB_P}."
@@ -100,7 +109,9 @@ database_exists() {
 
 # Verifica si el argumento es un archivo .tbz2
 tbz2_verify() {
-  local TEST="${1}"
+  local TEST
+
+  TEST="${1}"
 
   if backup_file_exists "${TEST}"; then
       verify_set "${TEST}"
@@ -122,11 +133,13 @@ tbz2_verify() {
 
 # Verifica el correcto pasaje de parámetros.
 function parameters() {
-  local OPT=$(getopt \
-              --options d:hl \
-              --longoptions database:,help,local \
-              --name 'mysql_restore' \
-              -- "${@}")
+  local OPT
+
+  OPT=$(getopt \
+        --options d:hl \
+        --longoptions database:,help,local \
+        --name 'mysql_restore' \
+        -- "${@}")
 
   if [ $? -ne 0 ]; then
     echo 'Error en parámetros...' >&2
@@ -159,13 +172,6 @@ function parameters() {
         shift
         break
         ;;
-
-      * )
-        warning "ERROR" "Error en parámetros. Vea:"
-        echo " $(basename ${0}) --help"
-        echo ""
-        exit 1
-        ;;
     esac
 
   shift
@@ -177,23 +183,27 @@ function parameters() {
 
 # Función para restaurar una base de datos.
 restore_database() {
-  local MY_OPT="${1}"
-  local MY_DB="${2}"
-  local MYSQL=$(set_mysql)
+  local MY_OPT
+  local MY_DB
+  local MYSQL
 
-  if [ -e ${MY_DB}.sql ]; then
+  MY_OPT="${1}"
+  MY_DB="${2}"
+  MYSQL=$(set_mysql)
+
+  if [ -e "${MY_DB}".sql ]; then
     warning "RESTAURANDO..." "Borrando, creando e importando base de datos ${MY_DB} en el servidor ${BDB_HOST}."
-    ${MYSQL} ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
-    ${MYSQL} ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
+    ${MYSQL} "${MY_OPT}" --execute="DROP DATABASE IF EXISTS ${MY_DB};"
+    ${MYSQL} "${MY_OPT}" --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
 
     if [ -x /usr/bin/pv ]; then
-        pv ${MY_DB}.sql | ${MYSQL} ${MY_OPT} --database=${MY_DB}
+        pv "${MY_DB}".sql | ${MYSQL} "${MY_OPT}" --database="${MY_DB}"
       else
-        ${MYSQL} ${MY_OPT} --database=${MY_DB} < ${MY_DB}.sql
+        ${MYSQL} "${MY_OPT}" --database="${MY_DB}" < "${MY_DB}".sql
     fi
 
     echo "La base de datos ${MY_DB} fue restaurada."
-    rm ${MY_DB}.sql
+    rm "${MY_DB}".sql
   fi
 
 }
@@ -202,7 +212,6 @@ restore_database() {
 
 # Inicio del programa.
 BDB_FILE=""
-BDB_FILE_X=""
 DATABASE_TO_RESTORE="ALL"
 DECRIPT_FILE=""
 DIGEST=""
@@ -224,7 +233,7 @@ ramdom_select_sum
 
 warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BDB_FILE}."
 
-if ${SUM} --check --status ${BDB_FILE}.${EXT}; then
+if ${SUM} --check --status "${BDB_FILE}"."${EXT}"; then
   echo "La suma ${DIGEST} para el archivo ${BDB_FILE} es correcta."
 
     # Desencriptar respaldo
@@ -237,17 +246,17 @@ if ${SUM} --check --status ${BDB_FILE}.${EXT}; then
     warning "PASO 2 de 3:" "Descomprimiento archivo ${DECRIPT_FILE}."
 
     if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
-        tar ${TAR_OPTIONS} --file ${DECRIPT_FILE}
+        tar "${TAR_OPTIONS}" --file "${DECRIPT_FILE}"
         warning "PASO 3 de 3:" "Restauración de bases de datos."
         # Se genera el listado de bases de datos restante a restaurar.
-        DATABASES="$(ls -1 *.sql | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
+        DATABASES="$(find ./*.sql -maxdepth 0 -type f | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
 
         for database in ${DATABASES}; do
           restore_database "${MYSQL_OPTIONS}" "${database}"
         done
         
       else
-        tar ${TAR_OPTIONS} --file ${DECRIPT_FILE} ${DATABASE_TO_RESTORE}.sql
+        tar "${TAR_OPTIONS}" --file "${DECRIPT_FILE}" "${DATABASE_TO_RESTORE}".sql
         warning "PASO 3 de 3:" "Restauración de bases de datos."
         restore_database "${MYSQL_OPTIONS}" "${DATABASE_TO_RESTORE}"
     fi

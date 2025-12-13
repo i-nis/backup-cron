@@ -3,7 +3,7 @@
 # backup_tape.cron: script para hacer copias de seguridad de la raíz del 
 # sistema.
 #
-# (C) 2006 - 2023 NIS
+# (C) 2006 - 2025 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -17,10 +17,13 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 # Función para controlar la unidad de cintas. Para mas detalles vea man (1) mt.
 tape_control() {
-  local OP="${1}"
-  local MT="/usr/sbin/mt"
+  local OP
+  local MT
 
-  ${MT} -f ${TAPE} ${OP} &>/dev/null
+  OP="${1}"
+  MT="/usr/sbin/mt"
+
+  ${MT} -f "${TAPE}" "${OP}" &>/dev/null
 
   case ${?} in
     0 )
@@ -50,7 +53,7 @@ tapebackup () {
 
 
 
-if [ -c ${TAPE} ]; then
+if [ -c "${TAPE}" ]; then
   message_syslog "Iniciando el respaldo en cinta."
 
   tapebackup
