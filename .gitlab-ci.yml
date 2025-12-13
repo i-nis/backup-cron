@@ -5,7 +5,6 @@ stages:
 shellcheck:
   stage: test
   tags:
-    - docker
     - gitlab-org-docker
   image: alpine:latest
   before_script:
