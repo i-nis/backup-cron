@@ -29,7 +29,7 @@ shellcheck:
         - usr/**/*
 
 build_deb_pkg:
-  stage: build:
+  stage: build
   tags:
     - gitlab-org-docker
   image: debian:stable-slim
