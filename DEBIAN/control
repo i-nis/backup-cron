@@ -1,10 +1,10 @@
 Package: backup-cron
-Version: 2.14
+Version: 3.2
 Section: base
 Priority: optional
 Architecture: any
 Depends: bzip2, mailutils, mbuffer, monitoring-plugins, pv, tar, tmpreaper 
-Maintainer: Martin Andres Gomez Gimenez <mggimenez@ingeniovirtual.com.ar>
+Maintainer: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 Description: A minimalist backup copy generation system.
  Backup-cron is a minimal system for generating backup copies based on GNU tools and using the Cron scheduler.
 

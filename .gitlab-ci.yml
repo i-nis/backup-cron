@@ -1,6 +1,8 @@
 ---
 stages:
   - test
+  - build
+  - deploy
 
 shellcheck:
   stage: test
@@ -19,3 +21,41 @@ shellcheck:
     - shellcheck --shell=bash --severity=warning usr/libexec/backup-cron/backup-cron_functions.sh
     - shellcheck --shell=bash --severity=warning usr/sbin/*
     - echo "No se encontraron problemas en scripts."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+      changes:
+        - DEBIAN/**/*
+        - etc/**/*
+        - usr/**/*
+
+build_deb_pkg:
+  stage: build:
+  tags:
+    - gitlab-org-docker
+  image: debian:stable-slim
+  before_script:
+    - apt-get update && apt-get install -y dpkg
+  script:
+    - dpkg-deb --build ${CI_PROJECT_NAME}-${CI_COMMIT_TAG#v}.deb
+  rules:
+    - if: $CI_COMMIT_TAG
+  artifacts:
+    paths:
+      - "*.deb"
+    expire_in: never
+
+publish_deb_pkg:
+  stage: deploy
+  tags:
+    - gitlab-org-docker
+  image: curlimages/curl:latest
+  needs:
+    - job: build_deb_pkg
+      artifacts: true
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "${CI_PROJECT_NAME}-${CI_COMMIT_TAG#v}.deb" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/debian/${CI_PROJECT_NAME}-${CI_COMMIT_TAG#v}.deb?distribution=stable"
+  rules:
+    - if: $CI_COMMIT_TAG
