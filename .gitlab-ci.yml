@@ -36,7 +36,21 @@ build_deb_pkg:
   before_script:
     - apt-get update && apt-get install -y dpkg
   script:
-    - dpkg-deb --build ${CI_PROJECT_NAME}-${CI_COMMIT_TAG#v}.deb
+    - mkdir -p ${CI_PROJECT_NAME}/DEBIAN
+    - cp -r etc/ ${CI_PROJECT_NAME}
+    - cp -r usr/ ${CI_PROJECT_NAME}
+    - |
+      cat <<EOF > ${CI_PROJECT_NAME}/DEBIAN/control
+      Package: ${CI_PROJECT_NAME}
+      Version: ${CI_COMMIT_TAG#v}
+      Section: base
+      Priority: optional
+      Architecture: any
+      Depends: bzip2, mailutils, mbuffer, monitoring-plugins, pv, tar, tmpreaper
+      Maintainer: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
+      Description: A minimalist backup copy generation system.
+      EOF
+    - dpkg-deb --build ${CI_PROJECT_NAME} ${CI_PROJECT_NAME}-${CI_COMMIT_TAG#v}.deb
   rules:
     - if: $CI_COMMIT_TAG
   artifacts:
