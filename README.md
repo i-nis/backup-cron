@@ -3,6 +3,8 @@
 [![License](http://img.shields.io/:license-gpl-green.svg)](https://www.gnu.org/licenses/gpl-3.0.txt)
 [![pipeline status](https://gitlab.nis.com.ar/proyectos/backup-cron/badges/master/pipeline.svg)](https://gitlab.nis.com.ar/proyectos/backup-cron/-/commits/master)
 
+[[_TOC_]]
+
 Backup-cron es un sistema minimalista de generación de copias de resguardo basado en herramientas GNU y en la utilización del 
 planificador Cron.
 
@@ -28,29 +30,57 @@ El conjunto de scripts se ha desarrollado con las siguientes características:
 Se encuentra accesible en la [wiki de Backup-cron](https://gitlab.nis.com.ar/proyectos/backup-cron/-/wikis/home)
 
 
-## Portage
+## Instalación
 
-Portage es el gestor de paquetes oficial de la distribución de Linux [Gentoo](https://es.wikipedia.org/wiki/Gentoo_Linux) y también el de [Funtoo Linux](https://en.wikipedia.org/wiki/Funtoo_Linux), [Sabayon](https://en.wikipedia.org/wiki/Sabayon_Linux) y [Google Chrome OS](https://es.wikipedia.org/wiki/Chrome_OS) entre otras.
+### Debian
 
-Implementa gestión de dependencias, afinamiento preciso de los paquetes a gusto del administrador, instalaciones falsas (al estilo OpenBSD), entornos de prueba durante la compilación, desinstalación segura, perfiles de sistema, paquetes virtuales, gestión de los ficheros de configuración y múltiples ranuras para distintas versiones de un mismo paquete.
+Para instalar backup-cron en Debian (y distribuciones basadas en esta), primero 
+es necesario instalar el soporte para repositorios vía HTTPS:
 
-El portage dispone de un árbol local que contiene las descripciones de los paquetes de software y las funcionalidades necesarias para instalarlos en archivos llamados ebuilds. Este árbol se puede sincronizar con un servidor remoto mediante una orden:
+```sh
+sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates
+```
 
-<pre>
-emerge --sync
-</pre> 
+Luego es necesario agregar el repositorio:
 
+```sh
+echo "deb [trusted=yes] https://gitlab.nis.com.ar/api/v4/projects/6/packages/debian stable main" \
+      | sudo tee /etc/apt/sources.list.d/backup-cron.list
+```
 
-### Extender el portage con los ebuilds de este proyecto
+### Gentoo Linux
 
-Para extender su portage con los ebuilds desarrollados por este proyecto, debe crear el archivo _/etc/portage/repos.conf/backup-cron.conf_ con el siguiente contenido:
+Para extender el portage es necesario agregar el siguiente 
+[overlay del portage](https://gitlab.nis.com.ar/proyectos/gentoo-portage-backup-cron) 
+que contiene los ebuilds desarrollados para este proyecto. Para ello es necesario 
+crear el archivo _/etc/portage/repos.conf/backup-cron.conf_ con el siguiente 
+contenido:
 
 <pre>
 [backup-cron]
 location = /var/db/repos/backup-cron
-clone-depth = 1
 sync-type = git
-sync-uri = https://github.com/i-nis/gentoo-portage-backup-cron.git
+sync-uri = https://gitlab.nis.com.ar/proyectos/gentoo-portage-backup-cron.git
 auto-sync = yes
 </pre>
+
+Por último queda actualizar la lista de paquetes e instalar las utilidades 
+estándar de backup-cron:
+
+```sh
+emaint sync --all
+emerge --ask --verbose backup-cron app-backup/backup_etc-cron app-backup/backup_system-cron
+```
+
+Para instalar el soporte para respaldos en cinta:
+
+```sh
+emerge --ask --verbose backup-cron app-backup/backup_tape-cron
+```
+
+Para instalar el soporte para respaldos en maquinas virtuales basadas en KVM:
+
+```sh
+emerge --ask --verbose backup-cron app-backup/backup_libvirt-cron
+```
 
