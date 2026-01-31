@@ -16,6 +16,7 @@ El conjunto de scripts se ha desarrollado con las siguientes características:
 
 * Empaquetado mediante GNU tar.
 * Compresión utilizando Bzip2.
+* Encriptación de respaldos mediange GnuPG.
 * Planificación diaria, semanal o mensual vía Cron.
 * Soporte para gestionar la planificación mediante [eselect](https://wiki.gentoo.org/wiki/Eselect).
 * Posibilidad de respaldo de todo el sistema o parte de él.
@@ -65,13 +66,13 @@ que contiene los ebuilds desarrollados para este proyecto. Para ello es necesari
 crear el archivo _/etc/portage/repos.conf/backup-cron.conf_ con el siguiente 
 contenido:
 
-<pre>
+```sh
 [backup-cron]
 location = /var/db/repos/backup-cron
 sync-type = git
 sync-uri = https://gitlab.nis.com.ar/proyectos/gentoo-portage-backup-cron.git
 auto-sync = yes
-</pre>
+```
 
 Por último queda actualizar la lista de paquetes e instalar las utilidades 
 estándar de backup-cron:
