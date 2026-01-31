@@ -40,6 +40,7 @@ build_deb_pkg:
     - cp -r etc/ ${CI_PROJECT_NAME}
     - cp -r usr/ ${CI_PROJECT_NAME}
     - mv ${CI_PROJECT_NAME}/usr/lib ${CI_PROJECT_NAME}/usr/lib64
+    - mkdir -p ${CI_PROJECT_NAME}/usr/lib
     - ln -s ${CI_PROJECT_NAME}/usr/lib64/nagios ${CI_PROJECT_NAME}/usr/lib/nagios
     - |
       cat <<EOF > ${CI_PROJECT_NAME}/DEBIAN/control
