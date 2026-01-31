@@ -34,17 +34,26 @@ Se encuentra accesible en la [wiki de Backup-cron](https://gitlab.nis.com.ar/pro
 
 ### Debian
 
-Para instalar backup-cron en Debian (y distribuciones basadas en esta), primero 
-es necesario instalar el soporte para repositorios vía HTTPS:
+Para instalar backup-cron en Debian (y distribuciones basadas en esta), es necesario 
+realizar los siguientes pasos:
+ 
+1. Instalar el soporte para repositorios vía HTTPS:
 
 ```sh
 sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates
 ```
 
-Luego es necesario agregar el repositorio:
+2. Descargar la clave de distribución.
 
 ```sh
-echo "deb [trusted=yes] https://gitlab.nis.com.ar/api/v4/projects/6/packages/debian stable main" \
+sudo curl --fail --silent --show-error --output /etc/apt/keyrings/backup-cron.asc \
+     --url "https://gitlab.nis.com.ar/api/v4/projects/6/debian_distributions/stable/key.asc"
+```
+
+3. Agregar el repositorio:
+
+```sh
+echo "deb [arch=all signed-by=/etc/apt/keyrings/backup-cron.asc] https://gitlab.nis.com.ar/api/v4/projects/6/packages/debian stable main" \
       | sudo tee /etc/apt/sources.list.d/backup-cron.list
 ```
 
