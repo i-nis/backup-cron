@@ -38,7 +38,7 @@ build_deb_pkg:
     - apt-get update && apt-get install -y dpkg
   script:
     - mkdir -p ${CI_PROJECT_NAME}/DEBIAN
-    - cp DEBIAN/ ${CI_PROJECT_NAME}
+    - cp -r DEBIAN/ ${CI_PROJECT_NAME}
     - mkdir -p ${CI_PROJECT_NAME}/etc/{cron.daily,cron.monthly}
     - cp -r etc/backup-cron/ ${CI_PROJECT_NAME}/etc
     - cp etc/cron.daily/clean_backup_etc.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_etc
