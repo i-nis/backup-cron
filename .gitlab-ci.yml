@@ -15,6 +15,7 @@ shellcheck:
   script:
     - echo "Revisando scripts..."
     - shellcheck --version
+    - shellcheck --shell=sh --severity=warning DEBIAN/*
     - shellcheck --shell=bash --severity=warning etc/cron.daily/*
     - shellcheck --shell=bash --severity=warning etc/cron.monthly/*
     - shellcheck --shell=bash --severity=warning usr/lib/nagios/plugins/check_backup-cron
@@ -37,6 +38,7 @@ build_deb_pkg:
     - apt-get update && apt-get install -y dpkg
   script:
     - mkdir -p ${CI_PROJECT_NAME}/DEBIAN
+    - cp DEBIAN/ ${CI_PROJECT_NAME}
     - mkdir -p ${CI_PROJECT_NAME}/etc/{cron.daily,cron.monthly}
     - cp -r etc/backup-cron/ ${CI_PROJECT_NAME}/etc
     - cp etc/cron.daily/clean_backup_etc.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_etc
@@ -50,11 +52,6 @@ build_deb_pkg:
     - cp etc/cron.monthly/00_backup_raiz.cron ${CI_PROJECT_NAME}/etc/cron.monthly/00_backup_raiz
     - chmod 755 ${CI_PROJECT_NAME}/etc/cron.monthly/*
     - cp -r usr/ ${CI_PROJECT_NAME}
-    - mv ${CI_PROJECT_NAME}/usr/lib ${CI_PROJECT_NAME}/usr/lib64
-    - mkdir -p ${CI_PROJECT_NAME}/usr/lib/nagios/plugins
-    - |
-      ln -s ${CI_PROJECT_NAME}/usr/lib64/nagios/plugins/check_backup-cron \
-      ${CI_PROJECT_NAME}/usr/lib/nagios/plugins/check_backup-cron
     - |
       cat <<EOF > ${CI_PROJECT_NAME}/DEBIAN/control
       Package: ${CI_PROJECT_NAME}
