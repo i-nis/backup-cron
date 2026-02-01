@@ -50,6 +50,11 @@ case "$1" in
       ln -s /usr/sbin/backup_libvirt.cron /etc/cron.weekly/backup_libvirt
     fi
 
+    if [ ! -d /usr/lib64/nagios/plugins ]; then
+      echo "Create directory /usr/lib64/nagios/plugins..."
+      mkdir -p /usr/lib64/nagios/plugins
+    fi
+
     if [ ! -L /usr/lib64/nagios/plugins/check_backup-cron ]; then
       echo "Create symbolic link for /usr/lib64/nagios/plugins/check_backup-cron..."
       ln -s /usr/lib/nagios/plugins/check_backup-cron /usr/lib64/nagios/plugins/check_backup-cron

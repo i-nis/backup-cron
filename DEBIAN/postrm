@@ -43,6 +43,10 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     rm -f /etc/cron.weekly/backup_libvirt
   fi
 
+  if [ -d /usr/lib64/nagios/plugins ]; then
+    echo "The directory /usr/lib64/nagios/plugins cannot be deleted by uninstalling the package..."
+  fi
+
   if [ -L /usr/lib64/nagios/plugins/check_backup-cron ]; then
     echo "Delete symbolic link /usr/lib64/nagios/plugins/check_backup-cron..."
     rm -f /usr/lib64/nagios/plugins/check_backup-cron
