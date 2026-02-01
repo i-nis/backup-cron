@@ -60,7 +60,7 @@ case "$1" in
       ln -s /usr/lib/nagios/plugins/check_backup-cron /usr/lib64/nagios/plugins/check_backup-cron
     fi
 
-    if [ ! -f /etc/backup-cron/backup-cron.conf ]; then
+    if [ -f /etc/backup-cron/backup-cron.conf ]; then
       echo "Configuring backup-cron for Debian-based systems..."
       sed -i 's/tmpwatch/tmpreaper/g' /etc/backup-cron/backup-cron.conf
     fi
