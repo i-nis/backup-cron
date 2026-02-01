@@ -1,0 +1,48 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+  if [ ! -L /etc/cron.daily/backup_etc ]; then
+    echo "Delete symbolic link /etc/cron.daily/backup_etc..."
+    rm -f /etc/cron.daily/backup_etc
+  fi
+
+  if [ ! -L /etc/cron.daily/backup_home ]; then
+    echo "Delete symbolic link /etc/cron.daily/backup_home..."
+    rm -f /etc/cron.daily/backup_home
+  fi
+
+  if [ ! -L /etc/cron.daily/backup_tape ]; then
+    echo "Delete symbolic link /etc/cron.daily/backup_tape..."
+    rm -f /etc/cron.daily/backup_tape
+  fi
+
+  if [ ! -L /etc/cron.daily/remote_backup_sync ]; then
+    echo "Delete symbolic link /etc/cron.daily/remote_backup_sync..."
+    rm -f /etc/cron.daily/remote_backup_sync
+  fi
+
+  if [ ! -L /etc/cron.daily/mysqldump ]; then
+    echo "Delete symbolic link /etc/cron.daily/mysqldump..."
+    rm -f /etc/cron.daily/mysqldump
+  fi
+
+  if [ ! -L /etc/cron.daily/pg_dump ]; then
+    echo "Delete symbolic link /etc/cron.daily/pg_dump..."
+    rm -f /etc/cron.daily/pg_dump
+  fi
+
+  if [ ! -L /etc/cron.monthly/backup_raiz ]; then
+    echo "Delete symbolic link /etc/cron.monthly/backup_raiz..."
+    rm -f /etc/cron.monthly/backup_raiz
+  fi
+
+  if [ ! -L /etc/cron.weekly/backup_libvirt ]; then
+    echo "Delete symbolic link /etc/cron.weekly/backup_libvirt..."
+    rm -f /etc/cron.weekly/backup_libvirt
+  fi
+
+fi
+
+exit 0
+

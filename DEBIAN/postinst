@@ -1,0 +1,62 @@
+#!/bin/sh
+set -e
+
+if ! getent passwd admin > /dev/null; then
+    echo "Creating admin user..."
+    useradd -m -d /home/admin -s /bin/rbash -U admin
+  else
+   echo "The admin user already exists.."
+fi
+
+case "$1" in
+  configure)
+    if [ ! -L /etc/cron.daily/backup_etc ]; then
+      echo "Create symbolic link for /etc/cron.daily/backup_etc..."
+      ln -s /usr/sbin/backup_etc.cron /etc/cron.daily/backup_etc
+    fi
+
+    if [ ! -L /etc/cron.daily/backup_home ]; then
+      echo "Create symbolic link for /etc/cron.daily/backup_home..."
+      ln -s /usr/sbin/backup_home.cron /etc/cron.daily/backup_home
+    fi
+
+    if [ ! -L /etc/cron.daily/backup_tape ]; then
+      echo "Create symbolic link for /etc/cron.daily/backup_tape..."
+      ln -s /usr/sbin/backup_tape.cron /etc/cron.daily/backup_tape
+    fi
+
+    if [ ! -L /etc/cron.daily/remote_backup_sync ]; then
+      echo "Create symbolic link for /etc/cron.daily/remote_backup_sync..."
+      ln -s /usr/sbin/remote_backup_sync.cron /etc/cron.daily/remote_backup_sync
+    fi
+
+    if [ ! -L /etc/cron.daily/mysqldump ]; then
+      echo "Create symbolic link for /etc/cron.daily/mysqldump..."
+      ln -s /usr/sbin/mysqldump.cron /etc/cron.daily/mysqldump
+    fi
+
+    if [ ! -L /etc/cron.daily/pg_dump ]; then
+      echo "Create symbolic link for /etc/cron.daily/pg_dump..."
+      ln -s /usr/sbin/pg_dump.cron /etc/cron.daily/pg_dump
+    fi
+
+    if [ ! -L /etc/cron.monthly/backup_raiz ]; then
+      echo "Create symbolic link for /etc/cron.monthly/backup_raiz..."
+      ln -s /usr/sbin/backup_raiz.cron /etc/cron.monthly/backup_raiz
+    fi
+
+    if [ ! -L /etc/cron.weekly/backup_libvirt ]; then
+      echo "Create symbolic link for /etc/cron.weekly/backup_libvirt..."
+      ln -s /usr/sbin/backup_libvirt.cron /etc/cron.weekly/backup_libvirt
+    fi
+
+    if [ ! -f /etc/backup-cron/backup-cron.conf ]; then
+      echo "Configuring backup-cron for Debian-based systems..."
+      sed -i 's/tmpwatch/tmpreaper/g' /etc/backup-cron/backup-cron.conf
+    fi
+
+    ;;
+esac
+
+exit 0
+
