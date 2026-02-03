@@ -3,7 +3,7 @@
 # backup_home.cron: script para hacer copias de seguridad de los directorios
 # contenidos en /home.
 #
-# (C) 2006 - 2025 NIS
+# (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -28,7 +28,7 @@ directory_mkdir "${BHOME_BACKUP_PATH}"
 # Respaldo de directorios /home en archivos comprimidos según la fecha del día.
 cd /home || exit
 
-for directory in $(find ./* -maxdepth 0 -type d | grep --invert-match lost+found); do
+for directory in $(find ./* -maxdepth 0 -type d -printf "%f\n" | grep --invert-match lost+found); do
   DIRECTORY_BACKUP="${BHOME_BACKUP_PATH}/${FILE}-${directory}"
 
   file_backup_incremental "${DIRECTORY_BACKUP}" /home/"${directory}"

@@ -3,7 +3,7 @@
 # backup-cron_functions.sh: funciones comunes para los script de copias de
 # seguridad.
 #
-# (C) 2006 - 2025 NIS
+# (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -536,7 +536,7 @@ remove_incremental_backup() {
   ERASE_FILES=""
 
   cd "${DIRECTORY}" || exit
-  ERASE_FILES=$(find ./*"${ERASE_DATE}"*.tar.bz2* -maxdepth 0 -type f 2>/dev/null)
+  ERASE_FILES=$(find ./*"${ERASE_DATE}"*.tar.bz2* -maxdepth 0 -type f -printf "%f\n" 2>/dev/null)
 
   for file in ${ERASE_FILES}; do
     /usr/bin/rm -f "${file}" &>/dev/null
@@ -590,7 +590,7 @@ remote_backup() {
 
     for ip in ${REMOTE_IP}; do
 
-      for file in $(/usr/bin/find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f); do
+      for file in $(/usr/bin/find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\n"); do
         /usr/bin/rsync --archive "${file}" --rsh="/usr/bin/ssh -l ${USER}" "${ip}":"${PATH}" &>/dev/null
 
         if [  ${?} -eq 0 ]; then

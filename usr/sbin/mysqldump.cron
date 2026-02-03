@@ -3,7 +3,7 @@
 # mysqldump.cron: script para hacer copias de seguridad de bases de
 # datos MariaDB / MySQL
 #
-# (C) 2006 - 2025 NIS
+# (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -50,7 +50,7 @@ if [ -x "${MYSQLDUMP}" ]; then
   # archivos *.sql.
   cd "${BDB_BACKUP_PATH}" || exit
 
-  if [ "$(find ./*.sql -maxdepth 0 -type f 2>/dev/null | wc --lines)" != "0" ]; then
+  if [ "$(find ./*.sql -maxdepth 0 -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
 
       if [ "${PGP_ID}" != "" ]; then
           LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.gpg.list"
@@ -58,7 +58,7 @@ if [ -x "${MYSQLDUMP}" ]; then
           LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.list"
       fi
 
-      find ./* -maxdepth 0 -type f | grep --invert-match backup-"${HOST}"-mysql > "${LIST}"
+      find ./* -maxdepth 0 -type f -printf "%f\n" | grep --invert-match backup-"${HOST}"-mysql > "${LIST}"
       FILES=$(cat "${LIST}")
       file_backup "${BDB_BACKUP_PATH}"/"${BDB_FILE}" "${FILES}"
       rm -f "${FILES}"
