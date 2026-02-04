@@ -44,7 +44,7 @@ send_mail() {
   NAME=$(/usr/bin/basename "$0" 2>/dev/null)
 
   /usr/bin/cut --delimiter='>' --fields=2 /tmp/"${NAME}"-"${HOST}".txt | \
-  /usr/bin/mail --subject="${SUBJECT} ${NAME}" "${RECIPIENTS}"
+  /usr/bin/mail -s "${SUBJECT} ${NAME}" "${RECIPIENTS}"
 
   /usr/bin/rm -f /tmp/"${NAME}"-"${HOST}".txt
 }
