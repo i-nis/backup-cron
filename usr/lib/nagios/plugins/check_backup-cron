@@ -154,6 +154,8 @@ for i in {0..30}; do
             exit $?
         fi
 
+        break
+
       fi
 
       # Se verifica que los respaldos realizados se correspondan con el número
@@ -171,6 +173,8 @@ for i in {0..30}; do
             exit $?
         fi
 
+        break
+
       fi
 
       if [ "${TYPE}" == "etc" ] || [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] \
@@ -180,6 +184,8 @@ for i in {0..30}; do
           status "${i}"
           exit $?
       fi
+
+      break
 
     else
 
