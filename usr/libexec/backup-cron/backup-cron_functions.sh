@@ -139,7 +139,7 @@ show_databases_mysql() {
   MYSQL=$(set_mysql)
   DATABASES=""
 
-  DATABASES=$(${MYSQL} "${OPTIONS}" --execute='SHOW DATABASES;' --user="${USER}" \
+  DATABASES=$(${MYSQL} ${OPTIONS} --execute='SHOW DATABASES;' --user="${USER}" \
             --password="${PASSWD}" --host="${HOST}" | /usr/bin/grep -v -E ${EXCLUDE})
 
   echo "${DATABASES}"
@@ -168,7 +168,7 @@ show_databases_pg() {
 
   export PGPASSWORD=${PASSWD}
 
-  DATABASES=$(/usr/bin/psql "${OPTIONS}" --username="${USER}" --host="${HOST}" \
+  DATABASES=$(/usr/bin/psql ${OPTIONS} --username="${USER}" --host="${HOST}" \
             | /usr/bin/awk -F \| /^.*/'{print $1}' \
             | /usr/bin/grep -v -E ${EXCLUDE} | tr -d ' ' \
             | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
