@@ -193,17 +193,17 @@ restore_database() {
 
   if [ -e "${MY_DB}".sql ]; then
     warning "RESTAURANDO..." "Borrando, creando e importando base de datos ${MY_DB} en el servidor ${BDB_HOST}."
-    ${MYSQL} "${MY_OPT}" --execute="DROP DATABASE IF EXISTS ${MY_DB};"
-    ${MYSQL} "${MY_OPT}" --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
+    ${MYSQL} ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
+    ${MYSQL} ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
 
     if [ -x /usr/bin/pv ]; then
-        pv "${MY_DB}".sql | ${MYSQL} "${MY_OPT}" --database="${MY_DB}"
+        pv "${MY_DB}.sql" | ${MYSQL} ${MY_OPT} --database="${MY_DB}"
       else
-        ${MYSQL} "${MY_OPT}" --database="${MY_DB}" < "${MY_DB}".sql
+        ${MYSQL} ${MY_OPT} --database="${MY_DB}" < "${MY_DB}.sql"
     fi
 
     echo "La base de datos ${MY_DB} fue restaurada."
-    rm "${MY_DB}".sql
+    rm "${MY_DB}.sql"
   fi
 
 }
@@ -246,19 +246,19 @@ if ${SUM} --check --status "${BDB_FILE}"."${EXT}"; then
     warning "PASO 2 de 3:" "Descomprimiento archivo ${DECRIPT_FILE}."
 
     if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
-        tar "${TAR_OPTIONS}" --file "${DECRIPT_FILE}"
+        tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}"
         warning "PASO 3 de 3:" "Restauración de bases de datos."
         # Se genera el listado de bases de datos restante a restaurar.
-        DATABASES="$(find ./*.sql -maxdepth 0 -type f -printf "%f\n" | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
+        DATABASES="$(find ./*.sql -maxdepth 0 -type f -printf "%P\n" | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
 
         for database in ${DATABASES}; do
-          restore_database "${MYSQL_OPTIONS}" "${database}"
+          restore_database ${MYSQL_OPTIONS} "${database}"
         done
-        
+
       else
-        tar "${TAR_OPTIONS}" --file "${DECRIPT_FILE}" "${DATABASE_TO_RESTORE}".sql
+        tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}" "${DATABASE_TO_RESTORE}".sql
         warning "PASO 3 de 3:" "Restauración de bases de datos."
-        restore_database "${MYSQL_OPTIONS}" "${DATABASE_TO_RESTORE}"
+        restore_database ${MYSQL_OPTIONS} "${DATABASE_TO_RESTORE}"
     fi
 
   else

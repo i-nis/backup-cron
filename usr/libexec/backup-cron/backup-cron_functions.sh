@@ -127,7 +127,6 @@ show_databases_mysql() {
   local PASSWD
   local HOST
   local EXCLUDE
-  local OPTIONS
   local MYSQL
   local DATABASES
 
@@ -135,12 +134,12 @@ show_databases_mysql() {
   PASSWD="${2}"
   HOST="${3}"
   EXCLUDE="lost\+found|performance_schema|information_schema"
-  OPTIONS="--batch --skip-pager --skip-column-names --raw"
   MYSQL=$(set_mysql)
   DATABASES=""
 
-  DATABASES=$(${MYSQL} ${OPTIONS} --execute='SHOW DATABASES;' --user="${USER}" \
-            --password="${PASSWD}" --host="${HOST}" | /usr/bin/grep -v -E ${EXCLUDE})
+  DATABASES=$(${MYSQL} --batch --skip-pager --skip-column-names --raw \
+              --execute='SHOW DATABASES;' --user="${USER}" --password="${PASSWD}" \
+              --host="${HOST}" | /usr/bin/grep -v -E ${EXCLUDE})
 
   echo "${DATABASES}"
 }
@@ -156,19 +155,17 @@ show_databases_pg() {
   local PASSWD
   local HOST
   local EXCLUDE
-  local OPTIONS
   local DATABASES
 
   USER="${1}"
   PASSWD="${2}"
   HOST="${3}"
   EXCLUDE="template0|template1"
-  OPTIONS="--tuples-only --list"
   DATABASES=""
 
   export PGPASSWORD=${PASSWD}
 
-  DATABASES=$(/usr/bin/psql ${OPTIONS} --username="${USER}" --host="${HOST}" \
+  DATABASES=$(/usr/bin/psql --tuples-only --list --username="${USER}" --host="${HOST}" \
             | /usr/bin/awk -F \| /^.*/'{print $1}' \
             | /usr/bin/grep -v -E ${EXCLUDE} | tr -d ' ' \
             | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
@@ -361,8 +358,8 @@ file_backup() {
   FILES="${2}"
   EXCLUDE="/etc/backup-cron/exclude.txt"
 
-  /usr/bin/tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
-  --file "${BACKUP}" --exclude-backups --exclude-caches --exclude-from="${EXCLUDE}" "${FILES}" &>/dev/null
+  /usr/bin/tar --create --bzip2 --preserve-permissions --file "${BACKUP}" \
+               --files-from "${FILES}" &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
   if [ $? -eq 0 ]; then
@@ -408,7 +405,7 @@ file_backup_incremental() {
 
   /usr/bin/tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
   --ignore-failed-read --file "${BACKUP}" --listed-incremental="${SNAR}" --level="${LEVEL}" \
-  --exclude-backups --exclude-caches --exclude-from="${EXCLUDE}" "${DIRS}" &>/dev/null
+  --exclude-backups --exclude-caches --exclude-from="${EXCLUDE}" ${DIRS} &>/dev/null
 
   tar_not_empty "${BACKUP}"
   file_encrypt "${BACKUP}"
@@ -416,23 +413,22 @@ file_backup_incremental() {
 
 
 
-# Función para rerealizar respaldos en cinta.
+# Función para realizar respaldos en cinta.
 # DIRS: directorios o archivos a respaldar.
 # TAPE: dispositivo de cintas a utilizar definido en /etc/backup-cron/backup-cron.conf.
 #
 tape_backup() {
   local DIRS
-  local TAR_OPTS
   local EXCLUDE
-  local MBUFFER_OPTS
 
   DIRS="${1}"
-  TAR_OPTS="--create --blocking-factor=64 --preserve-permissions --xattrs --xattrs-include=*.*"
   EXCLUDE="/etc/backup-cron/exclude.txt"
-  MBUFFER_OPTS="-t -m 128M -p 90 -s 65536 -f -o"
 
-  /usr/bin/tar "${TAR_OPTS}" --exclude-backups --exclude-caches --exclude-from="${EXCLUDE}" "${DIRS}" \
-  | mbuffer "${MBUFFER_OPTS}" "${TAPE}" &>/dev/null
+  /usr/bin/tar --create --blocking-factor=64 --preserve-permissions --xattrs \
+               --xattrs-include=*.* --exclude-backups --exclude-caches \
+               --exclude-from="${EXCLUDE}" "${DIRS}" | \
+               mbuffer -t -m 128M -p 90 -s 65536 -f -o "${TAPE}" &>/dev/null
+
   message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
 }
 

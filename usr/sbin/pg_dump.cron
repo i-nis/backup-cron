@@ -36,7 +36,7 @@ if [ -e "${BACKUP_PATH}" ]; then
     # Volcado de bases de datos en SQL
     for database in $(show_databases_pg "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_HOST}"); do
       ${PG_DUMP} --username="${BDB_PG_USER}" --host="${BDB_PG_HOST}" --create "${database}" \
-      > "${BDB_PG_BACKUP_PATH}"/"${database}".sql 2>"${BDB_PG_BACKUP_PATH}"/"${database}".sql.error
+      > "${BDB_PG_BACKUP_PATH}/${database}".sql 2>"${BDB_PG_BACKUP_PATH}/${database}".sql.error
 
       # Comprueba si el respaldo fue correctamente realizado
       if [ "$?" -eq 0 ]; then
@@ -52,7 +52,7 @@ if [ -e "${BACKUP_PATH}" ]; then
     # archivos *.sql.
     cd "${BDB_PG_BACKUP_PATH}" || exit
 
-    if [ "$(find ./*.sql -maxdepth 0 -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
+    if [ "$(find ./* -name "*.sql" -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
 
         if [ "${PGP_ID}" != "" ]; then
             LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.gpg.list"
@@ -60,10 +60,13 @@ if [ -e "${BACKUP_PATH}" ]; then
             LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list"
         fi
 
-        find ./* -maxdepth 0 -type f -printf "%f\n" | grep --invert-match backup-"${HOST}"-postgresql > "${LIST}"
-        FILES=$(cat "${LIST}")
-        file_backup "${BDB_PG_BACKUP_PATH}"/"${BDB_PG_FILE}" "${FILES}"
-        rm -f "${FILES}"
+        find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-postgresql" > "${LIST}"
+        file_backup "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "${LIST}"
+
+        # Eliminar volcados SQL.
+        while IFS= read -r file; do
+          rm -f "${file}"
+        done < "${LIST}"
 
         # Borrado de copias de seguridad antiguas con tmpwatch
         clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"

@@ -16,7 +16,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Variables para mysqldump.cron
-BDB_OPTIONS="--opt --single-transaction --skip-lock-tables --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
 MYSQLDUMP=$(set_mysqldump)
 
 # Ubicación de la copia de seguridad.
@@ -33,8 +32,10 @@ if [ -x "${MYSQLDUMP}" ]; then
 
   # Volcado de bases de datos en SQL
   for database in $(show_databases_mysql "${BDB_USER}" "${BDB_PASSWD}" "${BDB_HOST}"); do
-    ${MYSQLDUMP} "${BDB_OPTIONS}" "${database}" > "${BDB_BACKUP_PATH}"/"${database}".sql \
-    2>"${BDB_BACKUP_PATH}"/"${database}".sql.error
+    ${MYSQLDUMP} --opt --single-transaction --skip-lock-tables --user=${BDB_USER} \
+                 --password=${BDB_PASSWD} --host=${BDB_HOST} "${database}" \
+                 > "${BDB_BACKUP_PATH}/${database}".sql \
+                 2>"${BDB_BACKUP_PATH}/${database}".sql.error
 
     # Comprueba si el respaldo fue correctamente realizado
     if [ "$?" -eq 0 ]; then
@@ -50,7 +51,7 @@ if [ -x "${MYSQLDUMP}" ]; then
   # archivos *.sql.
   cd "${BDB_BACKUP_PATH}" || exit
 
-  if [ "$(find ./*.sql -maxdepth 0 -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
+  if [ "$(find ./* -name "*.sql" -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
 
       if [ "${PGP_ID}" != "" ]; then
           LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.gpg.list"
@@ -58,10 +59,13 @@ if [ -x "${MYSQLDUMP}" ]; then
           LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.list"
       fi
 
-      find ./* -maxdepth 0 -type f -printf "%f\n" | grep --invert-match backup-"${HOST}"-mysql > "${LIST}"
-      FILES=$(cat "${LIST}")
-      file_backup "${BDB_BACKUP_PATH}"/"${BDB_FILE}" "${FILES}"
-      rm -f "${FILES}"
+      find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-mysql" > "${LIST}"
+      file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "${LIST}"
+
+      # Eliminar volcados SQL.
+      while IFS= read -r file; do
+        rm -f "${file}"
+      done < "${LIST}"
 
       # Borrado de copias de seguridad antiguas con tmpwatch
       clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_BACKUP_PATH}"
