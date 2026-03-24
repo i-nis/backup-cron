@@ -4,6 +4,8 @@ set -e
 if ! getent passwd admin > /dev/null; then
     echo "Creating admin user..."
     useradd -m -d /home/admin -s /bin/rbash -U admin
+    chmod 750 /home/admin
+    usermod --append --groups admin nagios
   else
    echo "The admin user already exists.."
 fi
