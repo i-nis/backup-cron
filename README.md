@@ -44,7 +44,7 @@ realizar los siguientes pasos:
 sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates
 ```
 
-2. Descargar la clave de distribución.
+2. Descargar la clave de distribución:
 
 ```sh
 sudo curl --fail --silent --show-error --output /etc/apt/keyrings/backup-cron.asc \
@@ -57,6 +57,13 @@ sudo curl --fail --silent --show-error --output /etc/apt/keyrings/backup-cron.as
 echo "deb [arch=all signed-by=/etc/apt/keyrings/backup-cron.asc] https://gitlab.nis.com.ar/api/v4/projects/6/packages/debian stable main" \
       | sudo tee /etc/apt/sources.list.d/backup-cron.list
 ```
+
+4. Instalar backup-cron:
+
+```sh
+apt install backup-cron
+```
+
 
 ### Gentoo Linux
 
