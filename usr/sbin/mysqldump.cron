@@ -31,6 +31,9 @@ if [ -x "${MYSQLDUMP}" ]; then
   directory_mkdir "${BDB_BACKUP_PATH}"
 
   # Volcado de bases de datos en SQL
+  # TODO: Agregar la siguiente opción:
+  #       -E, --events        Dump events.
+  #
   for database in $(show_databases_mysql "${BDB_USER}" "${BDB_PASSWD}" "${BDB_HOST}"); do
     ${MYSQLDUMP} --opt --single-transaction --skip-lock-tables --user=${BDB_USER} \
                  --password=${BDB_PASSWD} --host=${BDB_HOST} "${database}" \
