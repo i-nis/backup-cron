@@ -63,7 +63,7 @@ build_deb_pkg:
       Section: admin
       Priority: optional
       Architecture: all
-      Depends: bzip2, mailutils, mbuffer, monitoring-plugins, pv, tar, tmpreaper
+      Depends: bzip2, mailutils, mbuffer, monitoring-plugins, pv, rsync, tar, tmpreaper
       Maintainer: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
       Description: A minimalist backup copy generation system.
       EOF
