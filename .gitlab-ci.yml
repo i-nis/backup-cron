@@ -40,17 +40,8 @@ build_deb_pkg:
     - mkdir -p ${CI_PROJECT_NAME}/DEBIAN
     - cp -r DEBIAN/ ${CI_PROJECT_NAME}
     - chmod 755 ${CI_PROJECT_NAME}/DEBIAN/*
-    - mkdir -p ${CI_PROJECT_NAME}/etc/{cron.daily,cron.monthly}
-    - cp -r etc/backup-cron/ ${CI_PROJECT_NAME}/etc
-    - cp etc/cron.daily/clean_backup_etc.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_etc
-    - cp etc/cron.daily/clean_backup_home.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_home
-    - cp etc/cron.daily/clean_backup_libvirt.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_libvirt
-    - cp etc/cron.daily/clean_backup_system.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_backup_system
-    - cp etc/cron.daily/clean_mysqldump.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_mysqldump
-    - cp etc/cron.daily/clean_pg_dump.cron ${CI_PROJECT_NAME}/etc/cron.daily/clean_pg_dump
+    - cp -r etc/ ${CI_PROJECT_NAME}
     - chmod 755 ${CI_PROJECT_NAME}/etc/cron.daily/*
-    - cp etc/cron.monthly/00_backup_etc.cron ${CI_PROJECT_NAME}/etc/cron.monthly/00_backup_etc
-    - cp etc/cron.monthly/00_backup_raiz.cron ${CI_PROJECT_NAME}/etc/cron.monthly/00_backup_raiz
     - chmod 755 ${CI_PROJECT_NAME}/etc/cron.monthly/*
     - cp -r usr/ ${CI_PROJECT_NAME}
     - chmod 755 ${CI_PROJECT_NAME}/usr/lib/nagios/plugins/*
