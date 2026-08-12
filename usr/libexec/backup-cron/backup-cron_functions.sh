@@ -742,7 +742,8 @@ remote_backup() {
 
     for ip in ${REMOTE_IP}; do
 
-      for file in $(find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\n"); do
+      find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\0" 2>/dev/null \
+        | while IFS= read -r -d '' file; do
         rsync --archive "${file}" --rsh="ssh -l ${USER}" "${ip}":"${PATH}" &>/dev/null
 
         if [  ${?} -eq 0 ]; then

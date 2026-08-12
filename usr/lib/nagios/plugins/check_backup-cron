@@ -43,25 +43,25 @@ function usage() {
 function status() {
   local STATE=${1}
 
-  case true in
-    $(( STATE == 0 )) )
+  case ${STATE} in
+    0 )
       STATUS="Ok"
       echo "${STATUS}: backup ${DESC} was done without problems."
       return 0
       ;;
-    $(( STATE >= 1 && STATE <= 29 )) )
+    [1-9] | 1[0-9] | 2[0-9] )
       STATUS="Warning"
       local PLURAL="s"
       (( STATE == 1 )) && PLURAL=""
       echo "${STATUS}: last backup ${DESC} was performed ${STATE} day${PLURAL} ago."
       return 1
       ;;
-    $(( STATE == 30 )) )
+    30 )
       STATUS="Critical"
       echo "${STATUS}: there are no backups ${DESC} made in the last ${STATE} days."
       return 2
       ;;
-    $(( STATE == 99 )) )
+    99 )
       STATUS="Critical"
       echo "${STATUS}: there are errors on backups ${DESC}."
       return 2
