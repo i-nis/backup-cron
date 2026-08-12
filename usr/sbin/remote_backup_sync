@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# remote_backup_sync.cron: script para sincronizar copias de seguridad entre 
-# servidores.
+# remote_backup_sync: script para sincronizar copias de seguridad entre servidores.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>

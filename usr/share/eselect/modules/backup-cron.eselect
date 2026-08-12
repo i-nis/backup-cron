@@ -9,9 +9,25 @@ SCHEDULES="daily monthly weekly"
 # find a list of backup-cron symlink targets
 find_targets() {
 	local FILE
+	local PROGRAM
+	local PROGRAMS
 
-	for FILE in "${EROOT}"/usr/sbin/{*backup*,mysqldump,pg_dump}.cron; do
-		[[ -f ${FILE} ]] && basename "${FILE}"
+	PROGRAMS=(
+		backup_etc
+		backup_home
+		backup_libvirt
+		backup_mysql
+		backup_postgresql
+		backup_raiz
+		backup_tape
+		backup_usr
+		backup_var
+		remote_backup_sync
+	)
+
+	for PROGRAM in "${PROGRAMS[@]}"; do
+		file="${EROOT}/usr/sbin/${PROGRAM}"
+		[[ -f ${file} ]] && echo "${PROGRAM}"
 	done
 }
 

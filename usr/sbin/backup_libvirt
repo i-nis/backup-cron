@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# backup_libvirt.cron: script para hacer copias de seguridad de las imágenes de
-# las maquinas virtuales gestionadas por Libvirt.
+# backup_libvirt: script para hacer copias de seguridad de las imágenes de las
+# maquinas virtuales gestionadas por Libvirt.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>

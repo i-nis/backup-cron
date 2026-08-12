@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Script para garantizar que backup_etc.cron realice un respaldo total.
+# Script para garantizar que backup_etc realice un respaldo total.
 #
-# (C) 2006 - 2025 NIS
+# (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #

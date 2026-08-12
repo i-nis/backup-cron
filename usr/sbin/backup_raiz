@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# backup_raiz.cron: script para hacer copias de seguridad de la raíz del
-# sistema.
+# backup_raiz: script para hacer copias de seguridad de la raíz del sistema.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>

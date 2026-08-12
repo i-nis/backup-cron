@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# backup_usr.cron: script para hacer copias de seguridad del
-# directorio /usr.
+# backup_usr: script para hacer copias de seguridad del directorio /usr.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>

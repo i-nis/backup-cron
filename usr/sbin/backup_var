@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# backup_var.cron: script para hacer copias de seguridad del
-# directorio /var.
+# backup_var: script para hacer copias de seguridad del directorio /var.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
