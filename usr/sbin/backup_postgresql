@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# pg_dump.cron: script para hacer copias de seguridad de bases de
-# datos PostgreSQL
+# backup_postgresql: script para hacer copias de seguridad de bases de datos
+# PostgreSQL.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
@@ -23,7 +23,8 @@ export PGPASSWORD=${BDB_PG_PASSWD}
 BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
 
 # Nombre del archivo de respaldo.
-BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.tar.bz2"
+FILE_EXTENSION=$(file_extension)
+BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.${FILE_EXTENSION}"
 
 if [ -e "${BACKUP_PATH}" ]; then
 
@@ -35,8 +36,10 @@ if [ -e "${BACKUP_PATH}" ]; then
 
     # Volcado de bases de datos en SQL
     for database in $(show_databases_pg "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_HOST}"); do
-      ${PG_DUMP} --username="${BDB_PG_USER}" --host="${BDB_PG_HOST}" --create "${database}" \
-      > "${BDB_PG_BACKUP_PATH}/${database}".sql 2>"${BDB_PG_BACKUP_PATH}/${database}".sql.error
+      ${PG_DUMP} --username="${BDB_PG_USER}" \
+        --host="${BDB_PG_HOST}" \
+        --create "${database}" \
+        > "${BDB_PG_BACKUP_PATH}/${database}".sql 2>"${BDB_PG_BACKUP_PATH}/${database}".sql.error
 
       # Comprueba si el respaldo fue correctamente realizado
       if [ "$?" -eq 0 ]; then

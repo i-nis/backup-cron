@@ -1,5 +1,5 @@
 # -*-eselect-*-  vim: ft=eselect
-# Copyright 2005-2019 Gentoo Authors
+# Copyright 2005-2026 Gentoo Authors
 # Distributed under the terms of the GNU GPL version 2 or later
 
 DESCRIPTION="Manage the backup-cron symlinks"

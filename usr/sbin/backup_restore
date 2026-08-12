@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# backup_restore: script para restaurar respaldos totales e incrementales.
+# backup_restore: script para restaurar respaldos totales o incrementales.
 #
 # (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
@@ -26,8 +26,8 @@ usage() {
   echo ""
   echo "  Uso: "
   echo "       ${PROG_NAME} [-h|--help]"
-  echo "       ${PROG_NAME} FILE.tar.bz2"
-  echo "       ${PROG_NAME} [-d|--directory] DIRECTORY [-i|--incremental] FILE-full.tar.bz2"
+  echo "       ${PROG_NAME} BACKUP_FILE"
+  echo "       ${PROG_NAME} [-d|--directory] DIRECTORY [-i|--incremental] BACKUP_FILE"
   echo ""
   echo "       --directory, -d"
   echo "           Indica el directorio donde se desempaquetará el respaldo."
@@ -41,22 +41,22 @@ usage() {
   echo "       DIRECTORY"
   echo "           Directorio donde desempaquetar el respaldo."
   echo ""
-  echo "       FILE.tar.bz2"
-  echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
+  echo "       BACKUP_FILE"
+  echo "           Archivo de respaldo generado por la utilidad Backup-cron."
   echo ""
 }
 
 
 
-# Dado un argumento verifica si se trata de un archivo .tar.bz2 o .tar.bz2.gpg.
+# Dado un argumento verifica si se trata de un archivo de respaldo.
 # TEST: argumento a verificar.
 #
-tbz2_verify() {
+backup_file_verify() {
   local TEST
 
   TEST="${1}"
 
-  if backup_file_exists "${TEST}"; then
+  if [ -e "${TEST}" ]; then
       verify_set "${TEST}"
       BACKUP_FILE="${TEST}"
     elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
@@ -192,10 +192,12 @@ SUM=""
 if [ "${#}" == "0" ]; then
     no_file
   elif [ "${#}" == "1" ]; then
-    tbz2_verify "${1}"
+    backup_file_verify "${1}"
+    verify_compressor_restore "${1}"
   else
     parameters "${@}"
-    tbz2_verify "${@: -1}"
+    backup_file_verify "${@: -1}"
+    verify_compressor_restore "${@: -1}"
 fi
 
 if [ "${DIRECTORY}" == "" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# backup-cron_functions.sh: funciones comunes para los script de copias de
+# backup-cron_functions.sh: funciones comunes para los scripts de copias de
 # seguridad.
 #
 # (C) 2006 - 2026 NIS
@@ -24,9 +24,9 @@ message_syslog() {
   local NAME
 
   MESSAGE="${1}"
-  NAME=$(/usr/bin/basename "$0" 2>/dev/null)
+  NAME=$(basename "$0" 2>/dev/null)
 
-  /usr/bin/logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/"${NAME}"-"${HOST}".txt
+  logger --id=$$ --stderr "${NAME}: ${MESSAGE}" &>> /tmp/"${NAME}"-"${HOST}".txt
 }
 
 
@@ -41,12 +41,12 @@ send_mail() {
   local NAME
 
   SUBJECT="${1}"
-  NAME=$(/usr/bin/basename "$0" 2>/dev/null)
+  NAME=$(basename "$0" 2>/dev/null)
 
-  /usr/bin/cut --delimiter='>' --fields=2 /tmp/"${NAME}"-"${HOST}".txt | \
-  /usr/bin/mail -s "${SUBJECT} ${NAME}" "${RECIPIENTS}"
+  cut --delimiter='>' --fields=2 /tmp/"${NAME}"-"${HOST}".txt | \
+  mail -s "${SUBJECT} ${NAME}" "${RECIPIENTS}"
 
-  /usr/bin/rm -f /tmp/"${NAME}"-"${HOST}".txt
+  rm -f /tmp/"${NAME}"-"${HOST}".txt
 }
 
 
@@ -61,9 +61,9 @@ directory_mkdir() {
   DIRECTORY="${1}"
 
   if [ ! -e "${DIRECTORY}" ]; then
-    /usr/bin/mkdir --parents "${DIRECTORY}"
-    /usr/bin/chmod u=rwx,go=rx  "${DIRECTORY}"
-    /usr/bin/chown admin:admin "${DIRECTORY}" &>/dev/null
+    mkdir --parents "${DIRECTORY}"
+    chmod u=rwx,go=rx  "${DIRECTORY}"
+    chown admin:admin "${DIRECTORY}" &>/dev/null
     message_syslog "El directorio ${DIRECTORY} fue creado."
   fi
 
@@ -79,8 +79,8 @@ file_perms() {
 
   FILE="${1}"
 
-  /usr/bin/chown admin:admin "${FILE}" &>/dev/null
-  /usr/bin/chmod u=rw,g=r,o= "${FILE}" &>/dev/null
+  chown admin:admin "${FILE}" &>/dev/null
+  chmod u=rw,g=r,o= "${FILE}" &>/dev/null
   message_syslog "Modificado dueño y permisos para ${FILE}."
 }
 
@@ -92,10 +92,10 @@ set_mysql() {
 
   MYSQL=""
 
-  if [ -x /usr/bin/mariadb ]; then
-      MYSQL="/usr/bin/mariadb"
+  if command -v mariadb >/dev/null 2>&1; then
+      MYSQL="mariadb"
     else
-      MYSQL="/usr/bin/mysql"
+      MYSQL="mysql"
   fi
 
   echo "${MYSQL}"
@@ -107,10 +107,10 @@ set_mysql() {
 set_mysqldump() {
   local MYSQLDUMP
 
-  if [ -x /usr/bin/mariadb-dump ]; then
-      MYSQLDUMP="/usr/bin/mariadb-dump"
+  if  command -v mariadb-dump >/dev/null 2>&1; then
+      MYSQLDUMP="mariadb-dump"
     else
-      MYSQLDUMP="/usr/bin/mysqldump"
+      MYSQLDUMP="mysqldump"
   fi
 
   echo "${MYSQLDUMP}"
@@ -139,7 +139,7 @@ show_databases_mysql() {
 
   DATABASES=$(${MYSQL} --batch --skip-pager --skip-column-names --raw \
               --execute='SHOW DATABASES;' --user="${USER}" --password="${PASSWD}" \
-              --host="${HOST}" | /usr/bin/grep -v -E ${EXCLUDE})
+              --host="${HOST}" | grep -v -E ${EXCLUDE})
 
   echo "${DATABASES}"
 }
@@ -165,10 +165,10 @@ show_databases_pg() {
 
   export PGPASSWORD=${PASSWD}
 
-  DATABASES=$(/usr/bin/psql --tuples-only --list --username="${USER}" --host="${HOST}" \
-            | /usr/bin/awk -F \| /^.*/'{print $1}' \
-            | /usr/bin/grep -v -E ${EXCLUDE} | tr -d ' ' \
-            | /usr/bin/sed '/^$/d' | /usr/bin/sed '/^$/d')
+  DATABASES=$(psql --tuples-only --list --username="${USER}" --host="${HOST}" \
+            | awk -F \| /^.*/'{print $1}' \
+            | grep -v -E ${EXCLUDE} | tr -d ' ' \
+            | sed '/^$/d' | sed '/^$/d')
 
   echo "${DATABASES}"
 }
@@ -183,16 +183,16 @@ database_verify() {
 
   DATABASE="${1}"
 
-  if [ "$(/usr/bin/wc -c < "${DATABASE}")" == "0" ]; then
-      /usr/bin/rm -f "${DATABASE}"
+  if [ "$(wc -c < "${DATABASE}")" == "0" ]; then
+      rm -f "${DATABASE}"
       message_syslog "El archivo ${DATABASE} estaba vacío."
     else
       file_perms "${DATABASE}"
       message_syslog "Se ha creado correctamente ${DATABASE}."
   fi
 
-  if [ "$(/usr/bin/wc -c < "${DATABASE}".error)" == "0" ]; then
-    /usr/bin/rm -f "${DATABASE}".error
+  if [ "$(wc -c < "${DATABASE}".error)" == "0" ]; then
+    rm -f "${DATABASE}".error
     message_syslog "No se detectaron errores en ${DATABASE}."
   fi
 
@@ -211,7 +211,7 @@ image_path() {
   DOMAIN="${1}"
   DISK="${2}"
 
-  /usr/bin/virsh domblklist "${DOMAIN}" | /usr/bin/awk -F \  /"${DISK}"/'{print $2}'
+  virsh domblklist "${DOMAIN}" | awk -F \  /"${DISK}"/'{print $2}'
 }
 
 
@@ -228,8 +228,8 @@ image_disk() {
 
   DOMAIN="${1}"
   IMAGE_PATH="${2}"
-  IMAGE_NAME=$(/usr/bin/basename "${IMAGE_PATH}")
-  /usr/bin/virsh domblklist "${DOMAIN}" | /usr/bin/awk -F \  /"${IMAGE_NAME}"/'{print $1}'
+  IMAGE_NAME=$(basename "${IMAGE_PATH}")
+  virsh domblklist "${DOMAIN}" | awk -F \  /"${IMAGE_NAME}"/'{print $1}'
 }
 
 
@@ -254,18 +254,18 @@ snapshot() {
   case ${ACTION} in
     create )
       # Se crea la instantánea como archivo separado y este pasa a ser la imagen.
-      /usr/bin/virsh snapshot-create-as "${DOMAIN}" "${SNAPSHOT}" --disk-only --atomic --quiesce
+      virsh snapshot-create-as "${DOMAIN}" "${SNAPSHOT}" --disk-only --atomic --quiesce
       message_syslog "Se ha creado la instantánea ${SNAPSHOT}."
       ;;
     delete )
       IMAGE_PATH=$(image_path "${DOMAIN}" "${DISK}")
       # Se envían los cambios desde la instantánea a la imagen principal y luego
       # se realiza el cambio a esta última.
-      /usr/bin/virsh blockcommit "${DOMAIN}" "${DISK}" --active --pivot
+      virsh blockcommit "${DOMAIN}" "${DISK}" --active --pivot
 
       # Se elimina el archivo creado por la instantánea.
-      SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | /usr/bin/grep "${SNAPSHOT}")
-      /usr/bin/rm -f "${SNAPSHOT_FILE}"
+      SNAPSHOT_FILE=$(echo "${IMAGE_PATH}" | grep "${SNAPSHOT}")
+      rm -f "${SNAPSHOT_FILE}"
       message_syslog "Se ha eliminado la instantánea ${SNAPSHOT_FILE}."
       ;;
   esac
@@ -286,7 +286,7 @@ qcow2_backup() {
   IMAGE="${1}"
   BACKUP_FILE="${2}"
 
-  /usr/bin/qemu-img convert --force-share -c -O qcow2 "${IMAGE}" "${BACKUP_FILE}"
+  qemu-img convert --force-share -c -O qcow2 "${IMAGE}" "${BACKUP_FILE}"
   message_syslog "El archivo de respaldo ${BACKUP_FILE} fue creado."
 }
 
@@ -302,12 +302,12 @@ libvirt_backup() {
   local EXT
 
   BLIBVIRT_BACKUP_PATH="${1}"
-  DOMAINS=$(/usr/bin/virsh list --name | /usr/bin/sed '/^ *$/d')
+  DOMAINS=$(virsh list --name | sed '/^ *$/d')
 
   for domain in ${DOMAINS}; do
     # Búsqueda de imágenes de discos utilizados por cada dominio (maquina virtual).
-    IMAGES=$(/usr/bin/virsh domblklist "${domain}" | \
-           /usr/bin/awk -F \  /^\ [sv]d*/'{print $2}'| /usr/bin/sed '/- *$/d')
+    IMAGES=$(virsh domblklist "${domain}" | \
+           awk -F \  /^\ [sv]d*/'{print $2}'| sed '/- *$/d')
     message_syslog "Comenzando el respaldo para el dominio ${domain}."
 
     # Creación de instantáneas para los discos del dominio.
@@ -318,8 +318,8 @@ libvirt_backup() {
     for image in ${IMAGES}; do
       # Busca la extensión de imagen: .img, .qcow, .qcow2, .raw, etc. Para devolver
       # el nombre sin extensión en IMAGE_NAME.
-      EXT=$(echo "${image}" | /usr/bin/awk -F \. //'{print $(NF)}')
-      IMAGE_NAME=$(/usr/bin/basename "${image}" ."${EXT}")
+      EXT=$(echo "${image}" | awk -F \. //'{print $(NF)}')
+      IMAGE_NAME=$(basename "${image}" ."${EXT}")
 
       DISK=$(image_disk "${domain}" "${IMAGE_NAME}.${SNAPSHOT}")
       BACKUP_FILE="${BLIBVIRT_BACKUP_PATH}/${IMAGE_NAME}-${FECHA}.qcow2"
@@ -338,10 +338,146 @@ libvirt_backup() {
     done
 
     # Se eliminan los metadatos de la instantánea.
-    /usr/bin/virsh snapshot-delete "${domain}" "${SNAPSHOT}" --metadata
+    virsh snapshot-delete "${domain}" "${SNAPSHOT}" --metadata
 
   done
 }
+
+
+
+# Función para detectar la extensión del archivo de respaldo. 
+# en base a las características del sistema o las decisiones del usuario.
+# Devuelve la extensión a utilizar por GNU tar para generar el archivo de respaldo.
+#
+file_extension(){
+  local FORCE_BZIP2
+
+  FORCE_BZIP2="${FORCE_LEGACY_BZIP2:-false}"
+
+  # Si el usuario desea utilizar bzip2 debe configurar FORCE_LEGACY_BZIP2=true
+  # en el archivo de configuración /etc/backup-cron/backup-cron.conf. 
+  if [ "${FORCE_BZIP2}" != "true" ]; then
+
+    if command -v zstd >/dev/null 2>&1; then
+        # El sistema cuenta con zstd
+        echo "tar.zst"
+      elif command -v xz >/dev/null 2>&1; then
+        # El sistema no tiene zstd, pero cuenta con xz.
+        echo "tar.xz"
+      else
+        # El sistema no cuenta ni con zstd ni xz, se utiliza bzip2.
+        echo "tar.bz2"
+    fi
+
+    else
+      # El usuario configuró FORCE_LEGACY_BZIP2=true.
+      echo "tar.bz2"
+  fi
+
+}
+
+
+
+# Función para obtener la memoria RAM disponible.
+# Devuelve la memoria RAM disponible en MiB.
+#
+get_available_memory(){
+  local RAM_KB
+  local RAM_MB
+  
+  # Extrae la memoria RAM disponible.
+  if grep -q "MemAvailable" /proc/meminfo; then
+    # En sistemas modernos.
+    RAM_KB=$(awk '/MemAvailable/ {print $2}' /proc/meminfo 2>/dev/null || echo 512000)
+  else
+    # En sistemas antiguos.
+    RAM_KB=$(awk '/MemFree/ {free=$2} /Buffers/ {buf=$2} /^Cached/ {cached=$2} \
+      END {print free+buf+cached}' /proc/meminfo 2>/dev/null || echo 512000)
+  fi
+
+  RAM_MB=$((RAM_KB / 1024))
+  echo "${RAM_MB}"
+}
+
+
+
+# Función para detectar la utilidad de compresión disponible y ajustar los parámetros 
+# en base a las características del sistema o las decisiones del usuario.
+# Devuelve el comando de compresión a utilizar por GNU tar.
+#
+get_compress_program() {
+  local CPUS
+  local FORCE_BZIP2
+  local RAM_AVAIL
+  local RAM_HALF_AVAIL
+
+  # Auto-detección de Hardware para Zstandard o XZ Utils.
+  CPUS=$(nproc 2>/dev/null || echo 1)
+  RAM_AVAIL=$(get_available_memory)
+
+  FORCE_BZIP2="${FORCE_LEGACY_BZIP2:-false}"
+
+  # Si el usuario desea utilizar bzip2 debe configurar FORCE_LEGACY_BZIP2=true
+  # en el archivo de configuración /etc/backup-cron/backup-cron.conf. 
+  if [ "${FORCE_BZIP2}" != "true" ]; then
+
+    if command -v zstd >/dev/null 2>&1; then
+        # El sistema cuenta con zstd
+
+        if [ "${RAM_AVAIL}" -lt 512 ]; then
+            # Sistemas con 1 CPU y menos de 512MiB de RAM libre.
+            # Compresión con un solo hilo (~75MiB de RAM).
+            echo "zstd -15 --threads=1"
+          elif [ "${RAM_AVAIL}" -ge 512 ] && [ "${RAM_AVAIL}" -lt 1536 ]; then
+            # Entornos con RAM libre entre 512MiB y 1536MiB.
+
+            if [ "${CPUS}" -gt 1 ]; then
+              # El sistema cuenta con mas de 1 CPU.
+              # Compresión con dos hilos (~150MiB de RAM).
+              echo "zstd -15 --threads=2"
+            else
+              # El sistema cuenta solo con 1 CPU.
+              # Compresión con un solo hilo (~75MiB de RAM).
+              echo "zstd -15 --threads=1"
+            fi
+
+          else
+            # Sistemas con mas de 1536MiB de RAM disponible y múltiples CPUs.
+            # Compresión estándar, multi-hilo.
+            echo "zstd -15 --threads=0"
+        fi
+
+      elif command -v xz >/dev/null 2>&1; then
+        # El sistema no tiene zstd, pero cuenta con xz.
+
+        if [ "${RAM_AVAIL}" -lt 512 ]; then
+            # Sistemas con 1 CPU y menos de 512MiB de RAM libre.
+            # Compresión con un solo hilo (~95MiB de RAM).
+            echo "xz -6 --threads=1 -M ${RAM_AVAIL}MiB"
+          elif [ "${CPUS}" -gt 1 ] && [ "${RAM_AVAIL}" -gt 4096 ]; then
+            # Sistemas con múltiples CPUs y mas de 4096MiB de RAM.
+            # Compresión estándar, multi-hilo.
+            echo "xz -6 --threads=0"
+          else
+            # Sistemas entre con RAM disponible entre 512MiB y 4096MiB.
+            # Compresión estándar, multi-hilo verificando que no exceda la RAM
+            # disponible.
+            RAM_HALF_AVAIL=$((RAM_AVAIL / 2))
+            echo "xz -6 --threads=0 -M ${RAM_HALF_AVAIL}MiB"
+        fi
+
+      else
+        # El sistema no cuenta ni con zstd ni xz, se utiliza bzip2.
+        echo "bzip2"
+    fi
+
+    else
+      # El usuario configuró FORCE_LEGACY_BZIP2=true.
+      echo "bzip2"
+  fi
+
+}
+
 
 
 # Función para realizar respaldos en disco mediante GNU Tar.
@@ -351,15 +487,23 @@ libvirt_backup() {
 #
 file_backup() {
   local BACKUP
-  local FILES
+  local COMPRESS
   local EXCLUDE
+  local FILES
+  local FILE_EXTENSION
 
   BACKUP="${1}"
   FILES="${2}"
+  COMPRESS=$(get_compress_program)
   EXCLUDE="/etc/backup-cron/exclude.txt"
+  FILE_EXTENSION=$(file_extension)
+  BACKUP="${BACKUP}.${FILE_EXTENSION}"
 
-  /usr/bin/tar --create --bzip2 --preserve-permissions --file "${BACKUP}" \
-               --files-from "${FILES}" &>/dev/null
+  tar --create \
+    --use-compress-program="${COMPRESS}" \
+    --preserve-permissions \
+    --file "${BACKUP}" \
+    --files-from "${FILES}" &>/dev/null
 
   # Se verifica que GNU Tar se haya ejecutado correctamente.
   if [ $? -eq 0 ]; then
@@ -382,30 +526,42 @@ file_backup() {
 #
 file_backup_incremental() {
   local BACKUP
+  local COMPRESS
   local DIRS
   local DAYOFMONTH
   local EXCLUDE
+  local FILE_EXTENSION
   local LEVEL
   local SNAR
 
   BACKUP="${1}"
   DIRS="${2}"
+  COMPRESS=$(get_compress_program)
   DAYOFMONTH=$(date +%d)
   EXCLUDE="/etc/backup-cron/exclude.txt"
   LEVEL=""
   SNAR="${BACKUP}.snar"
+  FILE_EXTENSION=$(file_extension)
 
   if [ "${DAYOFMONTH}" -eq 01 ] || [ ! -e "${SNAR}" ]; then
       LEVEL="0"
-      BACKUP="${BACKUP}-full-${FECHA}.tar.bz2"
+      BACKUP="${BACKUP}-full-${FECHA}.${FILE_EXTENSION}"
     else
       LEVEL="1"
-      BACKUP="${BACKUP}-incremental-${FECHA}.tar.bz2"
+      BACKUP="${BACKUP}-incremental-${FECHA}.${FILE_EXTENSION}"
   fi
 
-  /usr/bin/tar --create --bzip2 --preserve-permissions --xattrs --xattrs-include=*.* \
-  --ignore-failed-read --file "${BACKUP}" --listed-incremental="${SNAR}" --level="${LEVEL}" \
-  --exclude-backups --exclude-caches --exclude-from="${EXCLUDE}" ${DIRS} &>/dev/null
+  tar --create \
+    --use-compress-program="${COMPRESS}" \
+    --preserve-permissions \
+    --xattrs --xattrs-include=*.* \
+    --ignore-failed-read \
+    --file "${BACKUP}" \
+    --listed-incremental="${SNAR}" \
+    --level="${LEVEL}" \
+    --exclude-backups \
+    --exclude-caches \
+    --exclude-from="${EXCLUDE}" ${DIRS} &>/dev/null
 
   tar_not_empty "${BACKUP}"
   file_encrypt "${BACKUP}"
@@ -424,7 +580,7 @@ tape_backup() {
   DIRS="${1}"
   EXCLUDE="/etc/backup-cron/exclude.txt"
 
-  /usr/bin/tar --create --blocking-factor=64 --preserve-permissions --xattrs \
+  tar --create --blocking-factor=64 --preserve-permissions --xattrs \
                --xattrs-include=*.* --exclude-backups --exclude-caches \
                --exclude-from="${EXCLUDE}" "${DIRS}" | \
                mbuffer -t -m 128M -p 90 -s 65536 -f -o "${TAPE}" &>/dev/null
@@ -442,11 +598,11 @@ tar_not_empty() {
   local TEST
 
   FILE="${1}"
-  TEST=$(/usr/bin/tar --list --file "${FILE}" | head -n 1 | /usr/bin/wc -l)
+  TEST=$(tar --list --file "${FILE}" | head -n 1 | wc -l)
 
   if [ "${TEST}" == "0" ]; then
       message_syslog "Archivo de respaldo ${FILE} sin datos, se procede a eliminarlo."
-      /usr/bin/rm -f "${FILE}"
+      rm -f "${FILE}"
       exit 1
     else
       message_syslog "Se ha creado el archivo de respaldo ${FILE}."
@@ -466,8 +622,8 @@ gensum() {
   local DIRECTORY
   local HASHES
 
-  FILE=$(echo "${1}" | /usr/bin/awk -F / //'{print $(NF)}')
-  DIRECTORY=$(echo "${1}" | /usr/bin/awk -F /"${FILE}" //'{print $1}')
+  FILE=$(echo "${1}" | awk -F / //'{print $(NF)}')
+  DIRECTORY=$(echo "${1}" | awk -F /"${FILE}" //'{print $1}')
   HASHES="md5 sha1 sha256"
 
   cd "${DIRECTORY}" || exit
@@ -493,11 +649,11 @@ file_encrypt() {
   FILE="${1}"
 
   if [ "${PGP_ID}" != "" ]; then
-      /usr/bin/gpg --encrypt --recipient "${PGP_ID}" --compress-algo none --output "${FILE}".gpg "${FILE}"
+      gpg --encrypt --recipient "${PGP_ID}" --compress-algo none --output "${FILE}".gpg "${FILE}"
 
       # Se verifica que GNUPG haya encriptado correctamente.
       if [ $? -eq 0 ]; then
-          /usr/bin/rm -f "${FILE}"
+          rm -f "${FILE}"
           message_syslog "Se ha encriptado el archivo de respaldo ${BACKUP} como ${BACKUP}.gpg."
           file_perms "${BACKUP}.gpg"
           gensum "${BACKUP}.gpg"
@@ -532,10 +688,10 @@ remove_incremental_backup() {
   ERASE_FILES=""
 
   cd "${DIRECTORY}" || exit
-  ERASE_FILES=$(find ./*"${ERASE_DATE}"*.tar.bz2* -maxdepth 0 -type f -printf "%f\n" 2>/dev/null)
+  ERASE_FILES=$(find ./*"${ERASE_DATE}"*.tar.* -maxdepth 0 -type f -printf "%f\n" 2>/dev/null)
 
   for file in ${ERASE_FILES}; do
-    /usr/bin/rm -f "${file}" &>/dev/null
+    rm -f "${file}" &>/dev/null
     message_syslog "Se eliminó el archivo obsoleto ${file}."
   done
 
@@ -543,10 +699,10 @@ remove_incremental_backup() {
 
 
 
-# Función para borrar copias de respaldo antigüas.
+# Función para borrar copias de respaldo antiguas.
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
-# PATH: ruta al directorio donde se encuentran los archivos antigüos a borrar.
+# PATH: ruta al directorio donde se encuentran los archivos antiguos a borrar.
 #
 # TODO: find . -name "" -mtime + | xargs echo
 #
@@ -586,8 +742,8 @@ remote_backup() {
 
     for ip in ${REMOTE_IP}; do
 
-      for file in $(/usr/bin/find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\n"); do
-        /usr/bin/rsync --archive "${file}" --rsh="/usr/bin/ssh -l ${USER}" "${ip}":"${PATH}" &>/dev/null
+      for file in $(find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\n"); do
+        rsync --archive "${file}" --rsh="ssh -l ${USER}" "${ip}":"${PATH}" &>/dev/null
 
         if [  ${?} -eq 0 ]; then
             message_syslog "El archivo ${file} fue copiado al servidor ${ip}."
@@ -607,25 +763,6 @@ remote_backup() {
 #-------------------------------------------------------------------------------
 # Funciones para restaurar datos
 #-------------------------------------------------------------------------------
-
-
-
-# Dada una ruta a un respaldo, verifica que exista en el sistema de archivo.
-# Devuelve verdadero en caso de existir
-# FILE: nombre del archivo a verificar.
-#
-backup_file_exists() {
-  local FILE
-
-  FILE="${1}"
-
-  if [ -e "${FILE}" ]; then
-      true
-    else
-      false
-  fi
-
-}
 
 
 
@@ -649,8 +786,8 @@ file_no_exist() {
 # Ejemplo al invocar el scrit /usr/sbin/mysql_restore.
 #
 no_file() {
-  warning "ERROR" "No se especificó ningun archivo .tar.bz2 o .tar.bz2.gpg. Vea:."
-  echo " $(/usr/bin/basename "${0}") --help"
+  warning "ERROR" "No se especificó ningun archivo de respaldo. Vea:."
+  echo " $(basename "${0}") --help"
   echo ""
   exit 1
 }
@@ -712,6 +849,35 @@ verify_set() {
 
 
 
+# Función para verificar que existen las herramientas para descomprimir el respaldo.
+#
+verify_compressor_restore() {
+  local FILE
+  local EXT
+
+  FILE="$1"
+
+  # Extrae la extensión del archivo (.zst, .xz, .bz2)
+  EXT="${FILE##*.}"
+
+  case "${EXT}" in
+    zst)
+      if ! command -v zstd >/dev/null 2>&1; then
+        warning "ERROR" "El respaldo requiere 'zstd' para ser restaurado."
+        exit 1
+      fi
+      ;;
+    xz)
+      if ! command -v xz >/dev/null 2>&1; then
+        warning "ERROR" "El respaldo requiere 'xz' para ser restaurado."
+        exit 1
+      fi
+      ;;
+  esac
+}
+
+
+
 # Función para desencriptar archivos mediante GNUPG. Devuelve la ruta al archivo
 # desencriptado.
 # FILE: archivo a desencritpar.
@@ -722,9 +888,9 @@ file_decrypt() {
   local DECRIPT_FILE
 
   FILE="${1}"
-  DECRIPT_FILE="$(echo "${FILE}" | /usr/bin/awk -F .gpg '{print $(1)}')"
+  DECRIPT_FILE="$(echo "${FILE}" | awk -F .gpg '{print $(1)}')"
 
-  /usr/bin/gpg --decrypt --output "${DECRIPT_FILE}" "${FILE}"
+  gpg --decrypt --output "${DECRIPT_FILE}" "${FILE}"
 
   if [ $? -eq 0 ]; then
       echo "${DECRIPT_FILE}"
@@ -737,6 +903,7 @@ file_decrypt() {
 
 
 # Función para mostrar secuencia 1..9
+#
 nine_seconds ()
 {
    for i in 1 2 3 4 5 6 7 8 9; do
@@ -752,6 +919,7 @@ nine_seconds ()
 # Función para desencriptar y desempaquetar respaldos.
 # FILE: archivo a desencritpar.
 # DECRIPT_FILE: archivo desencriptado.
+#
 function unpack() {
   local FILE
   local DIRECTORY
@@ -767,8 +935,14 @@ function unpack() {
       DECRIPT_FILE="${FILE}"
   fi
 
-  /usr/bin/tar --bzip2 --extract --verbose --preserve-permissions --listed-incremental=/dev/null \
-  --xattrs --xattrs-include=*.* --file "${DECRIPT_FILE}" --directory="${DIRECTORY}"
+  tar --extract \
+    --verbose \
+    --preserve-permissions \
+    --listed-incremental=/dev/null \
+    --xattrs \
+    --xattrs-include=*.* \
+    --file "${DECRIPT_FILE}" \
+    --directory="${DIRECTORY}"
 
   if [ ! $? -eq 0 ]; then
     warning "ERROR:" "Error al descomprimir y desempaquetar el archivo ${DECRIPT_FILE}."

@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# check_backup-cron: script para verificar existencias de copias de seguridad.
+# check_backup-cron: script para verificar existencias de copias de respaldo.
 #
-# (C) 2006 - 2025 NIS
+# (C) 2006 - 2026 NIS
 # Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
 # Distributed under the terms of the GNU General Public License v3
 #
@@ -28,12 +28,14 @@ function usage() {
   echo "-t, --type      tipo de respaldo a verificar."
   echo
   echo "TIPO puede ser uno de los siguientes:"
-  echo "  etc          respaldos realizados por backup_etc.cron"
-  echo "  home         respaldos realizados por backup_home.cron"
-  echo "  libvirt      respaldos realizados por backup_libvirt.cron"
-  echo "  mysql        respaldos realizados por mysqldump.cron"
-  echo "  postgresql   respaldos realizados por pg_dump.cron"
-  echo "  system       respaldos realizados por backup_raiz.cron"
+  echo "  etc          respaldos realizados por backup_etc"
+  echo "  home         respaldos realizados por backup_home"
+  echo "  libvirt      respaldos realizados por backup_libvirt"
+  echo "  mysql        respaldos realizados por backup_mysql"
+  echo "  postgresql   respaldos realizados por backup_postgresql"
+  echo "  usr          respaldos realizados por backup_usr"
+  echo "  system       respaldos realizados por backup_raiz"
+  echo "  var          respaldos realizados por backup_var"
 }
 
 
@@ -41,23 +43,25 @@ function usage() {
 function status() {
   local STATE=${1}
 
-  case ${STATE} in
-    0 )
+  case true in
+    $(( STATE == 0 )) )
       STATUS="Ok"
       echo "${STATUS}: backup ${DESC} was done without problems."
       return 0
       ;;
-    [1-29] )
+    $(( STATE >= 1 && STATE <= 29 )) )
       STATUS="Warning"
-      echo "${STATUS}: last backup ${DESC} was performed ${STATE} day ago."
-      return 0
+      local PLURAL="s"
+      (( STATE == 1 )) && PLURAL=""
+      echo "${STATUS}: last backup ${DESC} was performed ${STATE} day${PLURAL} ago."
+      return 1
       ;;
-    30 )
+    $(( STATE == 30 )) )
       STATUS="Critical"
       echo "${STATUS}: there are no backups ${DESC} made in the last ${STATE} days."
       return 2
       ;;
-    99 )
+    $(( STATE == 99 )) )
       STATUS="Critical"
       echo "${STATUS}: there are errors on backups ${DESC}."
       return 2
@@ -81,42 +85,41 @@ fi
 
 
 
+# Configuración de rutas de búsqueda.
+BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
+FILE_BACKUP="backup-${HOST}-${TYPE}"
+EXT=$(file_extension)
+
 case ${TYPE} in
   etc )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
-      FILE_BACKUP="backup-${HOST}-${TYPE}"
-      EXT="tar.bz2"
       DESC="of /etc directory"
   ;;
   home )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
       FILE_BACKUP="backup-${HOST}-${TYPE}-admin"
-      EXT="tar.bz2"
       DESC="of /home directory"
   ;;
   libvirt )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
       FILE_BACKUP="$(virsh list --name | head -1)"
       EXT="qcow2"
       DESC="of virtual machines"
   ;;
   mysql )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
-      FILE_BACKUP="backup-${HOST}-${TYPE}"
-      EXT="tar.bz2"
       DESC="of MySQL databases"
   ;;
   postgresql )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
-      FILE_BACKUP="backup-${HOST}-${TYPE}"
-      EXT="tar.bz2"
       DESC="of PostgreSQL databases"
   ;;
+  usr )
+      FILE_BACKUP="backup-${HOST}-usr"
+      DESC="of /usr directory"
+  ;;
   system )
-      BACKUP_PATH="${BACKUP_PATH}/${HOST}/${TYPE}"
       FILE_BACKUP="backup-${HOST}-raiz"
-      EXT="tar.bz2"
       DESC="of system"
+  ;;
+  var )
+      FILE_BACKUP="backup-${HOST}-var"
+      DESC="of /var directory"
   ;;
   * )
     usage
@@ -124,21 +127,20 @@ case ${TYPE} in
   ;;
 esac
 
+
+
+# Extensiones utilizadas por los respaldos
+EXT_REGEX="(${EXT//./\\.}|tar\.bz2)"
+GPG_REGEX="${EXT_REGEX}(\.gpg)?$"
+
 # Se busca el último backup realizado dentro de los últimos 30 días.
 for i in {0..30}; do
   FECHA=$(date --date="${i} days ago" +%Y%m%d)
+  MATCH_REGEX="${FILE_BACKUP}(|-full|-incremental)-${FECHA}\.${GPG_REGEX}"
+  BACKUP=$(find "${BACKUP_PATH}" -maxdepth 1 -type f \
+    -name "${FILE_BACKUP}*" 2>/dev/null | grep -E "${MATCH_REGEX}" | head -n 1)
 
-  if [ "${PGP_ID}" != "" ]; then
-      BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}.gpg"
-      FULL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-full-${FECHA}.${EXT}.gpg"
-      INCREMENTAL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-incremental-${FECHA}.${EXT}.gpg"
-    else
-      BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-${FECHA}.${EXT}"
-      FULL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-full-${FECHA}.${EXT}"
-      INCREMENTAL_BACKUP="${BACKUP_PATH}/${FILE_BACKUP}-incremental-${FECHA}.${EXT}"
-  fi
-
-  if [ -f "${BACKUP}" ] || [ -f "${FULL_BACKUP}" ] || [ -f "${INCREMENTAL_BACKUP}" ]; then
+  if [ -f "${BACKUP}" ]; then
 
       # Se verifica que los respaldos realizados se correspondan con el número
       # de bases de datos MySQL exitentes.
@@ -174,9 +176,8 @@ for i in {0..30}; do
 
         break
       fi
-
-      if [ "${TYPE}" == "etc" ] || [ "${TYPE}" == "home" ] || [ "${TYPE}" == "libvirt" ] \
-         || [ "${TYPE}" == "system" ]; then
+      
+      if [[ "${TYPE}" =~ ^(etc|home|libvirt|usr|system|var)$ ]]; then
           status 0
         else
           status "${i}"

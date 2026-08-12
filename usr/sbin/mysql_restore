@@ -24,7 +24,7 @@ usage() {
   echo ""
   echo "  Uso: "
   echo "       ${PROG_NAME} [-h|--help]"
-  echo "       ${PROG_NAME} [-d|--database] DATABASE [-l|--local] FILE.tar.bz2"
+  echo "       ${PROG_NAME} [-d|--database] DATABASE [-l|--local] BACKUP_FILE"
   echo ""
   echo "       --help, -h"
   echo "           Muestra esta ayuda."
@@ -41,7 +41,7 @@ usage() {
   echo "           Utiliza la configuración de bakup-cron almacenada en el archivo"
   echo "           de configuración /etc/backup-cron/backup-cron.conf."
   echo ""
-  echo "       FILE.tar.bz2"
+  echo "       BACKUP_FILE"
   echo "           Archivo de respaldo generado por la utilidad mysqldump.cron"
   echo ""
 }
@@ -107,13 +107,13 @@ database_exists() {
 
 
 
-# Verifica si el argumento es un archivo .tbz2
-tbz2_verify() {
+# Dado un argumento verifica si se trata de un archivo de respaldo.
+backup_file_verify() {
   local TEST
 
   TEST="${1}"
 
-  if backup_file_exists "${TEST}"; then
+  if [ -e "${TEST}" ]; then
       verify_set "${TEST}"
       set_mysql_credentials
       MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
@@ -216,16 +216,18 @@ DATABASE_TO_RESTORE="ALL"
 DECRIPT_FILE=""
 DIGEST=""
 EXT=""
-TAR_OPTIONS="--bzip2 --extract --verbose --preserve-permissions"
+TAR_OPTIONS="--extract --verbose --preserve-permissions"
 SUM=""
 
 if [ "${#}" == "0" ]; then
     no_file
   elif [ "${#}" == "1" ]; then
-    tbz2_verify "${1}"
+    backup_file_verify "${1}"
+    verify_compressor_restore "${1}"
   else
     parameters "${@}"
-    tbz2_verify "${@: -1}"
+    backup_file_verify "${@: -1}"
+    verify_compressor_restore "${@: -1}"
 fi
 
 # Seleccionar al azar un algoritmo de suma.

@@ -15,8 +15,8 @@ Backup-cron es software libre publicado bajo la [Licencia Pública General de GN
 El conjunto de scripts se ha desarrollado con las siguientes características:
 
 * Empaquetado mediante GNU tar.
-* Compresión utilizando Bzip2.
-* Encriptación de respaldos mediange GnuPG.
+* Compresión utilizando [Zstandard](https://facebook.github.io/zstd/), [XZ Utils](https://tukaani.org/xz/) o [Bzip2](https://sourceware.org/bzip2/).
+* Encriptación de respaldos mediange [GnuPG](https://www.gnupg.org/related_software/gpgme/).
 * Planificación diaria, semanal o mensual vía Cron.
 * Soporte para gestionar la planificación mediante [eselect](https://wiki.gentoo.org/wiki/Eselect).
 * Posibilidad de respaldo de todo el sistema o parte de él.
