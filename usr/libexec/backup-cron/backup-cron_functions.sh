@@ -355,7 +355,7 @@ file_extension(){
   FORCE_BZIP2="${FORCE_LEGACY_BZIP2:-false}"
 
   # Si el usuario desea utilizar bzip2 debe configurar FORCE_LEGACY_BZIP2=true
-  # en el archivo de configuración /etc/backup-cron/backup-cron.conf. 
+  # en el archivo de configuración /etc/backup-cron/backup-cron.conf.
   if [ "${FORCE_BZIP2}" != "true" ]; then
 
     if command -v zstd >/dev/null 2>&1; then
@@ -384,7 +384,7 @@ file_extension(){
 get_available_memory(){
   local RAM_KB
   local RAM_MB
-  
+
   # Extrae la memoria RAM disponible.
   if grep -q "MemAvailable" /proc/meminfo; then
     # En sistemas modernos.
@@ -401,7 +401,7 @@ get_available_memory(){
 
 
 
-# Función para detectar la utilidad de compresión disponible y ajustar los parámetros 
+# Función para detectar la utilidad de compresión disponible y ajustar los parámetros
 # en base a las características del sistema o las decisiones del usuario.
 # Devuelve el comando de compresión a utilizar por GNU tar.
 #
@@ -418,7 +418,7 @@ get_compress_program() {
   FORCE_BZIP2="${FORCE_LEGACY_BZIP2:-false}"
 
   # Si el usuario desea utilizar bzip2 debe configurar FORCE_LEGACY_BZIP2=true
-  # en el archivo de configuración /etc/backup-cron/backup-cron.conf. 
+  # en el archivo de configuración /etc/backup-cron/backup-cron.conf.
   if [ "${FORCE_BZIP2}" != "true" ]; then
 
     if command -v zstd >/dev/null 2>&1; then
@@ -702,22 +702,22 @@ remove_incremental_backup() {
 # Función para borrar copias de respaldo antiguas.
 # TIME: tiempo de modificación utilizado para borrar archivos.
 # TMPCLEAN: variable definida por TMPWATCH en el archivo de configuración.
-# PATH: ruta al directorio donde se encuentran los archivos antiguos a borrar.
+# BPATH: ruta al directorio donde se encuentran los archivos antiguos a borrar.
 #
 # TODO: find . -name "" -mtime + | xargs echo
 #
 clean_old_backups() {
   local TMPCLEAN
   local TIME
-  local PATH
+  local BPATH
 
   TMPCLEAN="${1}"
   TIME="${2}"
-  PATH="${3}"
+  BPATH="${3}"
 
-  if [[ -d ${PATH} ]]; then
-    ${TMPCLEAN} --mtime "${TIME}" "${PATH}"
-    message_syslog "Las copias con antigüedad mayor a ${TIME} hs en ${PATH} fueron borradas."
+  if [[ -d ${BPATH} ]]; then
+    ${TMPCLEAN} --mtime "${TIME}" "${BPATH}"
+    message_syslog "Las copias con antigüedad mayor a ${TIME} hs en ${BPATH} fueron borradas."
   fi
 
 }
@@ -727,24 +727,24 @@ clean_old_backups() {
 # Función para copiar archivos de respaldo en servidores remotos.
 # IP: URL o dirección IP del servidor remoto.
 # USER: usuario para conectarse con el servidor remoto.
-# PATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
+# BPATH: ruta al directorio donde se ubican las copias de respaldo a transferir.
 #
 remote_backup() {
   local REMOTE_IP
   local USER
-  local PATH
+  local BPATH
 
   REMOTE_IP="${1}"
   USER="${2}"
-  PATH="${3}"
+  BPATH="${3}"
 
   if [ "${REMOTE_IP}" != "" ]; then
 
     for ip in ${REMOTE_IP}; do
 
-      find "${PATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\0" 2>/dev/null \
+      find "${BPATH}"/*-"${FECHA}".* -maxdepth 0 -type f -printf "%f\0" 2>/dev/null \
         | while IFS= read -r -d '' file; do
-        rsync --archive "${file}" --rsh="ssh -l ${USER}" "${ip}":"${PATH}" &>/dev/null
+        rsync --archive "${BPATH}/${file}" --rsh="ssh -l ${USER}" "${ip}":"${BPATH}" &>/dev/null
 
         if [  ${?} -eq 0 ]; then
             message_syslog "El archivo ${file} fue copiado al servidor ${ip}."
