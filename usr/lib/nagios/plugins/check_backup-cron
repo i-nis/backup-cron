@@ -131,14 +131,14 @@ esac
 
 # Extensiones utilizadas por los respaldos
 EXT_REGEX="(${EXT//./\\.}|tar\.bz2)"
-GPG_REGEX="${EXT_REGEX}(\.gpg)?$"
+GPG_REGEX="${EXT_REGEX}(\.gpg)?"
 
 # Se busca el último backup realizado dentro de los últimos 30 días.
 for i in {0..30}; do
   FECHA=$(date --date="${i} days ago" +%Y%m%d)
   MATCH_REGEX="${FILE_BACKUP}(|-full|-incremental)-${FECHA}\.${GPG_REGEX}"
   BACKUP=$(find "${BACKUP_PATH_FULL}" -maxdepth 1 -type f -name "${FILE_BACKUP}*" \
-    2>/dev/null | grep -E "${MATCH_REGEX}" | head -n 1)
+    2>/dev/null | grep -E "${MATCH_REGEX}$" | head -n 1)
 
   if [ -f "${BACKUP}" ]; then
 
