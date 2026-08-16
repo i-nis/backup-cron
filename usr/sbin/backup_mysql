@@ -23,7 +23,7 @@ BDB_BACKUP_PATH="${BACKUP_PATH}/${HOST}/mysql"
 
 # Nombre del archivo de respaldo.
 FILE_EXTENSION=$(file_extension)
-BDB_FILE="backup-${HOST}-mysql-${FECHA}.${FILE_EXTENSION}"
+BDB_FILE="backup-${HOST}-mysql-${FECHA}"
 
 if command -v "${MYSQLDUMP}" >/dev/null 2>&1; then
   message_syslog "Iniciando el respaldo de bases de datos MySQL."
@@ -59,9 +59,9 @@ if command -v "${MYSQLDUMP}" >/dev/null 2>&1; then
   if [ "$(find ./* -name "*.sql" -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
 
       if [ "${PGP_ID}" != "" ]; then
-          LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.gpg.list"
+          LIST="${BDB_BACKUP_PATH}/${BDB_FILE}.${FILE_EXTENSION}.gpg.list"
         else
-          LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.list"
+          LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.${FILE_EXTENSION}.list"
       fi
 
       find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-mysql" > "${LIST}"

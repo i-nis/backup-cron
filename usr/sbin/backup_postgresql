@@ -24,7 +24,7 @@ BDB_PG_BACKUP_PATH="${BACKUP_PATH}/${HOST}/postgresql"
 
 # Nombre del archivo de respaldo.
 FILE_EXTENSION=$(file_extension)
-BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}.${FILE_EXTENSION}"
+BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}"
 
 if [ -e "${BACKUP_PATH}" ]; then
 
@@ -58,9 +58,9 @@ if [ -e "${BACKUP_PATH}" ]; then
     if [ "$(find ./* -name "*.sql" -type f -printf "%f\n" 2>/dev/null | wc --lines)" != "0" ]; then
 
         if [ "${PGP_ID}" != "" ]; then
-            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.gpg.list"
+            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.${FILE_EXTENSION}.gpg.list"
           else
-            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.list"
+            LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.${FILE_EXTENSION}.list"
         fi
 
         find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-postgresql" > "${LIST}"
