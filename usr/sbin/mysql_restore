@@ -117,6 +117,7 @@ backup_file_verify() {
       verify_set "${TEST}"
       set_mysql_credentials
       MYSQL_OPTIONS="--batch --user=${BDB_USER} --password=${BDB_PASSWD} --host=${BDB_HOST}"
+      BDB_FILE="${TEST}"
 
       if [ "${DATABASE_TO_RESTORE}" != "ALL" ]; then
         database_exists "${DATABASE_TO_RESTORE}"
@@ -196,7 +197,7 @@ restore_database() {
     ${MYSQL} ${MY_OPT} --execute="DROP DATABASE IF EXISTS ${MY_DB};"
     ${MYSQL} ${MY_OPT} --execute="CREATE DATABASE IF NOT EXISTS ${MY_DB};"
 
-    if [ -x /usr/bin/pv ]; then
+    if command -v pv >/dev/null 2>&1; then
         pv "${MY_DB}.sql" | ${MYSQL} ${MY_OPT} --database="${MY_DB}"
       else
         ${MYSQL} ${MY_OPT} --database="${MY_DB}" < "${MY_DB}.sql"
@@ -251,16 +252,16 @@ if ${SUM} --check --status "${BDB_FILE}"."${EXT}"; then
         tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}"
         warning "PASO 3 de 3:" "Restauración de bases de datos."
         # Se genera el listado de bases de datos restante a restaurar.
-        DATABASES="$(find ./*.sql -maxdepth 0 -type f -printf "%P\n" | grep --invert-match mysql.sql | awk 'BEGIN {FS = "."}; {print $1}')"
-
-        for database in ${DATABASES}; do
-          restore_database ${MYSQL_OPTIONS} "${database}"
+        find . -maxdepth 1 -name "*.sql" ! -name "mysql.sql" -type f -printf "%f\n" | \
+        awk -F'.' '{print $1}' | while IFS= read -r database; do
+          restore_database "${MYSQL_OPTIONS}" "${database}"
         done
+
 
       else
         tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}" "${DATABASE_TO_RESTORE}".sql
         warning "PASO 3 de 3:" "Restauración de bases de datos."
-        restore_database ${MYSQL_OPTIONS} "${DATABASE_TO_RESTORE}"
+        restore_database "${MYSQL_OPTIONS}" "${DATABASE_TO_RESTORE}"
     fi
 
   else
