@@ -580,10 +580,15 @@ tape_backup() {
   DIRS="${1}"
   EXCLUDE="/etc/backup-cron/exclude.txt"
 
-  tar --create --blocking-factor=64 --preserve-permissions --xattrs \
-               --xattrs-include=*.* --exclude-backups --exclude-caches \
-               --exclude-from="${EXCLUDE}" "${DIRS}" | \
-               mbuffer -t -m 128M -p 90 -s 65536 -f -o "${TAPE}" &>/dev/null
+  tar --create \
+    --blocking-factor=64 \
+    --preserve-permissions \
+    --xattrs \
+    --xattrs-include=*.* \
+    --exclude-backups \
+    --exclude-caches \
+    --exclude-from="${EXCLUDE}" "${DIRS}" | \
+    mbuffer -t -m 128M -p 90 -s 65536 -f -o "${TAPE}" &>/dev/null
 
   message_syslog "El directorio ${DIRS} fue respaldado en ${TAPE}."
 }
