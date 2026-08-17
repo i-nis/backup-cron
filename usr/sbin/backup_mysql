@@ -64,7 +64,10 @@ if command -v "${MYSQLDUMP}" >/dev/null 2>&1; then
           LIST="${BDB_BACKUP_PATH}"/"${BDB_FILE}.${FILE_EXTENSION}.list"
       fi
 
-      find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-mysql" > "${LIST}"
+      find ./. -type f -printf "%f\n" \
+        | grep --invert-match "backup-${HOST}-mysql" > "${LIST}"
+
+      # Genera el archivo de respaldo y sus correspondientes sumas.
       file_backup "${BDB_BACKUP_PATH}/${BDB_FILE}" "${LIST}"
 
       # Eliminar volcados SQL.
