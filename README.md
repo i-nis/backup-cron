@@ -15,16 +15,17 @@ Backup-cron es software libre publicado bajo la [Licencia Pública General de GN
 El conjunto de scripts se ha desarrollado con las siguientes características:
 
 * Empaquetado mediante GNU tar.
-* Compresión utilizando [Zstandard](https://facebook.github.io/zstd/), [XZ Utils](https://tukaani.org/xz/) o [Bzip2](https://sourceware.org/bzip2/).
+* Compresión utilizando [Zstandard](https://facebook.github.io/zstd/) (por defecto), 
+[XZ Utils](https://tukaani.org/xz/) (de manera excepcional) o [Bzip2](https://sourceware.org/bzip2/) (por razones históricas).
 * Encriptación de respaldos mediange [GnuPG](https://www.gnupg.org/related_software/gpgme/).
-* Planificación diaria, semanal o mensual vía Cron.
-* Soporte para gestionar la planificación mediante [eselect](https://wiki.gentoo.org/wiki/Eselect).
+* Planificación diaria, semanal o mensual vía [Cron](https://es.wikipedia.org/wiki/Cron_(Unix)).
+* Soporte para gestionar la planificación mediante [eselect](https://wiki.gentoo.org/wiki/Eselect) en Gentoo Linux.
 * Posibilidad de respaldo de todo el sistema o parte de él.
 * Generación de sumas por MD5, SHA1 y SHA256.
-* Envío de mensajes vía syslog.
+* Envío de mensajes vía [Syslog](https://es.wikipedia.org/wiki/Syslog).
 * Respaldo en sistemas de archivo locales o servidores remotos.
 * Respaldo en cintas con soporte para compresión por hardware.
-* Respaldo en línea de imágenes de discos virtuales administrados con libvirt.
+* Respaldo en línea de imágenes de discos virtuales administrados con [libvirt](https://libvirt.org/).
 
 ## Documentación de Backup-Cron
 
