@@ -16,7 +16,6 @@ source /usr/libexec/backup-cron/backup-cron_functions.sh
 
 
 # Variables para pg_dump
-PG_DUMP="/usr/bin/pg_dump"
 export PGPASSWORD=${BDB_PG_PASSWD}
 
 # Ubicación de la copia de seguridad.
@@ -28,20 +27,33 @@ BDB_PG_FILE="backup-${HOST}-postgresql-${FECHA}"
 
 if [ -e "${BACKUP_PATH}" ]; then
 
-  if [ -x "${PG_DUMP}" ]; then
+   if command -v pg_dump >/dev/null 2>&1; then
     message_syslog "Iniciando el respaldo de bases de datos PostgreSQL: $(date)."
 
     # Verificación de existencia para ${BACKUP_PATH}
     directory_mkdir "${BDB_PG_BACKUP_PATH}"
 
+    # Volcado de objetos globales (roles y tablespaces), no bases de datos.
+    pg_dumpall --username="${BDB_PG_USER}" --globals-only > \
+      "${BDB_PG_BACKUP_PATH}/"roles_tablespaces.sql \
+      2>"${BDB_PG_BACKUP_PATH}/"roles_tablespaces.sql.error
+
+    # Comprueba si los objetos globales fueron correctamente extraídos.
+    if [ "$?" -eq 0 ]; then
+        message_syslog "Los objetos globales (roles y tablespaces) fueron extraídos."
+        database_verify "${BDB_PG_BACKUP_PATH}/roles_tablespaces.sql"
+      else
+        message_syslog "Hubo un error al extraer los objetos globales."
+    fi
+
     # Volcado de bases de datos en SQL
     for database in $(show_databases_pg "${BDB_PG_USER}" "${BDB_PG_PASSWD}" "${BDB_PG_HOST}"); do
-      ${PG_DUMP} --username="${BDB_PG_USER}" \
+      pg_dump --username="${BDB_PG_USER}" \
         --host="${BDB_PG_HOST}" \
         --create "${database}" \
         > "${BDB_PG_BACKUP_PATH}/${database}".sql 2>"${BDB_PG_BACKUP_PATH}/${database}".sql.error
 
-      # Comprueba si el respaldo fue correctamente realizado
+      # Comprueba si el respaldo fue correctamente realizado.
       if [ "$?" -eq 0 ]; then
           message_syslog "La base de datos ${database} fue extraída."
           database_verify "${BDB_PG_BACKUP_PATH}/${database}.sql"
@@ -63,13 +75,20 @@ if [ -e "${BACKUP_PATH}" ]; then
             LIST="${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}.${FILE_EXTENSION}.list"
         fi
 
-        find ./. -type f -printf "%P\n" | grep --invert-match "backup-${HOST}-postgresql" > "${LIST}"
+        find ./. -type f -printf "%f\n" \
+          | grep --invert-match "backup-${HOST}-postgresql" \
+          > "${LIST}"
+
+        # Genera el archivo de respaldo y sus correspondientes sumas.
         file_backup "${BDB_PG_BACKUP_PATH}/${BDB_PG_FILE}" "${LIST}"
 
-        # Eliminar volcados SQL.
+        # Eliminar volcados SQL del sistema de archivos.
         while IFS= read -r file; do
           rm -f "${file}"
         done < "${LIST}"
+
+        # Borra del listado el volcado de objetos globales (roles y tablespaces).
+        sed -i -E '/^(roles_tablespaces\.sql|roles_tablespaces\.sql\.error)$/d' "${LIST}"
 
         # Borrado de copias de seguridad antiguas con tmpwatch
         clean_old_backups "${TMPWATCH}" "${MTIME}" "${BDB_PG_BACKUP_PATH}"

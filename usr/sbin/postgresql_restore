@@ -1,0 +1,294 @@
+#!/bin/bash
+#
+# postgresql_restore: script para restaurar bases de datos PostgreSQL desde copia
+# de respaldo.
+#
+# (C) 2006 - 2026 NIS
+# Autor: Martin Andres Gomez Gimenez <mggimenez@nis.com.ar>
+# Distributed under the terms of the GNU General Public License v3
+#
+
+
+
+source /usr/libexec/backup-cron/backup-cron_functions.sh
+
+
+
+# Función de ayuda del programa.
+usage() {
+  local PROG_NAME
+  PROG_NAME=$(basename "${0}")
+
+  echo ""
+  echo "${PROG_NAME}:"
+  echo "Restaura bases de datos PostgreSQL desde un archivo de copia de respaldo."
+  echo ""
+  echo "  Uso: "
+  echo "       ${PROG_NAME} [-h|--help]"
+  echo "       ${PROG_NAME} [-d|--database] DATABASE [-l|--local] BACKUP_FILE"
+  echo ""
+  echo "       --help, -h"
+  echo "           Muestra esta ayuda."
+  echo ""
+  echo "       --database, -d"
+  echo "           Base de datos a restaurar (opcional). Si se omite este parámetro,"
+  echo "           se restaurarán todas las bases de datos."
+  echo ""
+  echo "       DATABASE"
+  echo "           Nombre de la base de datos a restaurar (solo si se pasa la"
+  echo "           opción -d ó --database)."
+  echo ""
+  echo "       --local, -l"
+  echo "           Utiliza la configuración de bakup-cron almacenada en el archivo"
+  echo "           de configuración /etc/backup-cron/backup-cron.conf."
+  echo ""
+  echo "       BACKUP_FILE"
+  echo "           Archivo de respaldo generado por la utilidad backup_postgresql"
+  echo ""
+}
+
+
+
+# Pregunta al usuario acerca de los datos de conexión al motor de bases de datos:
+# Usuario, Contraseña y host.
+set_postgresql_credentials() {
+  echo "Ingrese los siguientes datos para necesarios."
+  read -r -p "Ingrese el usuario [postgres]: " BDB_PG_USER
+
+  if [ "${BDB_PG_USER}" == "" ]; then
+    BDB_PG_USER="postgres"
+  fi
+
+  read -r -s -p "Ingrese la contraseña para el usuario ${BDB_PG_USER}: " BDB_PG_PASSWD
+  export PGPASSWORD=${BDB_PG_PASSWD}
+  echo ""
+
+  read -r -p "Ingrese el puerto [5432]: " BDB_PG_PORT
+
+  if [ "${BDB_PG_PORT}" == "" ]; then
+    BDB_PG_PORT="5432"
+  fi
+
+  read -r -p "Ingrese el nombre o la IP del servidor bases de datos [localhost]: " BDB_PG_HOST
+
+  if [ "${BDB_PG_HOST}" == "" ]; then
+    BDB_PG_HOST="localhost"
+  fi
+
+  verify_mysql_connect "${BDB_PG_USER}" "${BDB_PG_PORT}" "${BDB_PG_HOST}"
+}
+
+
+
+# Verifica los datos de conexión al servidor de bases de datos.
+verify_mysql_connect() {
+  local USER
+  local PORT
+  local HOST
+
+  USER="${1}"
+  PORT="${3}"
+  HOST="${4}"
+
+  # Verifica la contraseña.
+  until psql --username="${USER}" --port=${PORT} --host="${HOST}" --command=';' ; do
+    warning "ERROR" "No se pudo conectarse al motor de bases de datos."
+    set_postgresql_credentials
+  done
+}
+
+
+# Verifica la existencia de una base de datos pasada por parámetros.
+database_exists() {
+  local PG_DB_P
+  local PG_DB_FIND
+
+  PG_DB_P="${1}"
+  PG_DB_FIND="$(grep ^"${PG_DB_P}".sql$ "${BDB_FILE}".list)"
+
+  if [ "${PG_DB_P}" != "" ] && [ "${PG_DB_P}.sql" != "${PG_DB_FIND}" ]; then
+    warning "ERROR" "No existe en ${BDB_FILE}.list la base de datos seleccionada ${PG_DB_P}."
+    exit 1
+  fi
+
+}
+
+
+
+# Dado un argumento verifica si se trata de un archivo de respaldo.
+backup_file_verify() {
+  local TEST
+
+  TEST="${1}"
+
+  if [ -e "${TEST}" ]; then
+      verify_set "${TEST}"
+      set_postgresql_credentials
+      PG_OPTIONS="--username=${BDB_PG_USER} --port=${BDB_PG_PORT} --host=${BDB_PG_HOST}"
+      BDB_FILE="${TEST}"
+
+      if [ "${DATABASE_TO_RESTORE}" != "ALL" ]; then
+        database_exists "${DATABASE_TO_RESTORE}"
+      fi
+
+    elif [ "${TEST}" == "-h" ] || [ "${TEST}" == "--help" ]; then
+      parameters "${TEST}"
+    else
+      file_no_exist "${TEST}"
+  fi
+}
+
+
+
+# Verifica el correcto pasaje de parámetros.
+function parameters() {
+  local OPT
+
+  OPT=$(getopt \
+        --options d:hl \
+        --longoptions database:,help,local \
+        --name 'mysql_restore' \
+        -- "${@}")
+
+  if [ $? -ne 0 ]; then
+    echo 'Error en parámetros...' >&2
+    exit 1
+  fi
+
+  eval set -- "${OPT}"
+
+  while true; do
+
+    case "$1" in
+      -d | --database )
+        DATABASE_TO_RESTORE="${2}"
+        shift 2
+        continue
+        ;;
+
+      -h | --help )
+        usage
+        exit
+        ;;
+
+      -l | --local )
+        source /etc/backup-cron/backup-cron.conf
+        shift
+        continue
+        ;;
+
+      -- )
+        shift
+        break
+        ;;
+    esac
+
+  shift
+  done
+
+}
+
+
+
+# Función para restaurar una base de datos.
+restore_database() {
+  local PG_OPT
+  local PG_DB
+
+  PG_OPT="${1}"
+  PG_DB="${2}"
+
+  if [ -e "${PG_DB}".sql ] && [ "${PG_DB}" != "postgres" ]; then
+    warning "RESTAURANDO..." "Borrando, creando e importando base de datos ${PG_DB} en el servidor ${BDB_PG_HOST}."
+    psql ${PG_OPT} --command="DROP DATABASE IF EXISTS \"${PG_DB}\";"
+    psql ${PG_OPT} --command="CREATE DATABASE \"${PG_DB}\";"
+
+    if command -v pv >/dev/null 2>&1; then
+        pv "${PG_DB}.sql" | psql ${PG_OPT} --dbname="${PG_DB}"
+      else
+        psql ${PG_OPT} ---dbname="${PG_DB}" --file="${PG_DB}.sql"
+    fi
+
+    echo "La base de datos ${PG_DB} fue restaurada."
+  fi
+
+  rm "${PG_DB}.sql"
+}
+
+
+
+# Inicio del programa.
+BDB_FILE=""
+DATABASE_TO_RESTORE="ALL"
+DECRIPT_FILE=""
+DIGEST=""
+EXT=""
+TAR_OPTIONS="--extract --verbose --preserve-permissions"
+SUM=""
+
+if [ "${#}" == "0" ]; then
+    no_file
+  elif [ "${#}" == "1" ]; then
+    backup_file_verify "${1}"
+    verify_compressor_restore "${1}"
+  else
+    parameters "${@}"
+    backup_file_verify "${@: -1}"
+    verify_compressor_restore "${@: -1}"
+fi
+
+# Seleccionar al azar un algoritmo de suma.
+ramdom_select_sum
+
+warning "PASO 1 de 3:" "Verificando suma ${DIGEST} para el archivo ${BDB_FILE}."
+
+if ${SUM} --check --status "${BDB_FILE}"."${EXT}"; then
+  echo "La suma ${DIGEST} para el archivo ${BDB_FILE} es correcta."
+
+    # Desencriptar respaldo
+    if [ "${PGP_ID}" != "" ]; then
+        DECRIPT_FILE=$(file_decrypt "${BDB_FILE}")
+      else
+        DECRIPT_FILE="${BDB_FILE}"
+    fi
+
+    warning "PASO 2 de 3:" "Descomprimiento archivo ${DECRIPT_FILE}."
+
+    if [ "${DATABASE_TO_RESTORE}" == "ALL" ]; then
+        tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}"
+        warning "PASO 3 de 3:" "Restauración de bases de datos."
+
+        # Se restauran objetos globales (roles y tablespaces).
+        if [ -e roles_tablespaces.sql ]; then
+
+          if command -v pv >/dev/null 2>&1; then
+              pv roles_tablespaces.sql | psql ${PG_OPTIONS}
+            else
+              psql ${PG_OPTIONS} --file="roles_tablespaces.sql"
+          fi
+
+          rm -f roles_tablespaces.sql
+        fi
+
+        # Se genera el listado de bases de datos restante a restaurar.
+        find . -maxdepth 1 \
+          -name "*.sql" \
+          -type f -printf "%f\n" | \
+        awk -F'.' '{print $1}' | while IFS= read -r database; do
+          restore_database "${PG_OPTIONS}" "${database}"
+        done
+
+
+      else
+        tar ${TAR_OPTIONS} --file "${DECRIPT_FILE}" "${DATABASE_TO_RESTORE}".sql
+        warning "PASO 3 de 3:" "Restauración de bases de datos."
+        restore_database "${PG_OPTIONS}" "${DATABASE_TO_RESTORE}"
+    fi
+
+  else
+    warning "ERROR:" "La suma ${DIGEST} no coincidió para el archivo ${BDB_FILE}."
+    exit
+fi
+
+warning "IMPORTANTE:" "Todas las bases de datos fueron restauradas."
+
